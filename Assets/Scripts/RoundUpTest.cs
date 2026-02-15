@@ -12,6 +12,9 @@ public class RoundUpTest : MonoBehaviour
     [SerializeField]
     private TMP_InputField m_answer;
     private float answer;
+    [SerializeField]
+    private TMP_Text m_Messages;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,11 +47,19 @@ public class RoundUpTest : MonoBehaviour
 
         if(value == answer)
         {
+            m_Messages.text = ("Respuesta Correcta!");
             Debug.Log("Correct answer");
         }
         else
         {
+            m_Messages.text = ("Respuesta Incorrecta!");
             Debug.Log("Incorrect answer");
         }
+    }
+    public void Reset()
+    {
+        GenerateRandomNumbers();
+        m_answer.text = null;
+        m_Messages.text = ("Esperando Respuesta");
     }
 }
