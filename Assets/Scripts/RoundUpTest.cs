@@ -46,23 +46,26 @@ public class RoundUpTest : MonoBehaviour
     public void CheckForCorrectAnswer()
     {
         float correctSum = answer;
-        float expected = Mathf.Round(correctSum * 10f) / 10f;
+        float expectedCeil = Mathf.Ceil(correctSum * 10f) / 10f;
 
         float value;
+        string normalized = m_answer.text.Replace(",", ".");
 
-        if(float.TryParse (m_answer.text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        if(float.TryParse (normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
         {
             Debug.Log("Valor ingresado: " + value);
-            float userRounded = Mathf.Round(value * 10f) / 10f;
 
-            if(Mathf.Approximately (expected, userRounded))
+            bool isExact = Mathf.Abs(value - correctSum) < 0.0001f;
+            bool isRoundedUp = Mathf.Abs(value - expectedCeil) < 0.0001f;
+
+            if (isExact || isRoundedUp)
             {
-                m_Messages.text = ("Respuesta Correcta!");
+                m_Messages.text = "Respuesta Correcta!";
                 Debug.Log("Correct answer");
             }
             else
             {
-                m_Messages.text = ("Respuesta Incorrecta!");
+                m_Messages.text = "Respuesta Incorrecta!";
                 Debug.Log("Incorrect answer");
             }
         }
