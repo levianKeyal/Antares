@@ -1,90 +1,73 @@
 using UnityEngine;
-using TMPro;
+using System;
 using System.Globalization;
+using TMPro;
 
 public class RoundUpTest : MonoBehaviour
 {
-    [SerializeField]
-    private TMP_Text m_number1;
-    private float number1;
-    [SerializeField]
-    private TMP_Text m_number2;
-    private float number2;
-    [SerializeField]
-    private TMP_InputField m_answer;
-    private float answer;
-    [SerializeField]
-    private TMP_Text m_Messages;
+    [SerializeField] TMP_Text m_number1;
+    [SerializeField] TMP_Text m_number2;
+    [SerializeField] TMP_InputField m_answer;
+    [SerializeField] TMP_Text m_Messages;
+    public TMP_Dropdown decimalsDropdown;
 
-    public bool round1decimal;
-    public bool round2decimal;
-    public bool round3decimal;
-    public bool round4decimal;
-    public bool round5decimal;
+    decimal number1;
+    decimal number2;
+    decimal answer;
 
+    int decimalSelected = 0;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        UpdateDecimals();
         GenerateRandomNumbers();
+    }
+
+    public void UpdateDecimals()
+    {
+        decimalSelected = decimalsDropdown.value;
     }
 
     void GenerateRandomNumbers()
     {
-        number1 = Random.Range(0f, 100f);
-        float truncated1 = Mathf.Floor(number1 * 100f) / 100f;
-        m_number1.text = truncated1.ToString(CultureInfo.InvariantCulture);
+        decimal multiplier = (decimal)Math.Pow(10, decimalSelected);
 
-        number2 = Random.Range(0f, 100f);
-        float truncated2 = Mathf.Floor(number2 * 100f) / 100f;
-        m_number2.text = truncated2.ToString(CultureInfo.InvariantCulture);
+        number1 = Math.Floor((decimal)UnityEngine.Random.Range(0f, 100f) * multiplier) / multiplier;
+        number2 = Math.Floor((decimal)UnityEngine.Random.Range(0f, 100f) * multiplier) / multiplier;
 
-        answer = truncated1 + truncated2;
-        Debug.Log(answer);
+        answer = number1 + number2;
+
+        m_number1.text = number1.ToString(CultureInfo.InvariantCulture);
+        m_number2.text = number2.ToString(CultureInfo.InvariantCulture);
+
+        Debug.Log($"Answer = {answer}");
     }
 
     public void CheckForCorrectAnswer()
     {
-        float correctSum = answer;
-        float expectedCeil = Mathf.Ceil(correctSum * 10f) / 10f;
-
-        float value;
         string normalized = m_answer.text.Replace(",", ".");
 
-        if(float.TryParse (normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        decimal userValue;
+        if (!decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out userValue))
         {
-            Debug.Log("Valor ingresado: " + value);
-
-            bool isExact = Mathf.Abs(value - correctSum) < 0.0001f;
-            bool isRoundedUp = Mathf.Abs(value - expectedCeil) < 0.0001f;
-
-            if (isExact || isRoundedUp)
-            {
-                m_Messages.text = "Respuesta Correcta!";
-                Debug.Log("Correct answer");
-            }
-            else
-            {
-                m_Messages.text = "Respuesta Incorrecta!";
-                Debug.Log("Incorrect answer");
-            }
+            m_Messages.text = "Número inválido";
+            return;
         }
-        /*
-        if(value == answer)
-        {
-            m_Messages.text = ("Respuesta Correcta!");
-            Debug.Log("Correct answer");
-        }
-        else
-        {
-            m_Messages.text = ("Respuesta Incorrecta!");
-            Debug.Log("Incorrect answer");
-        }*/
+
+        decimal multiplier = (decimal)Math.Pow(10, decimalSelected);
+        decimal expectedCeil = Math.Ceiling(answer * multiplier) / multiplier;
+
+        bool isExact = userValue == answer;
+        bool isRoundedUp = userValue == expectedCeil;
+
+        m_Messages.text = (isExact || isRoundedUp) ? "Respuesta Correcta!" : "Respuesta Incorrecta!";
     }
-    public void Reset()
+
+    public void ResetExercise()
     {
+        UpdateDecimals();
         GenerateRandomNumbers();
-        m_answer.text = null;
-        m_Messages.text = ("Esperando Respuesta");
+        m_answer.text = "";
+        m_Messages.text = "Esperando Respuesta";
     }
 }
