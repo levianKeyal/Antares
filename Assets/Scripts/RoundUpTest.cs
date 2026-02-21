@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Globalization;
 
 public class RoundUpTest : MonoBehaviour
 {
@@ -26,11 +27,11 @@ public class RoundUpTest : MonoBehaviour
     {
         number1 = Random.Range(0f, 100f);
         float truncated1 = Mathf.Floor(number1 * 100f) / 100f;
-        m_number1.text = truncated1.ToString();
+        m_number1.text = truncated1.ToString("F2",CultureInfo.InvariantCulture);
 
         number2 = Random.Range(0f, 100f);
         float truncated2 = Mathf.Floor(number2 * 100f) / 100f;
-        m_number2.text = truncated2.ToString();
+        m_number2.text = truncated2.ToString("F2", CultureInfo.InvariantCulture);
 
         answer = truncated1 + truncated2;
         Debug.Log(answer);
@@ -40,7 +41,7 @@ public class RoundUpTest : MonoBehaviour
     {
         float value;
 
-        if(float.TryParse (m_answer.text, out value))
+        if(float.TryParse (m_answer.text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
         {
             Debug.Log("Valor ingresado: " + value);
         }
