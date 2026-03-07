@@ -14,20 +14,23 @@ public class MathValidator : MonoBehaviour
         decimal truncated = Math.Floor(correctAnswer * multiplier) / multiplier;
         decimal ceil = Math.Ceiling(correctAnswer * multiplier) / multiplier;
 
-        bool exact = userValue == correctAnswer;
+        bool exactMatch = userValue == correctAnswer;
         bool truncMatch = userValue == truncated;
         bool ceilMatch = userValue == ceil;
 
         switch (mode)
         {
             case ValidationMode.ExactOnly:
-                return exact;
+                return exactMatch;
 
-            case ValidationMode.TruncatedAndCeil:
-                return truncMatch || ceilMatch;
+            case ValidationMode.Truncated:
+                return truncMatch;
+
+            case ValidationMode.Ceil:
+                return ceilMatch;
 
             case ValidationMode.All:
-                return exact || truncMatch || ceilMatch;
+                return exactMatch || truncMatch || ceilMatch;
         }
 
         return false;

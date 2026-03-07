@@ -11,6 +11,7 @@ public enum OperationType
 public enum ValidationMode
 {
     ExactOnly,
-    TruncatedAndCeil,
+    Truncated,
+    Ceil,
     All
 }
