@@ -1,7 +1,6 @@
-using UnityEngine;
 using System;
 
-public class MathValidator : MonoBehaviour
+public static class MathValidator
 {
     public static bool Validate(
         decimal correctAnswer,
@@ -11,8 +10,14 @@ public class MathValidator : MonoBehaviour
     {
         decimal multiplier = (decimal)Math.Pow(10, decimals);
 
-        decimal truncated = Math.Floor(correctAnswer * multiplier) / multiplier;
-        decimal ceil = Math.Ceiling(correctAnswer * multiplier) / multiplier;
+        decimal truncated = Math.Truncate(correctAnswer * multiplier) / multiplier;
+
+        decimal ceil;
+
+        if (correctAnswer >= 0)
+            ceil = Math.Ceiling(correctAnswer * multiplier) / multiplier;
+        else
+            ceil = Math.Floor(correctAnswer * multiplier) / multiplier;
 
         bool exactMatch = userValue == correctAnswer;
         bool truncMatch = userValue == truncated;

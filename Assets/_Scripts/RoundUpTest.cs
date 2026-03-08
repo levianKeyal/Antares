@@ -79,6 +79,6 @@ public class RoundUpTest : MonoBehaviour
     }
     public void ExitScene()
     {
-        Overlord.overlord.CallScene("StartFlow");
+        GameSettings.Instance.CallScene("StartFlow");
     }
 }

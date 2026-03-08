@@ -2,6 +2,7 @@ using UnityEngine;
 
 public enum OperationType
 {
+    Random,
     Add,
     Subtract,
     Multiply,

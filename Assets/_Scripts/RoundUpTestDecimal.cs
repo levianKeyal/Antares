@@ -101,6 +101,6 @@ public class RoundUpTestDecimals : MonoBehaviour
     }
     public void ExitScene()
     {
-        Overlord.overlord.CallScene("StartFlow");
+        GameSettings.Instance.CallScene("StartFlow");
     }
 }
