@@ -7,6 +7,8 @@ using System.Globalization;
 public class RoundUpController : MonoBehaviour
 {
     [Header("UI")]
+    [SerializeField] TMP_Text _validationType;
+    [SerializeField] TMP_Text _decimalNumbers;
     [SerializeField] TMP_Text number1Text;
     [SerializeField] TMP_Text number2Text;
     [SerializeField] TMP_Text signText;
@@ -30,6 +32,19 @@ public class RoundUpController : MonoBehaviour
     private void Awake()
     {
         _exitScreen.onClick.AddListener(delegate { GameSettings.Instance.CallScene("StartFlow"); });
+
+        ValidationMode validation = GameSettings.Instance.validationMode;
+        _validationType.text = GetValidationType(validation);
+
+        if(validation == ValidationMode.ExactOnly )
+        {
+            _decimalNumbers.text = null;
+        }
+        else
+        {
+            _decimalNumbers.text = GameSettings.Instance.decimals.ToString() + (" Decimales");
+        }
+            
     }
     void Start()
     {
@@ -160,6 +175,18 @@ public class RoundUpController : MonoBehaviour
             case OperationType.Subtract: return "-";
             case OperationType.Multiply: return "×";
             case OperationType.Divide: return "÷";
+        }
+
+        return "?";
+    }
+    string GetValidationType(ValidationMode validationTypeString)
+    {
+        switch (validationTypeString)
+        {
+            case ValidationMode.ExactOnly : return "Resultado Exacto";
+            case ValidationMode.Truncated: return "Resultado Truncado";
+            case ValidationMode.Ceil: return "Resultado Redondeado";
+            case ValidationMode.All: return "Cualquier Tipo De Resultado";
         }
 
         return "?";

@@ -45,8 +45,19 @@ public class MathExercise
 
     decimal GenerateRandomDecimalWithRandomPrecision(int minValue, int maxValue)
     {
-        // Random precision between 0 and 5 decimals
-        int decimals = UnityEngine.Random.Range(0, 6);
+        int minDecimals = 0;
+        int maxDecimals = 5;
+
+        if (GameSettings.Instance != null)
+        {
+            // If using truncated validation, ensure enough decimals exist
+            if (GameSettings.Instance.validationMode == ValidationMode.Truncated)
+            {
+                minDecimals = GameSettings.Instance.decimals;
+            }
+        }
+
+        int decimals = UnityEngine.Random.Range(minDecimals, maxDecimals + 1);
 
         decimal multiplier = (decimal)Math.Pow(10, decimals);
 
