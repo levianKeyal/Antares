@@ -46,8 +46,8 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
     {
         if (widthSlider != null)
         {
-            widthSlider.minValue = 1f;
-            widthSlider.maxValue = 20f;
+            widthSlider.minValue = 0.5f;
+            widthSlider.maxValue = 2f;
             widthSlider.value = lineWidth;
 
             widthSlider.onValueChanged.AddListener(SetLineWidth);
