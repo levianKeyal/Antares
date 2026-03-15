@@ -20,6 +20,8 @@ public class RoundUpController : MonoBehaviour
     [SerializeField] CanvasGroup feedbackPanel;
     [SerializeField] Image feedbackImage;
 
+    [SerializeField] Canvas _blackBoardCanvas;
+
     [Header("Feedback")]
     [SerializeField] float flashDuration = 0.35f;
     [SerializeField] float shakeDuration = 0.25f;
@@ -44,13 +46,25 @@ public class RoundUpController : MonoBehaviour
         {
             _decimalNumbers.text = GameSettings.Instance.decimals.ToString() + (" Decimales");
         }
-            
+
+        _blackBoardCanvas.gameObject.SetActive(false);
     }
     void Start()
     {
         GenerateExercise();
     }
 
+    public void BlackboardIO()
+    {
+        if(_blackBoardCanvas.gameObject.activeInHierarchy == true)
+        {
+            _blackBoardCanvas.gameObject.SetActive(false);
+        }
+        else if (_blackBoardCanvas.gameObject.activeInHierarchy == false)
+        {
+            _blackBoardCanvas.gameObject.SetActive(true);
+        }
+    }
     public void GenerateExercise()
     {
         Debug.Log("Generating exercise");
