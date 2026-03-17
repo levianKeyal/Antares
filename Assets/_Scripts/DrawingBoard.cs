@@ -1,6 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -10,30 +9,32 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
     [Header("Render Settings")]
     public int baseSortingOrder = 100;
+    public Color lineColor = Color.black;
 
     [Range(0.5f, 2f)]
     public float lineWidth = 1.2f;
 
-    public Color lineColor = Color.black;
-
-    [Header("Runtime Controls")]
-    public Slider widthSlider;
-
     [Header("Drawing")]
     public float minPointDistance = 2f;
-    public int curveResolution = 8;
+    public int curveResolution = 4;
+
+    [Header("Dot Settings")]
+    public float tapPointOffset = 0.5f;
 
     [Header("Eraser")]
     public float eraserRadius = 12f;
+    public float eraseStep = 4f; // 🔥 Mejora 3: más precisión
     bool eraserMode = false;
 
-    [Header("WebGL Optimization")]
-    [Range(0.5f, 5f)]
-    public float simplifyTolerance = 1.5f;
+    [Header("Drawing Panel")]
+    public RectTransform rectTransform;
 
-    public int maxPointsPerLine = 250;
+    [Header("Blackboard Canvas")]
+    public Canvas canvas;
 
-    RectTransform rectTransform;
+    [Header("Drawingboard Animations")]
+    public Animator dbAnimator;
+
     Camera uiCamera;
 
     LineRenderer currentLine;
@@ -47,30 +48,26 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
     Material sharedMaterial;
 
+    bool isDrawing = false;
+
+    // 🔥 NUEVO: eraser smoothing
+    Vector3 lastErasePosition;
+    bool isErasing = false;
+
     void Awake()
     {
-        rectTransform = GetComponent<RectTransform>();
+        if (canvas == null)
+            canvas = GetComponentInChildren<Canvas>(true);
 
-        Canvas canvas = GetComponentInParent<Canvas>();
-
-        if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-            uiCamera = null;
-        else
-            uiCamera = canvas.worldCamera;
+        if (canvas != null)
+        {
+            if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                uiCamera = null;
+            else
+                uiCamera = canvas.worldCamera;
+        }
 
         sharedMaterial = new Material(Shader.Find("Sprites/Default"));
-    }
-
-    void Start()
-    {
-        if (widthSlider != null)
-        {
-            widthSlider.minValue = 0.5f;
-            widthSlider.maxValue = 2f;
-            widthSlider.value = lineWidth;
-
-            widthSlider.onValueChanged.AddListener(SetLineWidth);
-        }
     }
 
     void OnEnable()
@@ -82,13 +79,32 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
     {
         rectTransform.anchorMin = Vector2.zero;
         rectTransform.anchorMax = Vector2.one;
-
         rectTransform.offsetMin = Vector2.zero;
         rectTransform.offsetMax = Vector2.zero;
     }
 
+    bool IsPointerOverUIButton(PointerEventData eventData)
+    {
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        foreach (var r in results)
+        {
+            if (r.gameObject == rectTransform.gameObject)
+                continue;
+
+            if (r.gameObject.GetComponent<UnityEngine.UI.Button>() != null)
+                return true;
+        }
+
+        return false;
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (IsPointerOverUIButton(eventData))
+            return;
+
         if (!RectTransformUtility.RectangleContainsScreenPoint(rectTransform, eventData.position, uiCamera))
             return;
 
@@ -96,16 +112,25 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
         if (eraserMode)
         {
-            Erase(point);
+            isDrawing = true;
+            isErasing = true;
+            lastErasePosition = point;
+
+            EraseInterpolated(point);
             return;
         }
 
         StartLine();
         AddPointToLine(point);
+
+        isDrawing = true;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (!isDrawing)
+            return;
+
         if (!RectTransformUtility.RectangleContainsScreenPoint(rectTransform, eventData.position, uiCamera))
             return;
 
@@ -113,7 +138,7 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
         if (eraserMode)
         {
-            Erase(point);
+            EraseInterpolated(point);
             return;
         }
 
@@ -122,7 +147,22 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (!isDrawing)
+            return;
+
+        if (currentLine != null && points.Count == 1)
+        {
+            Vector3 p = points[0];
+            Vector3 offset = new Vector3(tapPointOffset, 0f, 0f);
+
+            currentLine.positionCount = 2;
+            currentLine.SetPosition(0, p);
+            currentLine.SetPosition(1, p + offset);
+        }
+
         currentLine = null;
+        isDrawing = false;
+        isErasing = false; // 🔥 reset
     }
 
     Vector3 GetLocalPoint(PointerEventData eventData)
@@ -136,7 +176,6 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
             out localPoint
         );
 
-        // Z must be 0 for UI space
         return new Vector3(localPoint.x, localPoint.y, 0f);
     }
 
@@ -145,8 +184,7 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
         currentLine = GetLineFromPool();
 
         currentLine.gameObject.SetActive(true);
-
-        currentLine.transform.SetParent(transform, false);
+        currentLine.transform.SetParent(canvas.transform, false);
 
         currentLine.transform.localPosition = Vector3.zero;
         currentLine.transform.localRotation = Quaternion.identity;
@@ -154,38 +192,38 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
         currentLine.transform.SetAsLastSibling();
 
-        // Ensure new line is drawn above previous ones
         currentLine.sortingOrder = baseSortingOrder + lineCounter;
         lineCounter++;
-
-        currentLine.startWidth = lineWidth;
-        currentLine.endWidth = lineWidth;
 
         currentLine.material = sharedMaterial;
         currentLine.material.color = lineColor;
 
+        currentLine.startWidth = lineWidth;
+        currentLine.endWidth = lineWidth;
+
         currentLine.useWorldSpace = false;
 
         lines.Add(currentLine);
-
         points.Clear();
     }
 
     LineRenderer GetLineFromPool()
-{
-    LineRenderer line;
+    {
+        LineRenderer line;
 
-    if (linePool.Count > 0)
-        line = linePool.Pop();
-    else
-        line = Instantiate(linePrefab);
+        if (linePool.Count > 0)
+            line = linePool.Pop();
+        else
+            line = Instantiate(linePrefab);
 
-    line.positionCount = 0;
+        line.positionCount = 0;
+        line.transform.SetParent(canvas.transform, false);
 
-    line.transform.SetParent(transform, false);
+        line.startWidth = lineWidth;
+        line.endWidth = lineWidth;
 
-    return line;
-}
+        return line;
+    }
 
     void ReturnLineToPool(LineRenderer line)
     {
@@ -196,80 +234,101 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
 
     void AddPointToLine(Vector3 point)
     {
+        if (currentLine == null)
+            return;
+
         if (points.Count > 0 &&
             Vector3.Distance(points[points.Count - 1], point) < minPointDistance)
             return;
 
         points.Add(point);
 
-        if (points.Count > maxPointsPerLine)
-            SimplifyCurrentLine();
-
-        List<Vector3> smoothed = SmoothLine(points);
-
-        currentLine.positionCount = smoothed.Count;
-        currentLine.SetPositions(smoothed.ToArray());
-    }
-
-    List<Vector3> SmoothLine(List<Vector3> rawPoints)
-    {
-        List<Vector3> smoothed = new List<Vector3>();
-
-        if (rawPoints.Count < 3)
-            return new List<Vector3>(rawPoints);
-
-        for (int i = 0; i < rawPoints.Count - 1; i++)
+        if (points.Count < 4)
         {
-            Vector3 p0 = i == 0 ? rawPoints[i] : rawPoints[i - 1];
-            Vector3 p1 = rawPoints[i];
-            Vector3 p2 = rawPoints[i + 1];
-            Vector3 p3 = (i + 2 < rawPoints.Count) ? rawPoints[i + 2] : p2;
-
-            for (int j = 0; j < curveResolution; j++)
-            {
-                float t = j / (float)curveResolution;
-
-                Vector3 point =
-                    0.5f *
-                    ((2f * p1) +
-                    (-p0 + p2) * t +
-                    (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
-                    (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
-
-                smoothed.Add(point);
-            }
+            currentLine.positionCount = points.Count;
+            currentLine.SetPositions(points.ToArray());
+            return;
         }
 
-        smoothed.Add(rawPoints[rawPoints.Count - 1]);
-
-        return smoothed;
+        AddSmoothSegment();
     }
 
-    void SimplifyCurrentLine()
+    void AddSmoothSegment()
     {
-        List<Vector3> simplified = DouglasPeucker(points, simplifyTolerance);
-        points = simplified;
+        int count = points.Count;
+
+        Vector3 p0 = points[count - 4];
+        Vector3 p1 = points[count - 3];
+        Vector3 p2 = points[count - 2];
+        Vector3 p3 = points[count - 1];
+
+        List<Vector3> newPoints = new List<Vector3>();
+
+        for (int j = 0; j < curveResolution; j++)
+        {
+            float t = j / (float)curveResolution;
+
+            Vector3 point =
+                0.5f *
+                ((2f * p1) +
+                (-p0 + p2) * t +
+                (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
+                (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
+
+            newPoints.Add(point);
+        }
+
+        int oldCount = currentLine.positionCount;
+        currentLine.positionCount = oldCount + newPoints.Count;
+
+        for (int i = 0; i < newPoints.Count; i++)
+            currentLine.SetPosition(oldCount + i, newPoints[i]);
     }
 
-    void Erase(Vector3 position) 
-    { 
-        for (int i = lines.Count - 1; i >= 0; i--) 
+    // 🔥 NUEVO: interpolación del borrador
+    void EraseInterpolated(Vector3 currentPos)
+    {
+        float distance = Vector3.Distance(lastErasePosition, currentPos);
+        int steps = Mathf.CeilToInt(distance / eraseStep);
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = (float)i / steps;
+            Vector3 pos = Vector3.Lerp(lastErasePosition, currentPos, t);
+
+            EraseAtPoint(pos);
+        }
+
+        lastErasePosition = currentPos;
+    }
+
+    // 🔥 MEJORADO: múltiples cortes + sin return
+    void EraseAtPoint(Vector3 position)
+    {
+        for (int i = lines.Count - 1; i >= 0; i--)
         {
             LineRenderer line = lines[i];
             int count = line.positionCount;
 
-            for (int j = 0; j < count - 1; j++) 
-            { 
+            for (int j = 0; j < count - 1; j++)
+            {
                 Vector3 p1 = line.GetPosition(j);
                 Vector3 p2 = line.GetPosition(j + 1);
+
                 float dist = DistancePointToSegment(position, p1, p2);
-                if (dist <= eraserRadius) { SplitLine(line, j);
-                    return; 
-                } 
-            } 
-        } 
+
+                if (dist <= eraserRadius)
+                {
+                    SplitLine(line, j);
+
+                    count = line.positionCount;
+                    j = Mathf.Max(0, j - 1);
+                }
+            }
+        }
     }
 
+    // 🔥 MEJORADO: limpieza de fragmentos pequeños
     void SplitLine(LineRenderer line, int index)
     {
         int count = line.positionCount;
@@ -290,8 +349,7 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
         for (int i = index + 1; i < count; i++)
             secondSegment.Add(line.GetPosition(i));
 
-        // --- FIRST SEGMENT (reuse original line) ---
-        if (firstSegment.Count > 1)
+        if (firstSegment.Count > 2)
         {
             line.positionCount = firstSegment.Count;
             line.SetPositions(firstSegment.ToArray());
@@ -302,41 +360,28 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
             lines.Remove(line);
         }
 
-        // --- SECOND SEGMENT (create new line) ---
-        if (secondSegment.Count > 1)
+        if (secondSegment.Count > 2)
         {
             LineRenderer newLine = GetLineFromPool();
 
             newLine.gameObject.SetActive(true);
-
-            // VERY IMPORTANT: parent to drawing board
-            newLine.transform.SetParent(transform, false);
-
-            // Reset transform to avoid pooling offsets
-            newLine.transform.localPosition = Vector3.zero;
-            newLine.transform.localRotation = Quaternion.identity;
-            newLine.transform.localScale = Vector3.one;
-
-            newLine.useWorldSpace = false;
+            newLine.transform.SetParent(canvas.transform, false);
 
             newLine.positionCount = secondSegment.Count;
             newLine.SetPositions(secondSegment.ToArray());
 
+            newLine.material = line.material;
+
             newLine.startWidth = line.startWidth;
             newLine.endWidth = line.endWidth;
 
-            newLine.material = sharedMaterial;
-            newLine.material.color = line.material.color;
-
-            // Ensure correct render order
             newLine.sortingOrder = baseSortingOrder + lineCounter;
             lineCounter++;
-
-            newLine.transform.SetAsLastSibling();
 
             lines.Add(newLine);
         }
     }
+
     float DistancePointToSegment(Vector3 point, Vector3 a, Vector3 b)
     {
         Vector3 ab = b - a;
@@ -356,20 +401,10 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
             return Vector3.Distance(point, projection);
         }
     }
-    public void EnableEraser()
-    {
-        eraserMode = true;
-    }
 
-    public void EnablePen()
-    {
-        eraserMode = false;
-    }
-
-    public void ToggleEraser()
-    {
-        eraserMode = !eraserMode;
-    }
+    public void EnableEraser() => eraserMode = true;
+    public void EnablePen() => eraserMode = false;
+    public void ToggleEraser() => eraserMode = !eraserMode;
 
     public void ClearBoard()
     {
@@ -377,7 +412,6 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
             ReturnLineToPool(line);
 
         lines.Clear();
-
         lineCounter = 0;
     }
 
@@ -389,19 +423,7 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
         LineRenderer last = lines[lines.Count - 1];
 
         ReturnLineToPool(last);
-
         lines.RemoveAt(lines.Count - 1);
-    }
-
-    public void SetLineWidth(float width)
-    {
-        lineWidth = width;
-
-        if (currentLine != null)
-        {
-            currentLine.startWidth = width;
-            currentLine.endWidth = width;
-        }
     }
 
     public void SetLineColor(Color newColor)
@@ -412,71 +434,8 @@ public class UIDrawingBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, 
             currentLine.material.color = newColor;
     }
 
-    List<Vector3> DouglasPeucker(List<Vector3> pointList, float epsilon)
+    public void DrawinBoardAnimIO()
     {
-        if (pointList.Count < 3)
-            return new List<Vector3>(pointList);
-
-        int firstIndex = 0;
-        int lastIndex = pointList.Count - 1;
-
-        List<int> pointIndexsToKeep = new List<int>();
-        pointIndexsToKeep.Add(firstIndex);
-        pointIndexsToKeep.Add(lastIndex);
-
-        DouglasPeuckerReduction(pointList, firstIndex, lastIndex, epsilon, ref pointIndexsToKeep);
-
-        List<Vector3> returnPoints = new List<Vector3>();
-
-        pointIndexsToKeep.Sort();
-
-        foreach (int index in pointIndexsToKeep)
-            returnPoints.Add(pointList[index]);
-
-        return returnPoints;
-    }
-
-    void DouglasPeuckerReduction(List<Vector3> points, int firstIndex, int lastIndex, float epsilon, ref List<int> pointIndexsToKeep)
-    {
-        float maxDistance = 0;
-        int indexFarthest = 0;
-
-        for (int i = firstIndex; i < lastIndex; i++)
-        {
-            float distance = PerpendicularDistance(points[firstIndex], points[lastIndex], points[i]);
-
-            if (distance > maxDistance)
-            {
-                maxDistance = distance;
-                indexFarthest = i;
-            }
-        }
-
-        if (maxDistance > epsilon && indexFarthest != 0)
-        {
-            pointIndexsToKeep.Add(indexFarthest);
-
-            DouglasPeuckerReduction(points, firstIndex, indexFarthest, epsilon, ref pointIndexsToKeep);
-            DouglasPeuckerReduction(points, indexFarthest, lastIndex, epsilon, ref pointIndexsToKeep);
-        }
-    }
-
-    float PerpendicularDistance(Vector3 point1, Vector3 point2, Vector3 point)
-    {
-        float area = Mathf.Abs(
-            point1.x * point2.y +
-            point2.x * point.y +
-            point.x * point1.y -
-            point2.x * point1.y -
-            point.x * point2.y -
-            point1.x * point.y
-        );
-
-        float bottom = Mathf.Sqrt(
-            Mathf.Pow(point1.x - point2.x, 2) +
-            Mathf.Pow(point1.y - point2.y, 2)
-        );
-
-        return area / bottom * 2f;
+        dbAnimator.SetBool("DrawingBoardIO", !dbAnimator.GetBool("DrawingBoardIO"));
     }
 }

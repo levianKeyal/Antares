@@ -22,6 +22,7 @@ public class UIColorButton : MonoBehaviour
 
     public void SelectColor()
     {
+        Debug.Log("color changed");
         if (drawingBoard != null)
             drawingBoard.SetLineColor(buttonColor);
     }
