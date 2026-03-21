@@ -16,3 +16,10 @@ public enum ValidationMode
     Ceil,
     All
 }
+
+public enum NumberSignMode
+{
+    PositiveOnly,
+    NegativeOnly,
+    Mixed
+}

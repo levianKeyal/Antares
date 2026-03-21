@@ -6,7 +6,9 @@ public class GameSettings : MonoBehaviour
     public static GameSettings Instance;
 
     public int decimals = 2;
-    public ValidationMode validationMode = ValidationMode.All;
+    public ValidationMode validationMode = ValidationMode.ExactOnly;
+
+    public NumberSignMode numberSignMode = NumberSignMode.PositiveOnly;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
