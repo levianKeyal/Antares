@@ -1,20 +1,25 @@
 ﻿using UnityEngine;
 using System;
 
+/// <summary>
+/// MathExercise generates arithmetic exercises (Add, Subtract, Multiply, Divide)
+/// with full support for sign rules, decimal precision, and validation modes.
+/// </summary>
 public class MathExercise
 {
-    // Public read-only properties for operands and result
     public decimal Number1 { get; private set; }
     public decimal Number2 { get; private set; }
     public decimal Answer { get; private set; }
 
-    // Precomputed powers of 10 for decimal handling
+    // Powers of 10 used for decimal manipulations
     static readonly decimal[] Pow10 =
     {
         1m, 10m, 100m, 1000m, 10000m, 100000m, 1000000m
     };
 
-    // Constructor selects operation type
+    /// <summary>
+    /// Constructor: generates an exercise based on operation type
+    /// </summary>
     public MathExercise(int min, int max, OperationType operation)
     {
         switch (operation)
@@ -37,7 +42,10 @@ public class MathExercise
         }
     }
 
-    // Generates a random decimal number with up to 5 decimal places
+    /// <summary>
+    /// Generates a random decimal between min and max
+    /// with a random number of decimals (0-5)
+    /// </summary>
     decimal GenerateRandomDecimal(int min, int max)
     {
         int decimals = UnityEngine.Random.Range(0, 6);
@@ -51,41 +59,159 @@ public class MathExercise
         return randomInt / multiplier;
     }
 
-    // Generates a valid result:
-    // - Enough decimals for truncation mode
-    // - Does NOT end in zero
+    /// <summary>
+    /// Generates a valid result respecting validation mode and truncation rules
+    /// </summary>
     decimal GenerateValidResult(int min, int max)
     {
-        int decimals = UnityEngine.Random.Range(1, 6);
+        int maxDecimals = 6;
+        int decimals;
 
         if (GameSettings.Instance != null &&
             GameSettings.Instance.validationMode == ValidationMode.Truncated)
         {
+            // Truncated: result must have at least (validation decimals + 1) decimals
             int minRequired = GameSettings.Instance.decimals + 1;
-            decimals = UnityEngine.Random.Range(minRequired, 7);
+            decimals = UnityEngine.Random.Range(minRequired, maxDecimals + 1);
+        }
+        else
+        {
+            decimals = UnityEngine.Random.Range(1, maxDecimals + 1);
         }
 
         decimal multiplier = Pow10[decimals];
 
         int integerPart = UnityEngine.Random.Range(min, max);
-
         int decimalPart;
+
         do
         {
             decimalPart = UnityEngine.Random.Range(1, (int)multiplier);
         }
-        while (decimalPart % 10 == 0); // Avoid trailing zero
+        while (decimalPart % 10 == 0); // ❗ Avoid ending in 0
 
-        return integerPart + decimalPart / multiplier;
+        decimal result = integerPart + decimalPart / multiplier;
+
+        // 🔥 Ensure result has max 6 decimals
+        result = LimitDecimals(result, maxDecimals);
+
+        return result;
     }
 
-    // Applies sign rules without breaking math correctness
-    void ApplySigns(ref decimal a, ref decimal b, decimal result, OperationType op)
+    // =========================
+    // ADDITION
+    // =========================
+    void GenerateAddition(int min, int max)
     {
-        if (GameSettings.Instance == null)
-            return;
+        decimal result = GenerateValidResult(min, max);
 
-        switch (GameSettings.Instance.numberSignMode)
+        // Limit result decimals to avoid excessive UI digits
+        result = LimitDecimals(result, 6);
+
+        // Generate first operand
+        decimal a = GenerateRandomDecimal(min, max);
+
+        // Calculate second operand based on the result
+        decimal b = result - a;
+
+        ApplySigns(ref a, ref b);
+
+        // Limit operand decimals
+        a = LimitDecimals(a, 5);
+        b = LimitDecimals(b, 5);
+
+        Number1 = a;
+        Number2 = b;
+        Answer = result;
+    }
+
+    // =========================
+    // SUBTRACTION
+    // =========================
+    void GenerateSubtraction(int min, int max)
+    {
+        decimal result = GenerateValidResult(min, max);
+        result = LimitDecimals(result, 6);
+
+        decimal a, b;
+
+        var signMode = GameSettings.Instance.numberSignMode;
+
+        switch (signMode)
+        {
+            case NumberSignMode.PositiveOnly:
+                {
+                    a = GenerateRandomDecimal(min, max);
+                    b = a - result;
+                    if (b < 0) b = 0;
+                }
+                break;
+
+            case NumberSignMode.NegativeOnly:
+                {
+                    // Generate 'a' negative but not degenerate (-1)
+                    do
+                    {
+                        a = -GenerateRandomDecimal(1, 20);
+                    }
+                    while (Math.Abs(a) < 2);
+
+                    // Solve a - b = result
+                    b = a - result;
+
+                    // Ensure b is also negative
+                    if (b >= 0)
+                    {
+                        decimal offset = Math.Abs(b) + 1;
+                        a -= offset;
+                        b -= offset;
+                    }
+                }
+                break;
+
+            case NumberSignMode.Mixed:
+                {
+                    a = GenerateRandomDecimal(min, max);
+                    b = a - result;
+                    if (UnityEngine.Random.value > 0.5f)
+                    {
+                        a = -a;
+                        b = -b;
+                    }
+                }
+                break;
+
+            default:
+                a = GenerateRandomDecimal(min, max);
+                b = a - result;
+                break;
+        }
+
+        // Limit operand decimals
+        a = LimitDecimals(a, 5);
+        b = LimitDecimals(b, 5);
+
+        Number1 = a;
+        Number2 = b;
+        Answer = result;
+    }
+
+    // =========================
+    // MULTIPLICATION
+    // =========================
+    void GenerateMultiplication(int min, int max)
+    {
+        decimal result = GenerateValidResult(1, 100);
+
+        decimal b = GenerateRandomDecimal(1, 20);
+        if (b == 0) b = 1;
+
+        decimal a = result / b;
+        a = LimitDecimals(a, 5);
+
+        var signMode = GameSettings.Instance.numberSignMode;
+
+        switch (signMode)
         {
             case NumberSignMode.PositiveOnly:
                 a = Math.Abs(a);
@@ -98,91 +224,29 @@ public class MathExercise
                 break;
 
             case NumberSignMode.Mixed:
-
-                bool makeNegativeResult = UnityEngine.Random.value > 0.5f;
-
-                if (op == OperationType.Add || op == OperationType.Subtract)
                 {
-                    // Recalculate safely
-                    a = UnityEngine.Random.value > 0.5f ? -Math.Abs(a) : Math.Abs(a);
-                    b = (op == OperationType.Add) ? result - a : a - result;
-                }
-                else
-                {
-                    if (makeNegativeResult)
+                    bool makeNegative = UnityEngine.Random.value > 0.5f;
+                    if (makeNegative)
                     {
                         if (UnityEngine.Random.value > 0.5f)
-                            a = -a;
+                            a = -Math.Abs(a);
                         else
-                            b = -b;
+                            b = -Math.Abs(b);
+
+                        result = -Math.Abs(result);
                     }
                     else
                     {
-                        bool bothNegative = UnityEngine.Random.value > 0.5f;
-
-                        if (bothNegative)
-                        {
-                            a = -a;
-                            b = -b;
-                        }
+                        a = Math.Abs(a);
+                        b = Math.Abs(b);
+                        result = Math.Abs(result);
                     }
                 }
                 break;
         }
-    }
 
-    // ADDITION
-    void GenerateAddition(int min, int max)
-    {
-        decimal result = GenerateValidResult(min, max);
-
-        decimal a = GenerateRandomDecimal(min, max);
-        decimal b = result - a;
-
-        ApplySigns(ref a, ref b, result, OperationType.Add);
-
-        Number1 = a;
-        Number2 = b;
-        Answer = result;
-
-#if UNITY_EDITOR
-        Validate(OperationType.Add);
-#endif
-    }
-
-    // SUBTRACTION
-    void GenerateSubtraction(int min, int max)
-    {
-        decimal result = GenerateValidResult(min, max);
-
-        decimal a = GenerateRandomDecimal(min, max);
-        decimal b = a - result;
-
-        ApplySigns(ref a, ref b, result, OperationType.Subtract);
-
-        Number1 = a;
-        Number2 = b;
-        Answer = result;
-
-#if UNITY_EDITOR
-        Validate(OperationType.Subtract);
-#endif
-    }
-
-    // MULTIPLICATION
-    void GenerateMultiplication(int min, int max)
-    {
-        decimal result = GenerateValidResult(1, 100);
-
-        decimal b = GenerateRandomDecimal(1, 20);
-
-        if (b == 0)
-            b = 1;
-
-        decimal a = result / b;
-        a = LimitDecimals(a, 5);
-
-        ApplySigns(ref a, ref b, result, OperationType.Multiply);
+        // Ensure result matches operands
+        result = LimitDecimals(a * b, 6);
 
         Number1 = a;
         Number2 = b;
@@ -193,7 +257,9 @@ public class MathExercise
 #endif
     }
 
+    // =========================
     // DIVISION
+    // =========================
     void GenerateSmartDivision(int min, int max)
     {
         int resultDecimals = UnityEngine.Random.Range(1, 6);
@@ -208,15 +274,14 @@ public class MathExercise
         decimal multiplier = Pow10[resultDecimals];
 
         int integerPart = UnityEngine.Random.Range(0, 100);
-
         int decimalPart;
         do
         {
             decimalPart = UnityEngine.Random.Range(1, (int)multiplier);
-        }
-        while (decimalPart % 10 == 0);
+        } while (decimalPart % 10 == 0);
 
         decimal result = integerPart + decimalPart / multiplier;
+        result = LimitDecimals(result, 6);
 
         decimal divisor;
 
@@ -242,115 +307,78 @@ public class MathExercise
         decimal dividend = result * divisor;
         dividend = LimitDecimals(dividend, 5);
 
-        decimal a = dividend;
-        decimal b = divisor;
-
-        ApplySigns(ref a, ref b, result, OperationType.Divide);
-
-        Number1 = a;
-        Number2 = b;
+        Number1 = dividend;
+        Number2 = divisor;
         Answer = result;
 
 #if UNITY_EDITOR
         Validate(OperationType.Divide);
 #endif
-
-        Debug.Log($"Generated Division: {Number1} ÷ {Number2} = {Answer}");
     }
 
-    // Limits decimal places for UI readability
+    /// <summary>
+    /// Apply sign rules to operands according to global NumberSignMode
+    /// </summary>
+    void ApplySigns(ref decimal a, ref decimal b)
+    {
+        var signMode = GameSettings.Instance.numberSignMode;
+
+        switch (signMode)
+        {
+            case NumberSignMode.PositiveOnly:
+                a = Math.Abs(a);
+                b = Math.Abs(b);
+                break;
+
+            case NumberSignMode.NegativeOnly:
+                a = -Math.Abs(a);
+                b = -Math.Abs(b);
+                break;
+
+            case NumberSignMode.Mixed:
+                if (UnityEngine.Random.value > 0.5f)
+                    a = -a;
+                if (UnityEngine.Random.value > 0.5f)
+                    b = -b;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Limit the number of decimals of a decimal value
+    /// </summary>
     decimal LimitDecimals(decimal value, int maxDecimals)
     {
         decimal multiplier = Pow10[maxDecimals];
         return Math.Round(value * multiplier) / multiplier;
     }
 
-#if UNITY_EDITOR
-
-    // VALIDATION SYSTEM (DEBUG ONLY)
+    /// <summary>
+    /// Optional: validate the exercise in editor for debugging
+    /// </summary>
     void Validate(OperationType op)
     {
-        decimal a = Number1;
-        decimal b = Number2;
-        decimal result = Answer;
-
-        // 1. Check math correctness
-        bool valid = true;
-
+#if UNITY_EDITOR
+        decimal computed = 0;
         switch (op)
         {
-            case OperationType.Add:
-                valid = (a + b == result);
-                break;
-            case OperationType.Subtract:
-                valid = (a - b == result);
-                break;
-            case OperationType.Multiply:
-                valid = (a * b == result);
-                break;
-            case OperationType.Divide:
-                if (b != 0)
-                    valid = (a / b == result);
-                break;
+            case OperationType.Add: computed = Number1 + Number2; break;
+            case OperationType.Subtract: computed = Number1 - Number2; break;
+            case OperationType.Multiply: computed = Number1 * Number2; break;
+            case OperationType.Divide: computed = Number1 / Number2; break;
         }
 
-        if (!valid)
-            Debug.LogError($"❌ Math error: {a} op {b} != {result}");
-
-        // 2. Check truncation rule
-        if (GameSettings.Instance != null &&
-            GameSettings.Instance.validationMode == ValidationMode.Truncated)
+        if (Math.Round(computed, 5) != Math.Round(Answer, 5))
         {
-            int decimals = CountDecimals(result);
-
-            if (decimals <= GameSettings.Instance.decimals)
-                Debug.LogError($"❌ Truncation error: {result}");
+            Debug.LogError($"Math error: {Number1} op {Number2} != {Answer}");
         }
 
-        // 3. Check trailing zero
-        if (HasTrailingZero(result))
-            Debug.LogError($"❌ Trailing zero: {result}");
-
-        // 4. Check sign rules
-        if (GameSettings.Instance != null)
+        // Optional: check sign rules
+        if (GameSettings.Instance.numberSignMode == NumberSignMode.PositiveOnly &&
+            (Number1 < 0 || Number2 < 0))
         {
-            switch (GameSettings.Instance.numberSignMode)
-            {
-                case NumberSignMode.PositiveOnly:
-                    if (a < 0 || b < 0)
-                        Debug.LogError($"❌ Sign error (PositiveOnly): {a}, {b}");
-                    break;
-
-                case NumberSignMode.NegativeOnly:
-                    if (a > 0 || b > 0)
-                        Debug.LogError($"❌ Sign error (NegativeOnly): {a}, {b}");
-                    break;
-            }
+            Debug.LogError($"Sign error (PositiveOnly): {Number1}, {Number2}");
         }
-    }
-
-    // Counts decimal places
-    int CountDecimals(decimal value)
-    {
-        value = Math.Abs(value);
-        int count = 0;
-
-        while (value != Math.Floor(value) && count < 10)
-        {
-            value *= 10;
-            count++;
-        }
-
-        return count;
-    }
-
-    // Detects trailing zero
-    bool HasTrailingZero(decimal value)
-    {
-        value = Math.Abs(value);
-        decimal scaled = value * 10;
-        return scaled % 10 == 0;
-    }
-
 #endif
+    }
 }

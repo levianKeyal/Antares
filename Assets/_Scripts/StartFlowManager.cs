@@ -24,6 +24,8 @@ public class StartFlowManager : MonoBehaviour
 
     [SerializeField] Animator _settingsAnim;
 
+    private static bool hasInitialized = false;
+
     private void Awake()
     {
         // Scene navigation buttons
@@ -35,8 +37,13 @@ public class StartFlowManager : MonoBehaviour
 
     private void Start()
     {
-        // Force default only if needed (first launch or no persistence)
-        GameSettings.Instance.validationMode = ValidationMode.ExactOnly;
+        // Solo se ejecuta la primera vez que la app inicia
+        if (!hasInitialized)
+        {
+            // Force default only if needed (first launch or no persistence)
+            GameSettings.Instance.validationMode = ValidationMode.ExactOnly;
+            hasInitialized = true;
+            }
 
         PopulateValidationDropdown();
         PopulateDecimalsDropdown();
