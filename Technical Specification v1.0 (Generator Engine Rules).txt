@@ -1,0 +1,288 @@
+# Arithmetic Generator Engine — Technical Specification v1.0
+
+## Purpose
+
+This document defines the deterministic rules governing arithmetic exercise generation inside the Unity-based learning system.
+
+The engine prioritizes:
+
+* mathematical correctness
+* pedagogical clarity
+* configurable difficulty scaling
+* validation-mode compatibility
+
+---
+
+# 1. Global Constraints
+
+## 1.1 Exact Arithmetic Rule
+
+Every generated exercise must satisfy:
+
+```
+Number1 OP Number2 = Answer
+```
+
+exactly.
+
+---
+
+# 1.2 Decimal Precision Limit
+
+All generated values must satisfy:
+
+```
+DecimalPlaces(value) ≤ 6
+```
+
+Applies to:
+
+```
+Number1
+Number2
+Answer
+```
+
+---
+
+# 1.3 No Trailing-Zero Decimal Rule
+
+Generated decimal operands must not end with:
+
+```
+0
+```
+
+Example rejected:
+
+```
+3.450
+7.120
+```
+
+Example accepted:
+
+```
+3.456
+7.128
+```
+
+---
+
+# 1.4 Non-Zero Operand Rule
+
+Operands must not be zero unless explicitly required by future pedagogical modes.
+
+---
+
+# 1.5 Loop Safety Rule
+
+Exercise generation attempts limited to:
+
+```
+maxAttempts = 100
+```
+
+---
+
+# 2. Validation Mode Rules
+
+## 2.1 ExactOnly Mode
+
+```
+Answer must match operation result exactly
+```
+
+Division additionally enforces:
+
+```
+DecimalPlaces(Number1) ≤ maxDivisionExactOperandDecimals
+DecimalPlaces(Number2) ≤ maxDivisionExactOperandDecimals
+```
+
+---
+
+# 2.2 Truncated Mode
+
+Generated result must satisfy:
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+---
+
+# 2.3 Ceil Mode
+
+Same rule as Truncated:
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+---
+
+# 2.4 All Mode
+
+Accepts:
+
+```
+Exact
+Truncated
+Ceil
+```
+
+---
+
+# 3. Sign Mode Rules
+
+## 3.1 PositiveOnly
+
+```
+Number1 > 0
+Number2 > 0
+```
+
+---
+
+# 3.2 NegativeOnly
+
+```
+Number1 < 0
+Number2 < 0
+```
+
+Result sign unrestricted.
+
+---
+
+# 3.3 Mixed
+
+Each operand independently selects sign:
+
+```
++ +
++ −
+− +
+− −
+```
+
+---
+
+# 4. Operation Generation Strategies
+
+## 4.1 Addition
+
+Strategy:
+
+```
+result → operandA → operandB
+```
+
+Formula:
+
+```
+operandB = result − operandA
+```
+
+---
+
+# 4.2 Subtraction
+
+Strategy:
+
+```
+result → operandA → operandB
+```
+
+Formula:
+
+```
+operandB = operandA − result
+```
+
+---
+
+# 4.3 Multiplication
+
+Strategy:
+
+```
+operandA → operandB → result
+```
+
+Formula:
+
+```
+result = operandA × operandB
+```
+
+Prevents infinite decimal expansion.
+
+---
+
+# 4.4 Division
+
+Strategy:
+
+```
+result → divisor → dividend
+```
+
+Formula:
+
+```
+dividend = result × divisor
+```
+
+---
+
+# 5. Exact Division Readability Constraints
+
+Operands must satisfy:
+
+```
+DecimalPlaces ≤ maxDivisionExactOperandDecimals
+```
+
+Configured through Inspector.
+
+---
+
+# 6. Educational Readability Rules
+
+Reject automatically:
+
+```
+floating artifacts
+infinite decimals
+pseudo-decimals
+trailing-zero decimals
+```
+
+---
+
+# 7. Decimal Transformation Validity Rule
+
+For Truncated and Ceil:
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+Guarantees transformation modifies value.
+
+---
+
+# 8. Architecture Strategy Matrix
+
+| Operation      | Strategy                    |
+| -------------- | --------------------------- |
+| Addition       | result → operands           |
+| Subtraction    | result → operands           |
+| Multiplication | operands → result           |
+| Division       | result → divisor → dividend |
+
+---
+
+# End of Specification

@@ -10,6 +10,10 @@ public class GameSettings : MonoBehaviour
 
     public NumberSignMode numberSignMode = NumberSignMode.PositiveOnly;
 
+    [Header("Division Exact Mode Settings")]
+    [Range(0, 6)]
+    public int maxDivisionExactOperandDecimals = 3;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
     {
