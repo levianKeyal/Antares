@@ -337,7 +337,14 @@ public class MathExercise
             attempt++;
 
             // 1️⃣ generate pedagogically valid result
-            result = GenerateValidResult(min, max);
+            if (maxOperandDecimals == 0)
+            {
+                result = UnityEngine.Random.Range(min, max + 1);
+            }
+            else
+            {
+                result = GenerateValidResult(min, max);
+            }
 
             if (result == 0)
                 continue;
@@ -354,7 +361,14 @@ public class MathExercise
             }
 
             // 3️⃣ generate divisor
-            divisor = GenerateRandomDecimal(1, max);
+            if (maxOperandDecimals == 0)
+            {
+                divisor = UnityEngine.Random.Range(1, max + 1);
+            }
+            else
+            {
+                divisor = GenerateRandomDecimal(1, max);
+            }
 
             if (divisor == 0)
                 continue;
@@ -364,6 +378,15 @@ public class MathExercise
 
             // 5️⃣ compute dividend exactly
             dividend = result * divisor;
+
+            // 🔵 Special rule: enforce integer-only division when decimals = 0
+            if (maxOperandDecimals == 0)
+            {
+                if (DecimalPlaces(result) != 0 ||
+                    DecimalPlaces(divisor) != 0 ||
+                    DecimalPlaces(dividend) != 0)
+                    continue;
+            }
 
             if (DecimalPlaces(dividend) > 6)
                 continue;
@@ -387,6 +410,17 @@ public class MathExercise
 
         }
         while (!valid && attempt < maxAttempts);
+
+        // 🛑 If no valid combination found, retry generation
+        if (!valid)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning("Retrying division generation after maxAttempts");
+#endif
+
+            GenerateSmartDivision(min, max);
+            return;
+        }
 
         Number1 = dividend;
         Number2 = divisor;
