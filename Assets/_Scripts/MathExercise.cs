@@ -327,6 +327,22 @@ public class MathExercise
         int maxOperandDecimals =
             GameSettings.Instance.maxDivisionExactOperandDecimals;
 
+        // Prevent impossible configuration:
+        // integer operands cannot produce truncated/ceil decimal answers
+
+        if (maxOperandDecimals == 0 &&
+            (validationMode == ValidationMode.Truncated ||
+             validationMode == ValidationMode.Ceil))
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning(
+                "Invalid config: integer division incompatible with truncated/ceil mode."
+            );
+#endif
+
+            validationMode = ValidationMode.ExactOnly;
+        }
+
         int maxAttempts = 100;
         int attempt = 0;
 
@@ -415,10 +431,16 @@ public class MathExercise
         if (!valid)
         {
 #if UNITY_EDITOR
-            Debug.LogWarning("Retrying division generation after maxAttempts");
+            Debug.LogError(
+                "Division generation failed: incompatible configuration detected."
+            );
 #endif
 
-            GenerateSmartDivision(min, max);
+            // fallback seguro pedagógico
+            Number1 = 10;
+            Number2 = 2;
+            Answer = 5;
+
             return;
         }
 
