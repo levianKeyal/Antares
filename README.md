@@ -2,28 +2,48 @@
 
 ## Overview
 
-This project implements a pedagogically controlled arithmetic exercise generator designed for educational environments (high school initially, scalable to secondary and primary levels).
+This project implements a pedagogically controlled arithmetic exercise generator designed for educational environments and scalable across multiple academic levels (primary → secondary → high school).
 
-It supports:
+The engine generates exercises that are:
+
+* mathematically exact
+* validation-mode consistent
+* difficulty-controlled
+* readable for students
+* deterministic and reproducible
+* configurable directly from Unity Inspector
+
+Supported operations:
 
 * Addition
 * Subtraction
 * Multiplication
 * Division
-* Exact validation
-* Truncated validation
-* Ceiling validation
-* Mixed validation mode
-* Configurable decimal precision
-* Configurable operand sign rules
 
-The generator ensures all exercises are:
+---
 
-* mathematically correct
-* readable for students
-* consistent with validation mode
-* free of floating-point artifacts
-* scalable across education levels
+# New in v1.1
+
+Version **1.1** introduces a **Difficulty Constraint Engine** that allows precise control over operand complexity per operation.
+
+New inspector-controlled parameters:
+
+| Operation      | Integer Digits | Decimal Digits |
+| -------------- | -------------- | -------------- |
+| Addition       | configurable   | configurable   |
+| Subtraction    | configurable   | configurable   |
+| Multiplication | configurable   | configurable   |
+| Division       | configurable   | configurable   |
+
+Division additionally supports:
+
+```
+maxDivisionExactOperandDecimals
+```
+
+for controlling readability in Exact mode.
+
+The generator now prevents impossible pedagogical configurations automatically.
 
 ---
 
@@ -36,6 +56,8 @@ The generator ensures all exercises are:
 * Multiplication
 * Division
 
+---
+
 ## Supported Validation Modes
 
 | Mode      | Description                                 |
@@ -45,6 +67,8 @@ The generator ensures all exercises are:
 | Ceil      | User must round upward to selected decimals |
 | All       | Any valid transformation accepted           |
 
+---
+
 ## Supported Sign Modes
 
 | Mode         | Behavior                  |
@@ -52,6 +76,64 @@ The generator ensures all exercises are:
 | PositiveOnly | Both operands positive    |
 | NegativeOnly | Both operands negative    |
 | Mixed        | Operand signs independent |
+
+---
+
+# Difficulty Control System (NEW)
+
+Difficulty can now be controlled independently for each operation:
+
+```
+integer digits
+decimal digits
+```
+
+Configured via Unity Inspector:
+
+```
+GameSettings
+```
+
+Example:
+
+```
+Addition
+  integers: 2 digits
+  decimals: 1 digit
+
+Multiplication
+  integers: 1 digit
+  decimals: 3 digits
+```
+
+This enables curriculum-aligned exercise generation.
+
+---
+
+# Inspector Constraint Guard System (NEW)
+
+The generator automatically prevents invalid configurations such as:
+
+```
+Truncated mode with insufficient decimal difficulty
+```
+
+Example:
+
+```
+Validation decimals = 2
+Difficulty decimals = 1
+```
+
+Automatically corrected to:
+
+```
+Difficulty decimals = 3
+```
+
+This guarantees pedagogical validity before generation begins.
+
+ExactOnly mode remains fully independent from validation decimal settings.
 
 ---
 
@@ -66,6 +148,7 @@ The generator enforces:
 * meaningful ceiling exercises
 * no trailing-zero decimals
 * no floating precision artifacts
+* no impossible difficulty configurations
 
 Example rejected:
 
@@ -83,7 +166,7 @@ Example accepted:
 
 # Generation Strategies
 
-Different operations use different generation directions:
+Each operation uses a specialized deterministic strategy:
 
 | Operation      | Strategy                    |
 | -------------- | --------------------------- |
@@ -92,13 +175,39 @@ Different operations use different generation directions:
 | Multiplication | operands → result           |
 | Division       | result → divisor → dividend |
 
-This ensures exact decimal consistency.
+This guarantees exact decimal consistency.
+
+---
+
+# Operation-Specific Difficulty Logic (NEW)
+
+Each operation now uses a specialized operand-generation pipeline:
+
+Addition / Subtraction:
+
+```
+difficulty-aware result-first generation
+```
+
+Multiplication:
+
+```
+decimal-distribution-aware operand generation
+```
+
+Division:
+
+```
+result-driven operand reconstruction with readability constraints
+```
+
+This minimizes retry loops and increases generator stability.
 
 ---
 
 # Exact Division Configuration
 
-Exact division readability can be controlled from Unity Inspector:
+Exact division readability controlled via:
 
 ```
 GameSettings.maxDivisionExactOperandDecimals
@@ -112,33 +221,47 @@ Secondary school → 1–2
 High school → 3+
 ```
 
+Additional integer-digit limits now apply to both divisor and dividend.
+
 ---
 
 # Validation Mode Precision Rule
 
-For **Truncated** and **Ceil**:
+For:
+
+```
+Truncated
+Ceil
+All
+```
+
+the generator enforces:
 
 ```
 Generated result decimals ≥ selectedDecimals + 1
 ```
 
-This guarantees the transformation actually modifies the number.
+This guarantees the transformation modifies the value.
 
 ---
 
 # Designed For Educational Scaling
 
-Current target:
+Supports:
 
 ```
+Primary school
+Secondary school
 High school
 ```
 
-Expandable to:
+Future-ready for:
 
 ```
-Secondary school
-Primary school
+adaptive difficulty
+curriculum presets
+teacher configuration profiles
+student-level tracking
 ```
 
 ---
@@ -165,6 +288,22 @@ Responsibilities:
 
 ---
 
+# Generator Stability Architecture (NEW)
+
+The engine now includes:
+
+```
+difficulty constraint guards
+operation-aware operand generators
+validation-mode compatibility enforcement
+decimal-distribution-aware multiplication generation
+division readability enforcement
+```
+
+This ensures deterministic pedagogical correctness across all modes.
+
+---
+
 # Future Extensions
 
 Planned scalability:
@@ -174,6 +313,7 @@ Planned scalability:
 * level-based operand ranges
 * curriculum presets
 * student performance tracking
+* teacher configuration profiles
 
 ---
 

@@ -1,0 +1,320 @@
+# Arithmetic Generator Engine — Technical Specification v1.1
+
+## Purpose
+
+This document defines deterministic rules governing arithmetic exercise generation inside the Unity-based learning system.
+
+Version 1.1 introduces:
+
+* operation-level difficulty controls
+* inspector constraint guards
+* decimal-distribution-aware multiplication generation
+* integer-digit constraints for division operands
+* validation-mode compatibility enforcement at configuration level
+
+---
+
+# 1. Global Constraints
+
+## 1.1 Exact Arithmetic Rule
+
+Every generated exercise satisfies:
+
+```
+Number1 OP Number2 = Answer
+```
+
+exactly.
+
+---
+
+## 1.2 Decimal Precision Limit
+
+All generated values satisfy:
+
+```
+DecimalPlaces(value) ≤ 6
+```
+
+Applies to:
+
+```
+Number1
+Number2
+Answer
+```
+
+---
+
+## 1.3 No Trailing-Zero Decimal Rule
+
+Generated decimal operands must not end with:
+
+```
+0
+```
+
+---
+
+## 1.4 Non-Zero Operand Rule
+
+Operands must not equal zero.
+
+---
+
+## 1.5 Loop Safety Rule
+
+Generation attempts limited by:
+
+```
+maxAttempts = 300
+```
+
+(adaptive per operation when required)
+
+---
+
+# 2. Difficulty Constraint Engine (NEW)
+
+Each operation defines independent limits:
+
+```
+integer digit count
+decimal digit count
+```
+
+Applied to operands before validation acceptance.
+
+---
+
+# 3. Inspector Constraint Guard System (NEW)
+
+Invalid pedagogical configurations are corrected automatically during inspector updates.
+
+Example:
+
+```
+Truncated mode
+difficulty decimals < validation decimals + 1
+```
+
+Automatically adjusted.
+
+ExactOnly mode bypasses this constraint.
+
+---
+
+# 4. Validation Mode Rules
+
+## 4.1 ExactOnly Mode
+
+```
+Answer must match operation result exactly
+```
+
+Division additionally enforces:
+
+```
+DecimalPlaces(Number1) ≤ maxDivisionExactOperandDecimals
+DecimalPlaces(Number2) ≤ maxDivisionExactOperandDecimals
+```
+
+---
+
+## 4.2 Truncated Mode
+
+Generated result satisfies:
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+---
+
+## 4.3 Ceil Mode
+
+Same constraint:
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+---
+
+## 4.4 All Mode
+
+Accepts:
+
+```
+Exact
+Truncated
+Ceil
+```
+
+but still requires transformation-valid decimals.
+
+---
+
+# 5. Sign Mode Rules
+
+## 5.1 PositiveOnly
+
+```
+Number1 > 0
+Number2 > 0
+```
+
+---
+
+## 5.2 NegativeOnly
+
+```
+Number1 < 0
+Number2 < 0
+```
+
+---
+
+## 5.3 Mixed
+
+Operands independently select sign.
+
+---
+
+# 6. Operation Generation Strategies
+
+## 6.1 Addition
+
+Strategy:
+
+```
+result → operandA → operandB
+```
+
+Operands validated against difficulty constraints before acceptance.
+
+---
+
+## 6.2 Subtraction
+
+Strategy:
+
+```
+result → operandA → operandB
+```
+
+Operands validated against difficulty constraints before acceptance.
+
+---
+
+## 6.3 Multiplication
+
+Strategy:
+
+```
+operandA → operandB → result
+```
+
+Enhanced with:
+
+```
+decimal distribution constraint
+```
+
+Rule:
+
+```
+DecimalPlaces(A) + DecimalPlaces(B)
+≤ allowed result precision
+```
+
+---
+
+## 6.4 Division
+
+Strategy:
+
+```
+result → divisor → dividend
+```
+
+Operands validated against:
+
+```
+maxDivisionExactOperandDecimals
+divisionMaxIntegerDigits
+```
+
+Dividend reconstructed deterministically:
+
+```
+dividend = result × divisor
+```
+
+---
+
+# 7. Decimal Transformation Validity Rule
+
+For:
+
+```
+Truncated
+Ceil
+All
+```
+
+```
+DecimalPlaces(result) ≥ selectedDecimals + 1
+```
+
+---
+
+# 8. Operation Difficulty Enforcement (NEW)
+
+Addition/Subtraction:
+
+```
+operand digits constrained after reconstruction
+```
+
+Multiplication:
+
+```
+operand digits constrained before multiplication
+```
+
+Division:
+
+```
+divisor constrained before reconstruction
+dividend constrained after reconstruction
+```
+
+---
+
+# 9. Educational Readability Rules
+
+Reject automatically:
+
+```
+floating artifacts
+infinite decimals
+pseudo-decimals
+trailing-zero decimals
+invalid transformation cases
+```
+
+---
+
+# 10. Architecture Strategy Matrix
+
+| Operation      | Strategy                    |
+| -------------- | --------------------------- |
+| Addition       | result → operands           |
+| Subtraction    | result → operands           |
+| Multiplication | operands → result           |
+| Division       | result → divisor → dividend |
+
+---
+
+# End of Specification
