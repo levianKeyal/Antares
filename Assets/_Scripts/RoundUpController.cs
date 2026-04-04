@@ -46,6 +46,10 @@ public class RoundUpController : MonoBehaviour
         {
             _decimalNumbers.text = GameSettings.Instance.decimals.ToString() + (" Decimales");
         }
+        if(validation == ValidationMode.All)
+        {
+            _decimalNumbers.text = null;
+        }
 
         _drawingBoard.SetActive(false);
     }
@@ -92,10 +96,25 @@ public class RoundUpController : MonoBehaviour
         answerInput.text = "";
         answerInput.ActivateInputField();
 
+        decimal expectedAnswer =
+            CalculateExpectedAnswer(
+                currentExercise.Answer,
+                GameSettings.Instance.decimals,
+                GameSettings.Instance.validationMode
+    );
+
         if (GameSettings.Instance != null)
         {
+            string decimalsInfo =
+    GameSettings.Instance.validationMode == ValidationMode.ExactOnly
+    ? "notRequired"
+    : GameSettings.Instance.decimals.ToString();
+
             Debug.Log(
-            $"Answer = {currentExercise.Answer} | Mode = {GameSettings.Instance.validationMode} | Decimals = {GameSettings.Instance.decimals}"
+            $"Answer(real) = {currentExercise.Answer} | " +
+            $"Expected(student) = {expectedAnswer} | " +
+            $"Mode = {GameSettings.Instance.validationMode} | " +
+            $"Decimals = {decimalsInfo}"
             );
         }
     }
@@ -106,7 +125,7 @@ public class RoundUpController : MonoBehaviour
 
         if (!decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal userValue))
         {
-            messageText.text = "Numero invalido";
+            messageText.text = "Esperando respuesta";
             return;
         }
 
@@ -204,5 +223,27 @@ public class RoundUpController : MonoBehaviour
         }
 
         return "?";
+    }
+    decimal CalculateExpectedAnswer(
+     decimal answer,
+     int decimals,
+     ValidationMode mode)
+    {
+        decimal multiplier =
+            (decimal)System.Math.Pow(10, decimals);
+
+        return mode switch
+        {
+            ValidationMode.ExactOnly =>
+                answer,
+
+            ValidationMode.Truncated =>
+                System.Math.Truncate(answer * multiplier) / multiplier,
+
+            ValidationMode.Ceil =>
+                System.Math.Ceiling(answer * multiplier) / multiplier,
+
+            _ => answer
+        };
     }
 }

@@ -129,7 +129,7 @@ public class MathExercise
 
         var signMode = GameSettings.Instance.numberSignMode;
 
-        int maxAttempts = 100;
+        int maxAttempts = 300;
         int attempt = 0;
 
         bool validOperands;
@@ -239,7 +239,7 @@ public class MathExercise
         var signMode = GameSettings.Instance.numberSignMode;
         var validationMode = GameSettings.Instance.validationMode;
 
-        int maxAttempts = 100;
+        int maxAttempts = 300;
         int attempt = 0;
 
         bool valid = false;
@@ -343,7 +343,7 @@ public class MathExercise
             validationMode = ValidationMode.ExactOnly;
         }
 
-        int maxAttempts = 100;
+        int maxAttempts = 300;
         int attempt = 0;
 
         bool valid = false;
