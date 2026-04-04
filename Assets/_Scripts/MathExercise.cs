@@ -129,28 +129,58 @@ public class MathExercise
 
         var signMode = GameSettings.Instance.numberSignMode;
 
-        int maxAttempts = 300;
+        int maxAttempts = 600;
         int attempt = 0;
 
-        bool validOperands;
+        bool valid = false;
 
         do
         {
             attempt++;
 
-            result = GenerateValidResult(min, max);
+            // 1️⃣ generar resultado
+            result = GenerateValidResultAddSub(min, max);
 
             result = ApplyResultSign(result, signMode);
 
+            // 2️⃣ generar primer operando
             a = GenerateSignedOperand(max, signMode);
 
+            // 3️⃣ calcular segundo operando
             b = op == OperationType.Add
                 ? result - a
                 : a - result;
 
-            validOperands = ValidateOperands(a, b, signMode);
+            // 4️⃣ validar signos explícitamente
+            bool signValid = ValidateOperands(a, b, signMode);
 
-        } while (!validOperands && attempt < maxAttempts);
+            if (!signValid)
+                continue;
+
+            // 5️⃣ validar dificultad operandos
+            if (!ValidateAddSubDifficulty(a))
+                continue;
+
+            if (!ValidateAddSubDifficulty(b))
+                continue;
+
+            // 6️⃣ validar dificultad resultado
+            if (!ValidateAddSubDifficulty(result))
+                continue;
+
+            // 7️⃣ validar coherencia matemática final
+            decimal computed =
+                op == OperationType.Add
+                ? a + b
+                : a - b;
+
+            if (computed != result)
+                continue;
+
+            valid = true;
+
+        }
+        while (!valid && attempt < maxAttempts);
 
         Number1 = a;
         Number2 = b;
@@ -180,6 +210,32 @@ public class MathExercise
 
         return value;
     }
+    decimal GenerateRandomDecimalAddSub(int min, int max)
+    {
+        var settings = GameSettings.Instance;
+
+        int decimals =
+            UnityEngine.Random.Range(
+                0,
+                settings.addSubMaxDecimalDigits + 1
+            );
+
+        decimal multiplier = Pow10[decimals];
+
+        int maxInteger =
+            (int)Math.Pow(
+                10,
+                settings.addSubMaxIntegerDigits
+            ) - 1;
+
+        int integerPart =
+            UnityEngine.Random.Range(1, maxInteger + 1);
+
+        int decimalPart =
+            UnityEngine.Random.Range(0, (int)multiplier);
+
+        return integerPart + decimalPart / multiplier;
+    }
 
     /// <summary>
     /// Generates an operand with the correct sign configuration
@@ -190,7 +246,7 @@ public class MathExercise
 
         do
         {
-            value = GenerateRandomDecimal(1, max);
+            value = GenerateRandomDecimalAddSub(1, max);
         }
         while (value == 0);
 
@@ -225,7 +281,73 @@ public class MathExercise
 
         return true;
     }
+    decimal GenerateValidResultAddSub(int min, int max)
+    {
+        var settings = GameSettings.Instance;
 
+        int maxDecimals = settings.addSubMaxDecimalDigits;
+
+        var validationMode = settings.validationMode;
+
+        bool requiresExtraDecimal =
+            validationMode == ValidationMode.Truncated ||
+            validationMode == ValidationMode.Ceil;
+
+        int decimals;
+
+        if (requiresExtraDecimal)
+        {
+            int minRequired = settings.decimals + 1;
+
+            decimals = UnityEngine.Random.Range(
+                minRequired,
+                maxDecimals + 1
+            );
+        }
+        else
+        {
+            decimals = UnityEngine.Random.Range(
+                0,
+                maxDecimals + 1
+            );
+        }
+
+        decimal multiplier = Pow10[decimals];
+
+        int maxIntegerValue =
+            (int)Math.Pow(
+                10,
+                settings.addSubMaxIntegerDigits
+            ) - 1;
+
+        int integerPart =
+            UnityEngine.Random.Range(
+                1,
+                maxIntegerValue + 1
+            );
+
+        int decimalPart;
+
+        do
+        {
+            decimalPart = UnityEngine.Random.Range(
+                0,
+                (int)multiplier
+            );
+
+            if (requiresExtraDecimal &&
+                decimalPart % 10 == 0)
+                continue;
+
+            break;
+
+        } while (true);
+
+        decimal result =
+            integerPart + decimalPart / multiplier;
+
+        return LimitDecimals(result, 6);
+    }
     // =========================================================
     // MULTIPLICATION
     // =========================================================
@@ -249,8 +371,8 @@ public class MathExercise
             attempt++;
 
             // 1️⃣ generate operands first (pedagogically safe)
-            a = GenerateRandomDecimal(1, max);
-            b = GenerateRandomDecimal(1, max);
+            GenerateValidMultiplicationOperands(
+                signMode, out a, out b);
 
             if (a == 0 || b == 0)
                 continue;
@@ -260,6 +382,12 @@ public class MathExercise
 
             // 3️⃣ compute exact result
             result = a * b;
+
+            if (!ValidateMultiplicationDifficulty(a))
+                continue;
+
+            if (!ValidateMultiplicationDifficulty(b))
+                continue;
 
             // 4️⃣ enforce global decimal limit
             if (DecimalPlaces(result) > 6)
@@ -288,6 +416,163 @@ public class MathExercise
 #if UNITY_EDITOR
         Validate(OperationType.Multiply);
 #endif
+    }
+
+    void GenerateValidMultiplicationOperands(
+    NumberSignMode signMode,
+    out decimal a,
+    out decimal b)
+    {
+        var settings = GameSettings.Instance;
+
+        int maxOperandDecimals =
+            settings.multiplicationMaxDecimalDigits;
+
+        int targetResultDecimals =
+            settings.validationMode == ValidationMode.ExactOnly
+            ? maxOperandDecimals
+            : settings.decimals + 1;
+
+        int decimalsA =
+            UnityEngine.Random.Range(0, targetResultDecimals + 1);
+
+        int decimalsB =
+            UnityEngine.Random.Range(
+                0,
+                targetResultDecimals - decimalsA + 1
+            );
+
+        a = GenerateMultiplicationOperandWithDecimals(
+            decimalsA,
+            signMode
+        );
+
+        b = GenerateMultiplicationOperandWithDecimals(
+            decimalsB,
+            signMode
+        );
+    }
+
+    decimal GenerateMultiplicationOperandWithDecimals(
+    int decimals,
+    NumberSignMode signMode)
+    {
+        var settings = GameSettings.Instance;
+
+        decimal multiplier = Pow10[decimals];
+
+        int maxIntegerValue =
+            (int)Math.Pow(
+                10,
+                settings.multiplicationMaxIntegerDigits
+            ) - 1;
+
+        int integerPart =
+            UnityEngine.Random.Range(
+                1,
+                maxIntegerValue + 1
+            );
+
+        int decimalPart =
+            decimals == 0
+            ? 0
+            : UnityEngine.Random.Range(
+                1,
+                (int)multiplier
+            );
+
+        decimal value =
+            integerPart + decimalPart / multiplier;
+
+        switch (signMode)
+        {
+            case NumberSignMode.PositiveOnly:
+                return value;
+
+            case NumberSignMode.NegativeOnly:
+                return -value;
+
+            case NumberSignMode.Mixed:
+                return UnityEngine.Random.value > 0.5f
+                    ? -value
+                    : value;
+        }
+
+        return value;
+    }
+
+    bool ValidateMultiplicationDifficulty(decimal value)
+    {
+        var settings = GameSettings.Instance;
+
+        int integerDigits = IntegerDigits(value);
+        int decimalDigits = DecimalPlaces(value);
+
+        if (integerDigits > settings.multiplicationMaxIntegerDigits)
+            return false;
+
+        if (decimalDigits > settings.multiplicationMaxDecimalDigits)
+            return false;
+
+        return true;
+    }
+
+    decimal GenerateRandomDecimalMultiplication()
+    {
+        var settings = GameSettings.Instance;
+
+        int decimals =
+            UnityEngine.Random.Range(
+                0,
+                settings.multiplicationMaxDecimalDigits + 1
+            );
+
+        decimal multiplier = Pow10[decimals];
+
+        int maxIntegerValue =
+            (int)Math.Pow(
+                10,
+                settings.multiplicationMaxIntegerDigits
+            ) - 1;
+
+        int integerPart =
+            UnityEngine.Random.Range(
+                1,
+                maxIntegerValue + 1
+            );
+
+        int decimalPart =
+            UnityEngine.Random.Range(
+                0,
+                (int)multiplier
+            );
+
+        return integerPart + decimalPart / multiplier;
+    }
+
+    decimal GenerateSignedMultiplicationOperand(NumberSignMode mode)
+    {
+        decimal value;
+
+        do
+        {
+            value = GenerateRandomDecimalMultiplication();
+        }
+        while (value == 0);
+
+        switch (mode)
+        {
+            case NumberSignMode.PositiveOnly:
+                return value;
+
+            case NumberSignMode.NegativeOnly:
+                return -value;
+
+            case NumberSignMode.Mixed:
+                return UnityEngine.Random.value > 0.5f ? -value : value;
+        }
+
+        return value;
     }
 
     void ApplyMultiplicationSigns(ref decimal a, ref decimal b, NumberSignMode mode)
@@ -389,11 +674,17 @@ public class MathExercise
             if (divisor == 0)
                 continue;
 
+            if (!ValidateDivisionDifficulty(divisor))
+                continue;
+
             // 4️⃣ apply divisor sign
             ApplyDivisionDivisorSign(ref divisor, signMode);
 
             // 5️⃣ compute dividend exactly
             dividend = result * divisor;
+
+            if (!ValidateDivisionDifficulty(dividend))
+                continue;
 
             // 🔵 Special rule: enforce integer-only division when decimals = 0
             if (maxOperandDecimals == 0)
@@ -472,6 +763,37 @@ public class MathExercise
     // =========================================================
     // UTILITIES
     // =========================================================
+    bool ValidateAddSubDifficulty(decimal value)
+    {
+        var settings = GameSettings.Instance;
+
+        int integerDigits = IntegerDigits(value);
+        int decimalDigits = DecimalPlaces(value);
+
+        if (integerDigits > settings.addSubMaxIntegerDigits)
+            return false;
+
+        if (decimalDigits > settings.addSubMaxDecimalDigits)
+            return false;
+
+        return true;
+    }
+
+    bool ValidateDivisionDifficulty(decimal value)
+    {
+        var settings = GameSettings.Instance;
+
+        int integerDigits = IntegerDigits(value);
+        int decimalDigits = DecimalPlaces(value);
+
+        if (integerDigits > settings.divisionMaxIntegerDigits)
+            return false;
+
+        if (decimalDigits > settings.maxDivisionExactOperandDecimals)
+            return false;
+
+        return true;
+    }
 
     bool EndsWithZeroDecimal(decimal value)
     {
@@ -504,6 +826,15 @@ public class MathExercise
         return (bits[3] >> 16) & 31;
     }
 
+    int IntegerDigits(decimal value)
+    {
+        value = Math.Abs(value);
+
+        if (value < 1)
+            return 1;
+
+        return (int)Math.Floor(Math.Log10((double)value)) + 1;
+    }
     decimal LimitDecimals(decimal value, int maxDecimals)
     {
         decimal multiplier = Pow10[maxDecimals];

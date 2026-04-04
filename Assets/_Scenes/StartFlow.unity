@@ -6758,8 +6758,20 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
+      propertyPath: decimals
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
       propertyPath: validationMode
-      value: 3
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
+      propertyPath: addSubMaxDecimalDigits
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
+      propertyPath: addSubMaxIntegerDigits
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
