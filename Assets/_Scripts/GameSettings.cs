@@ -52,17 +52,14 @@ public class GameSettings : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-#if UNITY_EDITOR
     void OnValidate()
     {
         ValidateAddSubDifficultyConstraints();
         ValidateMultiplicationDifficultyConstraints();
         ValidateDivisionDifficultyConstraints();
     }
-#endif
 
-#if UNITY_EDITOR
-    void ValidateAddSubDifficultyConstraints()
+    public void ValidateAddSubDifficultyConstraints()
     {
         int minDecimals = GetMinimumAddSubDecimals();
 
@@ -80,11 +77,9 @@ public class GameSettings : MonoBehaviour
             addSubMaxIntegerDigits = 1;
 
         Debug.Log(
-    $"Minimum allowed Add/Sub decimals for {validationMode}: {minDecimals}"
-);
+            $"Minimum allowed Add/Sub decimals for {validationMode}: {minDecimals}");
     }
-#endif
-    int GetMinimumAddSubDecimals()
+    public int GetMinimumAddSubDecimals()
     {
         if (validationMode == ValidationMode.ExactOnly)
             return 0;
@@ -99,8 +94,23 @@ public class GameSettings : MonoBehaviour
         return 0;
     }
 
-#if UNITY_EDITOR
-    void ValidateMultiplicationDifficultyConstraints()
+    public int GetMinimumMultiplicationDecimals()
+    {
+        if (validationMode == ValidationMode.ExactOnly)
+            return 0;
+
+        return decimals + 1;
+    }
+
+    public int GetMinimumDivisionDecimals()
+    {
+        if (validationMode == ValidationMode.ExactOnly)
+            return 0;
+
+        return decimals + 1;
+    }
+
+    public void ValidateMultiplicationDifficultyConstraints()
     {
         if (validationMode == ValidationMode.Truncated ||
             validationMode == ValidationMode.Ceil ||
@@ -110,19 +120,22 @@ public class GameSettings : MonoBehaviour
 
             if (multiplicationMaxDecimalDigits < minRequired)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"Multiplication decimal difficulty too low for {validationMode}. " +
                     $"Adjusting automatically to {minRequired} decimals."
                 );
+#endif
 
                 multiplicationMaxDecimalDigits = minRequired;
             }
         }
-    }
-#endif
 
-#if UNITY_EDITOR
-    void ValidateDivisionDifficultyConstraints()
+        if (multiplicationMaxIntegerDigits < 1)
+            multiplicationMaxIntegerDigits = 1;
+    }
+
+    public void ValidateDivisionDifficultyConstraints()
     {
         if (validationMode == ValidationMode.Truncated ||
             validationMode == ValidationMode.Ceil ||
@@ -132,10 +145,12 @@ public class GameSettings : MonoBehaviour
 
             if (maxDivisionExactOperandDecimals < minRequired)
             {
+#if UNITY_EDITOR
                 Debug.LogWarning(
                     $"Division decimal difficulty too low for {validationMode}. " +
                     $"Adjusting automatically to {minRequired} decimals."
                 );
+#endif
 
                 maxDivisionExactOperandDecimals = minRequired;
             }
@@ -144,5 +159,4 @@ public class GameSettings : MonoBehaviour
         if (divisionMaxIntegerDigits < 1)
             divisionMaxIntegerDigits = 1;
     }
-#endif
 }

@@ -14,6 +14,24 @@ public class StartFlowManager : MonoBehaviour
     [SerializeField] TMP_Dropdown validationDropdown;
     [SerializeField] TMP_Dropdown signsDropdown;
 
+    [SerializeField] Slider intAddSubSlider;
+    [SerializeField] TMP_Text intAddSubValue;
+
+    [SerializeField] Slider decAddSubSlider;
+    [SerializeField] TMP_Text decAddSubValue;
+
+    [SerializeField] Slider intMultiplicationSlider;
+    [SerializeField] TMP_Text intMultiplicationValue;
+
+    [SerializeField] Slider decMultiplicationSlider;
+    [SerializeField] TMP_Text decMultiplicationValue;
+
+    [SerializeField] Slider intDivisionSlider;
+    [SerializeField] TMP_Text intDivisionValue;
+
+    [SerializeField] Slider decDivisionSlider;
+    [SerializeField] TMP_Text decDivisionValue;
+
     Dictionary<ValidationMode, string> validationLabels = new Dictionary<ValidationMode, string>()
     {
     { ValidationMode.ExactOnly, "Exacto" },
@@ -33,6 +51,59 @@ public class StartFlowManager : MonoBehaviour
         _subtractScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Subtract"); });
         _multiplyScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Multiply"); });
         _divideScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Divide"); });
+
+        //Operands integer and decimals values
+
+        //ADDITION AND SUBTRACTION
+        intAddSubSlider.value = GameSettings.Instance.addSubMaxIntegerDigits;
+        intAddSubValue.text = intAddSubSlider.value.ToString();
+
+        decAddSubSlider.value = GameSettings.Instance.addSubMaxDecimalDigits;
+        decAddSubValue.text = decAddSubSlider.value.ToString();
+
+        intAddSubSlider.onValueChanged.AddListener(OnIntAddSubSliderChanged);
+        decAddSubSlider.onValueChanged.AddListener(OnDecAddSubSliderChanged);
+
+        // MULTIPLICATION
+        intMultiplicationSlider.value =
+        GameSettings.Instance.multiplicationMaxIntegerDigits;
+
+        intMultiplicationValue.text =
+        intMultiplicationSlider.value.ToString();
+
+        decMultiplicationSlider.value =
+        GameSettings.Instance.multiplicationMaxDecimalDigits;
+
+        decMultiplicationValue.text =
+        decMultiplicationSlider.value.ToString();
+
+        intMultiplicationSlider.onValueChanged
+            .AddListener(OnIntMultiplicationSliderChanged);
+
+        decMultiplicationSlider.onValueChanged
+            .AddListener(OnDecMultiplicationSliderChanged);
+
+
+        // DIVISION
+        intDivisionSlider.value =
+        GameSettings.Instance.divisionMaxIntegerDigits;
+
+        intDivisionValue.text =
+        intDivisionSlider.value.ToString();
+
+        decDivisionSlider.value =
+        GameSettings.Instance.maxDivisionExactOperandDecimals;
+
+        decDivisionValue.text =
+        decDivisionSlider.value.ToString();
+
+        intDivisionSlider.onValueChanged
+            .AddListener(OnIntDivisionSliderChanged);
+
+        decDivisionSlider.onValueChanged
+            .AddListener(OnDecDivisionSliderChanged);
+
+        UpdateAddSubDecimalSliderLimits();
     }
 
     private void Start()
@@ -50,6 +121,80 @@ public class StartFlowManager : MonoBehaviour
         PopulateSignsDropdown(); // 👈 NEW
 
         UpdateDecimalsDropdownState();
+    }
+
+    void RefreshAddSubDifficultyUI()
+    {
+        GameSettings.Instance.ValidateAddSubDifficultyConstraints();
+
+        int correctedDecimals =
+            GameSettings.Instance.addSubMaxDecimalDigits;
+
+        decAddSubSlider.value = correctedDecimals;
+        decAddSubValue.text = correctedDecimals.ToString();
+
+        int correctedIntegers =
+            GameSettings.Instance.addSubMaxIntegerDigits;
+
+        intAddSubSlider.value = correctedIntegers;
+        intAddSubValue.text = correctedIntegers.ToString();
+    }
+
+    void UpdateAddSubDecimalSliderLimits()
+    {
+        int minAllowed =
+            GameSettings.Instance.GetMinimumAddSubDecimals();
+
+        decAddSubSlider.minValue = minAllowed;
+
+        // Si el valor actual es menor que el mínimo permitido
+        if (decAddSubSlider.value < minAllowed)
+        {
+            decAddSubSlider.value = minAllowed;
+
+            GameSettings.Instance.addSubMaxDecimalDigits = minAllowed;
+        }
+
+        decAddSubValue.text =
+            decAddSubSlider.value.ToString();
+    }
+
+    void UpdateMultiplicationDecimalSliderLimits()
+    {
+        int minAllowed =
+        GameSettings.Instance.GetMinimumMultiplicationDecimals();
+
+        decMultiplicationSlider.minValue = minAllowed;
+
+        if (decMultiplicationSlider.value < minAllowed)
+        {
+            decMultiplicationSlider.value = minAllowed;
+
+            GameSettings.Instance.multiplicationMaxDecimalDigits =
+            minAllowed;
+        }
+
+        decMultiplicationValue.text =
+        decMultiplicationSlider.value.ToString();
+    }
+
+    void UpdateDivisionDecimalSliderLimits()
+    {
+        int minAllowed =
+        GameSettings.Instance.GetMinimumDivisionDecimals();
+
+        decDivisionSlider.minValue = minAllowed;
+
+        if (decDivisionSlider.value < minAllowed)
+        {
+            decDivisionSlider.value = minAllowed;
+
+            GameSettings.Instance.maxDivisionExactOperandDecimals =
+            minAllowed;
+        }
+
+        decDivisionValue.text =
+        decDivisionSlider.value.ToString();
     }
 
     // =========================
@@ -127,18 +272,118 @@ public class StartFlowManager : MonoBehaviour
         GameSettings.Instance.validationMode = (ValidationMode)index;
 
         UpdateDecimalsDropdownState();
+
+        UpdateAddSubDecimalSliderLimits();
+        RefreshAddSubDifficultyUI();
+
+        UpdateMultiplicationDecimalSliderLimits();
+        UpdateDivisionDecimalSliderLimits();
     }
 
     public void OnDecimalsChanged(int value)
     {
         GameSettings.Instance.decimals = value;
-    }
 
+        UpdateAddSubDecimalSliderLimits();
+        RefreshAddSubDifficultyUI();
+
+        UpdateMultiplicationDecimalSliderLimits();
+        UpdateDivisionDecimalSliderLimits();
+    }
+    
     // NEW: Handle sign mode change
     public void OnSignsModeChanged(int index)
     {
         GameSettings.Instance.numberSignMode = (NumberSignMode)index;
     }
+
+    void OnIntAddSubSliderChanged(float value)
+    {
+        GameSettings.Instance.addSubMaxIntegerDigits = (int)value;
+
+        GameSettings.Instance.ValidateAddSubDifficultyConstraints();
+
+        int correctedValue =
+            GameSettings.Instance.addSubMaxIntegerDigits;
+
+        intAddSubSlider.value = correctedValue;
+
+        intAddSubValue.text = correctedValue.ToString();
+    }
+
+    void OnDecAddSubSliderChanged(float value)
+    {
+        int intValue = (int)value;
+
+        GameSettings.Instance.addSubMaxDecimalDigits = intValue;
+
+        GameSettings.Instance.ValidateAddSubDifficultyConstraints();
+
+        UpdateAddSubDecimalSliderLimits();
+
+        decAddSubValue.text =
+            GameSettings.Instance.addSubMaxDecimalDigits.ToString();
+    }
+
+    void OnIntMultiplicationSliderChanged(float value)
+    {
+        GameSettings.Instance.multiplicationMaxIntegerDigits =
+        (int)value;
+
+        GameSettings.Instance.ValidateMultiplicationDifficultyConstraints();
+
+        int corrected =
+        GameSettings.Instance.multiplicationMaxIntegerDigits;
+
+        intMultiplicationSlider.value = corrected;
+
+        intMultiplicationValue.text = corrected.ToString();
+    }
+
+    void OnDecMultiplicationSliderChanged(float value)
+    {
+        GameSettings.Instance.multiplicationMaxDecimalDigits =
+        (int)value;
+
+        GameSettings.Instance.ValidateMultiplicationDifficultyConstraints();
+
+        UpdateMultiplicationDecimalSliderLimits();
+
+        decMultiplicationValue.text =
+        GameSettings.Instance.multiplicationMaxDecimalDigits
+        .ToString();
+    }
+
+    void OnIntDivisionSliderChanged(float value)
+    {
+        GameSettings.Instance.divisionMaxIntegerDigits =
+        (int)value;
+
+        GameSettings.Instance.ValidateDivisionDifficultyConstraints();
+
+        int corrected =
+        GameSettings.Instance.divisionMaxIntegerDigits;
+
+        intDivisionSlider.value = corrected;
+
+        intDivisionValue.text = corrected.ToString();
+    }
+
+    void OnDecDivisionSliderChanged(float value)
+    {
+        GameSettings.Instance.maxDivisionExactOperandDecimals =
+        (int)value;
+
+        GameSettings.Instance.ValidateDivisionDifficultyConstraints();
+
+        UpdateDivisionDecimalSliderLimits();
+
+        decDivisionValue.text =
+        GameSettings.Instance.maxDivisionExactOperandDecimals
+        .ToString();
+    }
+
+
 
     // =========================
     // UI STATE
