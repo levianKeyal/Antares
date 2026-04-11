@@ -1121,7 +1121,7 @@ GameObject:
   - component: {fileID: 731837964}
   - component: {fileID: 731837965}
   m_Layer: 0
-  m_Name: Manager
+  m_Name: Scene Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1154,6 +1154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: deacabebc598c684985586ff9e15c699, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoundUpController
+  difficultyProfile: {fileID: 11400000, guid: 04cccffbb5b26eb409842da5ecf12f10, type: 2}
   _validationType: {fileID: 89531503}
   _decimalNumbers: {fileID: 1896300620}
   number1Text: {fileID: 1031827211}
@@ -1612,6 +1613,50 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -91.77399}
   m_SizeDelta: {x: 400, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1197890455
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1197890457}
+  - component: {fileID: 1197890456}
+  m_Layer: 0
+  m_Name: Difficulty Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1197890456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197890455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89d85ff9bf89764999ddd7db35be371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DifficultyManager
+--- !u!4 &1197890457
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197890455}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1205458714
 GameObject:
   m_ObjectHideFlags: 0
@@ -3010,6 +3055,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 1228264991}
   - {fileID: 731837964}
+  - {fileID: 1197890457}
   - {fileID: 1389685589}
   - {fileID: 367128482}
   - {fileID: 1332267984}

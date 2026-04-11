@@ -44,3 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fced71af5d6d64840bdd3cd6bc607d92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Overlord
+  decimals: 1
+  validationMode: 0
+  numberSignMode: 0
+  addSubMaxIntegerDigits: 2
+  addSubMaxDecimalDigits: 1
+  multiplicationMaxIntegerDigits: 2
+  multiplicationMaxDecimalDigits: 2
+  divisionMaxIntegerDigits: 2
+  maxDivisionExactOperandDecimals: 3

@@ -2138,6 +2138,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 201529315}
   m_CullTransparentMesh: 1
+--- !u!1 &241455606
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 241455607}
+  m_Layer: 0
+  m_Name: ===Managers===
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &241455607
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241455606}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.68941, y: 19.0763, z: 112.95683}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &242067111
 GameObject:
   m_ObjectHideFlags: 0
@@ -2801,6 +2832,51 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &401592602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 401592604}
+  - component: {fileID: 401592603}
+  m_Layer: 0
+  m_Name: Level Selector Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &401592603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401592602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a083d7ad75f666499f1207201110d05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelProgressManager
+  correctAnswers: 0
+--- !u!4 &401592604
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401592602}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.68941, y: 19.0763, z: 112.95683}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &424683840
 GameObject:
   m_ObjectHideFlags: 0
@@ -4198,6 +4274,50 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &643926898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 643926900}
+  - component: {fileID: 643926899}
+  m_Layer: 0
+  m_Name: Difficulty Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &643926899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 643926898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e89d85ff9bf89764999ddd7db35be371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DifficultyManager
+--- !u!4 &643926900
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 643926898}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.68941, y: 19.0763, z: 112.95683}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &719431241
 GameObject:
   m_ObjectHideFlags: 0
@@ -10711,7 +10831,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2834876017029647611, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
       propertyPath: m_Name
-      value: Overlord
+      value: Settings Manager
       objectReference: {fileID: 0}
     - target: {fileID: 4998736490301462192, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -10753,22 +10873,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
-      propertyPath: decimals
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
-      propertyPath: validationMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
-      propertyPath: addSubMaxDecimalDigits
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7348453996017455081, guid: 8d963fdb6e1030d48a0ccd3fdc9b572c, type: 3}
-      propertyPath: addSubMaxIntegerDigits
-      value: 2
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10782,5 +10886,8 @@ SceneRoots:
   - {fileID: 2005899391}
   - {fileID: 44747802}
   - {fileID: 1764674207}
-  - {fileID: 2777418548144712972}
+  - {fileID: 241455607}
   - {fileID: 2106393768}
+  - {fileID: 643926900}
+  - {fileID: 401592604}
+  - {fileID: 2777418548144712972}

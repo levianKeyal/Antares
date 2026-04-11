@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a4d34b036c1f9042b9c7969473bed7b, type: 3}
+  m_Name: Basic
+  m_EditorClassIdentifier: Assembly-CSharp::DifficultyProfile
+  presetTier: 2
+  presetLevel: 1
+  correctAnswersToUnlockNext: 10
+  nextSceneToUnlock: 
+  unlockNextScene: 1
+  allowAddition: 1
+  allowSubtraction: 0
+  allowMultiplication: 0
+  allowDivision: 0
+  validationMode: 0
+  validationDecimals: 0
+  signMode: 0
+  addSubIntegerDigits: 1
+  addSubDecimalDigits: 0
+  multiplicationIntegerDigits: 1
+  multiplicationDecimalDigits: 0
+  divisionIntegerDigits: 1
+  divisionDecimalDigits: 0

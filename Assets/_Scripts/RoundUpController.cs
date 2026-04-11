@@ -1,11 +1,16 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using TMPro;
 
 using System.Globalization;
 
 public class RoundUpController : MonoBehaviour
 {
+    [Header("Scene Difficulty Profile")]
+    [SerializeField]
+    DifficultyProfile difficultyProfile;
+
     [Header("UI")]
     [SerializeField] TMP_Text _validationType;
     [SerializeField] TMP_Text _decimalNumbers;
@@ -33,29 +38,96 @@ public class RoundUpController : MonoBehaviour
     MathExercise currentExercise;
     private void Awake()
     {
-        _exitScreen.onClick.AddListener(delegate { GameSettings.Instance.CallScene("StartFlow"); });
+        _exitScreen.onClick.AddListener(
+            delegate { GameSettings.Instance.CallScene("StartFlow"); }
+        );
 
-        ValidationMode validation = GameSettings.Instance.validationMode;
-        _validationType.text = GetValidationType(validation);
+        // Apply scene difficulty if profile exists
+        ApplyDifficultyProfile();
 
-        if(validation == ValidationMode.ExactOnly )
+
+        ValidationMode validation =
+            GameSettings.Instance.validationMode;
+
+        _validationType.text =
+            GetValidationType(validation);
+
+
+        if (validation == ValidationMode.ExactOnly ||
+           validation == ValidationMode.All)
         {
             _decimalNumbers.text = null;
         }
         else
         {
-            _decimalNumbers.text = GameSettings.Instance.decimals.ToString() + (" Decimales");
+            _decimalNumbers.text =
+                GameSettings.Instance.decimals +
+                " Decimales";
         }
-        if(validation == ValidationMode.All)
-        {
-            _decimalNumbers.text = null;
-        }
+
 
         _drawingBoard.SetActive(false);
     }
+
     void Start()
     {
         GenerateExercise();
+    }
+
+    void ApplyDifficultyProfile()
+    {
+        if (difficultyProfile == null)
+            return;
+
+#if UNITY_EDITOR
+        Debug.Log(
+            $"Applying DifficultyProfile: {difficultyProfile.name}"
+        );
+#endif
+
+        DifficultyManager.Instance.ApplyProfile(
+            difficultyProfile
+        );
+    }
+
+    OperationType ResolveOperation(OperationType fallbackOperation)
+    {
+        // Si no hay DifficultyProfile → comportamiento original
+        if (difficultyProfile == null)
+            return fallbackOperation;
+
+
+        List<OperationType> allowedOperations =
+            new List<OperationType>();
+
+
+        if (difficultyProfile.allowAddition)
+            allowedOperations.Add(OperationType.Add);
+
+        if (difficultyProfile.allowSubtraction)
+            allowedOperations.Add(OperationType.Subtract);
+
+        if (difficultyProfile.allowMultiplication)
+            allowedOperations.Add(OperationType.Multiply);
+
+        if (difficultyProfile.allowDivision)
+            allowedOperations.Add(OperationType.Divide);
+
+
+        // Si el profile no definió operaciones válidas
+        if (allowedOperations.Count == 0)
+            return fallbackOperation;
+
+
+        // Solo una operación
+        if (allowedOperations.Count == 1)
+            return allowedOperations[0];
+
+
+        // Varias operaciones → random curricular
+        return allowedOperations[
+            Random.Range(0, allowedOperations.Count)
+        ];
     }
 
     public void BlackboardIO()
@@ -75,10 +147,19 @@ public class RoundUpController : MonoBehaviour
 
         OperationType exerciseOperation = operationType;
 
+
+        // comportamiento original Random
         if (operationType == OperationType.Random)
         {
-            exerciseOperation = (OperationType)Random.Range(1, System.Enum.GetValues(typeof(OperationType)).Length);
+            exerciseOperation = (OperationType)Random.Range(
+                1,
+                System.Enum.GetValues(typeof(OperationType)).Length
+            );
         }
+
+        // aplicar selector curricular si existe profile
+        exerciseOperation =
+        ResolveOperation(exerciseOperation);
 
         currentExercise = new MathExercise(
             min: 0,
@@ -155,7 +236,22 @@ public class RoundUpController : MonoBehaviour
 
         StartCoroutine(FlashFeedback(Color.green));
 
+        RegisterCampaignProgressIfNeeded();
+
         Invoke(nameof(GenerateExercise), 1.2f);
+    }
+
+    void RegisterCampaignProgressIfNeeded()
+    {
+        if (difficultyProfile == null)
+            return;
+
+        if (LevelProgressManager.Instance == null)
+            return;
+
+        LevelProgressManager.Instance.RegisterCorrectAnswer(
+            difficultyProfile
+        );
     }
 
     void OnWrongAnswer()
@@ -206,8 +302,8 @@ public class RoundUpController : MonoBehaviour
         {
             case OperationType.Add: return "+";
             case OperationType.Subtract: return "-";
-            case OperationType.Multiply: return "�";
-            case OperationType.Divide: return "�";
+            case OperationType.Multiply: return "×";
+            case OperationType.Divide: return "÷";
         }
 
         return "?";
