@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a4d34b036c1f9042b9c7969473bed7b, type: 3}
   m_Name: Basic
   m_EditorClassIdentifier: Assembly-CSharp::DifficultyProfile
-  presetTier: 2
+  presetTier: 0
   presetLevel: 1
   correctAnswersToUnlockNext: 10
   nextSceneToUnlock: 
