@@ -1300,7 +1300,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &657335250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4106,6 +4106,10 @@ GameObject:
   - component: {fileID: 2036379774}
   - component: {fileID: 2036379773}
   - component: {fileID: 2036379772}
+  - component: {fileID: 2036379780}
+  - component: {fileID: 2036379779}
+  - component: {fileID: 2036379778}
+  - component: {fileID: 2036379777}
   m_Layer: 0
   m_Name: Flowchart
   m_TagString: Untagged
@@ -4187,7 +4191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeRect:
     serializedVersion: 2
-    x: 37
+    x: 38
     y: 103
     width: 110.19
     height: 40
@@ -4201,9 +4205,13 @@ MonoBehaviour:
   - {fileID: 2036379766}
   - {fileID: 2036379765}
   - {fileID: 2036379776}
+  - {fileID: 2036379780}
   - {fileID: 2036379775}
+  - {fileID: 2036379777}
   - {fileID: 2036379774}
+  - {fileID: 2036379779}
   - {fileID: 2036379773}
+  - {fileID: 2036379778}
   - {fileID: 2036379772}
   suppressAllAutoSelections: 0
 --- !u!114 &2036379769
@@ -4232,8 +4240,7 @@ MonoBehaviour:
     height: 859
   selectedBlocks:
   - {fileID: 2036379768}
-  selectedCommands:
-  - {fileID: 2036379772}
+  selectedCommands: []
   variables: []
   description: 
   stepPause: 0
@@ -4262,7 +4269,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2036379772
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4289,7 +4296,7 @@ MonoBehaviour:
   setSayDialog: {fileID: 657335250}
 --- !u!114 &2036379773
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4316,7 +4323,7 @@ MonoBehaviour:
   setSayDialog: {fileID: 657335250}
 --- !u!114 &2036379774
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4343,7 +4350,7 @@ MonoBehaviour:
   setSayDialog: {fileID: 657335250}
 --- !u!114 &2036379775
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4370,7 +4377,7 @@ MonoBehaviour:
   setSayDialog: {fileID: 657335250}
 --- !u!114 &2036379776
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -4395,6 +4402,74 @@ MonoBehaviour:
   stopVoiceover: 1
   waitForVO: 0
   setSayDialog: {fileID: 657335250}
+--- !u!114 &2036379777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036379764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e4c082f762243f6943909a4272096d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fungus::Fungus.SetUIImage
+  itemId: 11
+  indentLevel: 0
+  images:
+  - {fileID: 694420915}
+  sprite: {fileID: 21300000, guid: b7e5e8c73524446409596a69acd8874f, type: 3}
+--- !u!114 &2036379778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036379764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e4c082f762243f6943909a4272096d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fungus::Fungus.SetUIImage
+  itemId: 10
+  indentLevel: 0
+  images:
+  - {fileID: 694420915}
+  sprite: {fileID: 21300000, guid: b7e5e8c73524446409596a69acd8874f, type: 3}
+--- !u!114 &2036379779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036379764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e4c082f762243f6943909a4272096d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fungus::Fungus.SetUIImage
+  itemId: 9
+  indentLevel: 0
+  images:
+  - {fileID: 694420915}
+  sprite: {fileID: 21300000, guid: 05386b701bab6fa48bf3b5b8079cee34, type: 3}
+--- !u!114 &2036379780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036379764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e4c082f762243f6943909a4272096d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fungus::Fungus.SetUIImage
+  itemId: 8
+  indentLevel: 0
+  images:
+  - {fileID: 694420915}
+  sprite: {fileID: 21300000, guid: 05386b701bab6fa48bf3b5b8079cee34, type: 3}
 --- !u!1 &2115878133
 GameObject:
   m_ObjectHideFlags: 0
