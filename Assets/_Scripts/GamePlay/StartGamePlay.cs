@@ -120,24 +120,54 @@ public class StartGamePlay : MonoBehaviour
 
     void HandleInput()
     {
-#if UNITY_EDITOR || UNITY_STANDALONE
+//#if UNITY_EDITOR || UNITY_STANDALONE
 
         if (Input.GetMouseButtonDown(0))
         {
+            if (
+                EventSystem.current
+                .IsPointerOverGameObject()
+            )
+            {
+                return;
+            }
+
             CheckTap(Input.mousePosition);
         }
 
-#endif
+//#endif
+        /*
+        // ====================================
+        // MOBILE
+        // ====================================
 
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
 
+            // ====================================
+            // IGNORAR TOUCH SOBRE UI
+            // ====================================
+
+            if (
+                EventSystem.current
+                .IsPointerOverGameObject(
+                    touch.fingerId
+                )
+            )
+            {
+                return;
+            }
+
+            // ====================================
+            // TAP REAL
+            // ====================================
+
             if (touch.phase == TouchPhase.Began)
             {
                 CheckTap(touch.position);
             }
-        }
+        }*/
     }
 
     void CheckTap(Vector2 screenPosition)

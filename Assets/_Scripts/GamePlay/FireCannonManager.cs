@@ -103,7 +103,23 @@ public class FireCanonManager : MonoBehaviour
             encounterActive
             &&
             Input.GetKeyDown(KeyCode.Space)
-)
+            )
+        {
+            Fire();
+            Instantiate(cannonballFiredFx);
+
+            Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        }
+    }
+
+    public void FireButton()
+    {
+        bool encounterActive =
+           StartGamePlay.Instance != null
+           &&
+           StartGamePlay.Instance.encounterActive;
+
+        if (encounterActive)
         {
             Fire();
             Instantiate(cannonballFiredFx);
