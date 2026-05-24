@@ -20,6 +20,9 @@ public class VirtualJoystick : MonoBehaviour
 
     Camera uiCamera;
 
+    [HideInInspector]
+    public bool inputBlocked;
+
     void Start()
     {
         uiCamera = canvas.worldCamera;
@@ -30,7 +33,24 @@ public class VirtualJoystick : MonoBehaviour
 
     void Update()
     {
+        // ====================================
+        // INPUT BLOQUEADO
+        // ====================================
+
+        if (inputBlocked)
+        {
+            // IMPORTANTE:
+            // ocultar joystick si estaba activo
+            if (isDragging)
+            {
+                HideJoystick();
+            }
+
+            return;
+        }
+
         HandleMouseInput();
+
         HandleTouchInput();
     }
 
