@@ -8,7 +8,9 @@
   <Project Path="kTools.Mirrors.Runtime.csproj" />
   <Project Path="Fungus.FungusLuaEditor.csproj" />
   <Project Path="Fungus.FungusLuaJSONCheckerEditor.csproj" />
+  <Project Path="ShaderGraphVariables.csproj" />
   <Project Path="kTools.Mirrors.Editor.csproj" />
   <Project Path="Fungus.UsfxrEditor.csproj" />
   <Project Path="Fungus.LineEndingsEditor.csproj" />
+  <Project Path="UberWaterPlannerReflection.csproj" />
 </Solution>
