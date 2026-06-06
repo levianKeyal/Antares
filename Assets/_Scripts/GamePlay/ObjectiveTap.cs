@@ -1,3 +1,4 @@
+using Fungus;
 using UnityEngine;
 
 public class ObjectiveTap : MonoBehaviour
@@ -7,6 +8,13 @@ public class ObjectiveTap : MonoBehaviour
 
     public void OnObjectiveTapped()
     {
+        // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+            return;
+
         StartGamePlay.Instance.StartPhase1(
             gameObject,
             rotateTowardsPlayer

@@ -1,3 +1,4 @@
+using Fungus;
 using UnityEngine;
 
 public class CannonAimUI : MonoBehaviour
@@ -44,6 +45,17 @@ public class CannonAimUI : MonoBehaviour
 
     void Update()
     {
+        // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            isDragging = false;
+
+            return;
+        }
+
         // ====================================
         // INPUT BLOCKED
         // ====================================

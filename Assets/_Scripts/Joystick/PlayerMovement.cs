@@ -1,3 +1,4 @@
+using Fungus;
 using UnityEngine;
 
 public enum MovementState
@@ -54,6 +55,18 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        // =========================
+        // CINEMATIC PAUSE
+        // =========================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            moveInput = 0;
+            rotationInput = 0;
+
+            return;
+        }
+
         // =========================
         // INPUT
         // =========================
@@ -126,6 +139,15 @@ public class PlayerMovement : MonoBehaviour
     }
     void FixedUpdate()
     {
+        // =========================
+        // CINEMATIC PAUSE
+        // =========================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            StopMovementImmediately();
+            return;
+        }
         // =========================
         // ROTACIÓN
         // =========================

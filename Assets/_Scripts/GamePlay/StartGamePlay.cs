@@ -1,4 +1,5 @@
 using Cinemachine;
+using Fungus;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -122,7 +123,16 @@ public class StartGamePlay : MonoBehaviour
 
     void HandleInput()
     {
-//#if UNITY_EDITOR || UNITY_STANDALONE
+        // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            return;
+        }
+
+        //#if UNITY_EDITOR || UNITY_STANDALONE
 
         if (Input.GetMouseButtonDown(0))
         {

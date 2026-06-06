@@ -1,3 +1,4 @@
+using Fungus;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -91,6 +92,25 @@ public class FireCanonManager : MonoBehaviour
 
     void Update()
     {
+        // ====================================
+        // SLIDER INTERACTION
+        // ====================================
+
+        if (velocitySlider != null)
+        {
+            velocitySlider.interactable =
+                !GameSettings.Instance.cinematicPause;
+        }
+
+        // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            return;
+        }
+
         CalculateRange();
 
         UpdateTrajectory();
@@ -117,6 +137,13 @@ public class FireCanonManager : MonoBehaviour
 
     public void FireButton()
     {
+        // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+            return;
+
         bool encounterActive =
            StartGamePlay.Instance != null
            &&

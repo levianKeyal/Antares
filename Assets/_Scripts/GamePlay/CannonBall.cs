@@ -1,3 +1,4 @@
+using Fungus;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -9,6 +10,10 @@ public class CannonBall : MonoBehaviour
     public float gravity;
 
     Rigidbody rb;
+
+    Vector3 savedVelocity;
+
+    bool isPaused;
 
     [Header("Impact FX")]
     public GameObject waterImpactPrefab;
@@ -51,6 +56,42 @@ public class CannonBall : MonoBehaviour
     void FixedUpdate()
     {
         // ====================================
+        // CINEMATIC PAUSE
+        // ====================================
+
+        if (GameSettings.Instance.cinematicPause)
+        {
+            // PAUSAR SOLO UNA VEZ
+            if (!isPaused)
+            {
+                savedVelocity =
+                    velocity;
+
+                rb.linearVelocity =
+                    Vector3.zero;
+
+                isPaused = true;
+            }
+
+            return;
+        }
+
+        // ====================================
+        // RESUME
+        // ====================================
+
+        if (isPaused)
+        {
+            velocity =
+                savedVelocity;
+
+            rb.linearVelocity =
+                velocity;
+
+            isPaused = false;
+        }
+
+        // ====================================
         // GRAVEDAD MANUAL
         // ====================================
 
@@ -59,7 +100,8 @@ public class CannonBall : MonoBehaviour
             gravity *
             Time.fixedDeltaTime;
 
-        rb.linearVelocity = velocity;
+        rb.linearVelocity =
+            velocity;
     }
     void OnTriggerEnter(Collider other)
     {

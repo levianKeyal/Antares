@@ -5,6 +5,10 @@ public class GameSettings : MonoBehaviour
 {
     public static GameSettings Instance;
 
+    [Header("Game State")]
+
+    public bool cinematicPause;
+
     [Header("Screen Orientation")]
 
     public bool isLandscape;
@@ -71,6 +75,36 @@ public class GameSettings : MonoBehaviour
     public void CallScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
+    }
+
+    public void StartCinematicPause()
+    {
+        cinematicPause = true;
+
+        BoatMover[] boats =
+            FindObjectsByType<BoatMover>(
+                FindObjectsSortMode.None
+            );
+
+        foreach (BoatMover boat in boats)
+        {
+            boat.StopMovementImmediately();
+        }
+    }
+
+    public void EndCinematicPause()
+    {
+        cinematicPause = false;
+
+        BoatMover[] boats =
+            FindObjectsByType<BoatMover>(
+                FindObjectsSortMode.None
+            );
+
+        foreach (BoatMover boat in boats)
+        {
+            boat.ResumeMovement();
+        }
     }
 
     void Update()
