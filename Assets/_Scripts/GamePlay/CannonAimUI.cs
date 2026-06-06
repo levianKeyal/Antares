@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class CannonAimUI : MonoBehaviour
 {
+    public FormulaSustitution formulaSustitution;
     [Header("UI")]
     public RectTransform aimImage;
 
@@ -32,7 +33,8 @@ public class CannonAimUI : MonoBehaviour
     // ====================================
 
     void Start()
-    {
+    {  
+        formulaSustitution=GetComponent<FormulaSustitution>();  
         // GUARDAR ROTACIÓN INICIAL
         initialRotation =
             cannonPivot.localRotation;
@@ -262,6 +264,8 @@ public class CannonAimUI : MonoBehaviour
 
         lastDirection =
             currentDirection;
+
+        formulaSustitution.UpdateFormulaValues();
     }
 
     // ====================================

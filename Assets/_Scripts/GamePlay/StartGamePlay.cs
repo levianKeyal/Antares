@@ -20,6 +20,8 @@ public class StartGamePlay : MonoBehaviour
     public CinemachineVirtualCamera playerCamera;
     public CinemachineVirtualCamera battleCamera;
 
+    public float paddingMultiplier;
+
     [Header("Battle UI")]
     public GameObject cannonCanvas;
 
@@ -413,7 +415,7 @@ public class StartGamePlay : MonoBehaviour
     // CAMERA
     // ====================================
 
-    void ActivateBattleCamera()
+    public void ActivateBattleCamera()
     {
         playerCamera.m_Priority = 0;
         battleCamera.m_Priority = 1;
@@ -425,10 +427,22 @@ public class StartGamePlay : MonoBehaviour
         float fov =
             battleCamera.m_Lens.FieldOfView;
 
-        float distance =
+        float distance = 0;
+
+        if(GameSettings.Instance.isPortrait)
+        {
+            distance =
             (radius /
             Mathf.Sin(fov * Mathf.Deg2Rad / 2f))
-            * 2f;
+            * paddingMultiplier;
+        }
+        else if(GameSettings.Instance.isLandscape)
+        {
+            distance =
+            (radius /
+            Mathf.Sin(fov * Mathf.Deg2Rad / 2f));
+        }
+        
 
         Vector3 direction =
             (currentObjective.transform.position -

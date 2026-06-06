@@ -5,6 +5,16 @@ public class GameSettings : MonoBehaviour
 {
     public static GameSettings Instance;
 
+    [Header("Screen Orientation")]
+
+    public bool isLandscape;
+
+    public bool isPortrait;
+
+    int lastScreenWidth;
+
+    int lastScreenHeight;
+
     [Header("Validation Parameters")]
 
     public int decimals = 2;
@@ -47,9 +57,60 @@ public class GameSettings : MonoBehaviour
         else
             Destroy(gameObject);
     }
+    void Start()
+    {
+        UpdateScreenOrientation();
+        UpdateUIElements();
+
+        lastScreenWidth =
+            Screen.width;
+
+        lastScreenHeight =
+            Screen.height;
+    }
     public void CallScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
+    }
+
+    void Update()
+    {
+        // ====================================
+        // SCREEN CHANGED
+        // ====================================
+
+        if (
+            Screen.width != lastScreenWidth
+            ||
+            Screen.height != lastScreenHeight
+        )
+        {
+            lastScreenWidth =
+                Screen.width;
+
+            lastScreenHeight =
+                Screen.height;
+
+            UpdateScreenOrientation();
+            UpdateUIElements();
+        }
+    }
+
+    void UpdateScreenOrientation()
+    {
+        isLandscape =
+            Screen.width >
+            Screen.height;
+
+        isPortrait =
+            Screen.height >
+            Screen.width;
+    }
+
+    void UpdateUIElements()
+    {
+        EncounterUIManager encounterUIManager = FindAnyObjectByType<EncounterUIManager>();
+        encounterUIManager.UpdateUIElements();
     }
 
     void OnValidate()

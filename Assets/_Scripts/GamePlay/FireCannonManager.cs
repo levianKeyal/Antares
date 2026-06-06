@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class FireCanonManager : MonoBehaviour
 {
+    public FormulaSustitution formulaSustition;
+
     [Header("UI")]
     public TMP_Text angleText;
     public Slider velocitySlider;
@@ -82,6 +84,7 @@ public class FireCanonManager : MonoBehaviour
 
     void Start()
     {
+        formulaSustition = GetComponent<FormulaSustitution>();
         CreateTrajectoryPool();
         InitializeVelocitySlider();
     }
@@ -297,6 +300,8 @@ public class FireCanonManager : MonoBehaviour
                 maxInitialVelocity
             );
         velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+
+        formulaSustition.UpdateFormulaValues();
     }
 
     public void RefreshVelocitySlider()
