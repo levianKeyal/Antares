@@ -9,6 +9,10 @@ public class GameSettings : MonoBehaviour
 
     public bool cinematicPause;
 
+    [Header("Interaction")]
+
+    public bool interactionBlocked;
+
     [Header("Screen Orientation")]
 
     public bool isLandscape;

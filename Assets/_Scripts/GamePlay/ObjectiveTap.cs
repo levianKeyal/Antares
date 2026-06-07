@@ -15,6 +15,13 @@ public class ObjectiveTap : MonoBehaviour
         if (GameSettings.Instance.cinematicPause)
             return;
 
+        // ====================================
+        // INTERACTION BLOCKED
+        // ====================================
+
+        if (GameSettings.Instance.interactionBlocked)
+            return;
+
         StartGamePlay.Instance.StartPhase1(
             gameObject,
             rotateTowardsPlayer
