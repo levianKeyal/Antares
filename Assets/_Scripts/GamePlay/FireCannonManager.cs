@@ -41,6 +41,8 @@ public class FireCanonManager : MonoBehaviour
 
     public float currentRange;
 
+    public float maxRange => (maxInitialVelocity * maxInitialVelocity) / gravity;
+
     [Header("Trajectory")]
     public bool showTrajectory = true;
 

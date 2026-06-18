@@ -20,4 +20,9 @@ public class ManagerOptions : MonoBehaviour
     {
         GameSettings.Instance.interactionBlocked = false;
     }
+
+    public void StopBoat()
+    {
+        FindAnyObjectByType<StartGamePlay>().currentBoatMover.StopMovementImmediately();
+    }
 }

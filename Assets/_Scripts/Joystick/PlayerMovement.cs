@@ -208,6 +208,15 @@ public class PlayerMovement : MonoBehaviour
         isActuallyMoving = rb.linearVelocity.magnitude > 0.1f;
 
         _waterTrail.emitting = isActuallyMoving;
+
+        if (FindFirstObjectByType<TutorialManager>() != null)
+        {
+            if (currentSpeed > 0 && FindFirstObjectByType<TutorialManager>().tutoBlockNum == 1)
+            {
+                FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+                //FindFirstObjectByType<TutorialManager>().tutoBlockNum++;
+            }
+        }
     }
     public void StopMovementImmediately()
     {

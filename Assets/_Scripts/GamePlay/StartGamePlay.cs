@@ -15,7 +15,7 @@ public class StartGamePlay : MonoBehaviour
     public VirtualJoystick virtualJoystick;
 
     PlayerMovement playerMovement;
-    BoatMover currentBoatMover;
+    public BoatMover currentBoatMover;
 
     [Header("Battle Cameras")]
     public CinemachineVirtualCamera playerCamera;
@@ -480,6 +480,7 @@ public class StartGamePlay : MonoBehaviour
         if (currentBoatMover != null)
         {
             currentBoatMover.ResumeMovement();
+            currentBoatMover = null;
         }
 
         showCircle = false;
