@@ -10,7 +10,12 @@ public class EncounterUIManager : MonoBehaviour
 
     [Header("Fungus Elements")]
     public RectTransform fungusPanel;
-    public RectTransform firstMateImage; 
+    public RectTransform firstMateImage;
+
+    [Header("Tutorial Elements")]
+    public RectTransform dialArrow;
+    public RectTransform velocityArrow;
+    public RectTransform shootArrow;
 
 
     private void Start()
@@ -29,6 +34,12 @@ public class EncounterUIManager : MonoBehaviour
             fungusPanel.anchoredPosition = new Vector2(-500f, 60f);
             firstMateImage.anchoredPosition = new Vector2(-317f, 724f);
 
+            //Tutorial Elements
+
+            dialArrow.anchoredPosition = new Vector2(0f, -294f);
+            velocityArrow.anchoredPosition = new Vector2(172f, -853f);
+            shootArrow.anchoredPosition = new Vector2(172f, -853f);
+
             if(startGamePlay.encounterActive)
             {
                 startGamePlay.ActivateBattleCamera();
@@ -41,6 +52,12 @@ public class EncounterUIManager : MonoBehaviour
             cannonDialUI.anchoredPosition = new Vector2(0, 150f);
             fungusPanel.anchoredPosition = new Vector2(-500, 0f);
             firstMateImage.anchoredPosition = new Vector2(-500f, 724f);
+
+            //Tutorial Elements
+
+            dialArrow.anchoredPosition = new Vector2(0f, -220f);
+            velocityArrow.anchoredPosition = new Vector2(-235f, -430f);
+            shootArrow.anchoredPosition = new Vector2(600f, -430f);
 
             if (startGamePlay.encounterActive)
             {

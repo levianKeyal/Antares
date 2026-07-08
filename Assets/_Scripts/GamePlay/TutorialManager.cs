@@ -7,6 +7,7 @@ public class TutorialManager : MonoBehaviour
     public GameObject tutoBlock1;
     public GameObject tutoBlock2;
     public GameObject tutoBlock3;
+    public GameObject tutoBlock4;
     
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -34,6 +35,10 @@ public class TutorialManager : MonoBehaviour
 
             case 2:
                 tutoBlock3.SetActive(true);
+                break;
+
+            case 3:
+                tutoBlock4.SetActive(true);
                 break;
         }
     }

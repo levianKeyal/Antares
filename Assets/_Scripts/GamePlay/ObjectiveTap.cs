@@ -41,32 +41,43 @@ public class ObjectiveTap : MonoBehaviour
         if (GameSettings.Instance.interactionBlocked)
             return;
 
+        CalculateDistanceToPlayer();
+
         if (FindFirstObjectByType<TutorialManager>() != null)
         {
-            if (FindFirstObjectByType<TutorialManager>().tutoBlockNum == 2)
+            if (distanceToPlayer <= fireManager.maxRange)
             {
-                Debug.Log("Tuto 3 active");
-                FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+                if (FindFirstObjectByType<TutorialManager>().tutoBlockNum == 2)
+                {
+                    Debug.Log("Tuto 3 active");
+                    FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+                }
+            }
+            else if (distanceToPlayer > fireManager.maxRange)
+            {
+                fungusWarning.SetActive(true);
+                Debug.Log(fireManager.maxRange);
+                Debug.Log("Out of reach of Cannon");
+            }
+        }
+        else if (FindFirstObjectByType<TutorialManager>() == null)
+        {
+            if (distanceToPlayer <= fireManager.maxRange)
+            {
+                Debug.Log(fireManager.maxRange);
+                Debug.Log("In reach of Cannon");
+            }
+            else
+            {
+                fungusWarning.SetActive(true);
+                Debug.Log(fireManager.maxRange);
+                Debug.Log("Out of reach of Cannon");
             }
         }
 
-        CalculateDistanceToPlayer();
-
-        if(distanceToPlayer <= fireManager.maxRange)
-        {
-            Debug.Log(fireManager.maxRange);
-            Debug.Log("In reach of Cannon");
-        }
-        else
-        {
-            fungusWarning.SetActive(true);
-            Debug.Log(fireManager.maxRange);
-            Debug.Log("Out of reach of Cannon");
-        }
-
         StartGamePlay.Instance.StartPhase1(
-            gameObject,
-            rotateTowardsPlayer
-        );
+                gameObject,
+                rotateTowardsPlayer
+            );
     }
 }

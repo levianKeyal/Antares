@@ -182,7 +182,7 @@ public class CannonBall : MonoBehaviour
 
             // CALL METHOD
             other.SendMessage(
-                "OnCannonBallHit",
+                "SelfHarm",
                 SendMessageOptions
                     .DontRequireReceiver
             );

@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class TrajectoryDot : MonoBehaviour
 {
+    Camera _camera;
     [HideInInspector]
     public FireCanonManager manager;
 
@@ -24,6 +25,11 @@ public class TrajectoryDot : MonoBehaviour
             transform.localScale;
     }
 
+    private void Start()
+    {
+        _camera = Camera.main;
+    }
+
     void OnEnable()
     {
         hierarchyIndex =
@@ -35,6 +41,8 @@ public class TrajectoryDot : MonoBehaviour
         AnimateScale();
 
         AnimateSequentialFade();
+
+        transform.LookAt(_camera.transform);
     }
 
     void AnimateScale()

@@ -31,6 +31,11 @@ public class EnemyStats : MonoBehaviour
 
             Instantiate(destroyedFx);
 
+            if (FindFirstObjectByType<TutorialManager>() != null)
+            {
+                FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+            }
+
             this.gameObject.SetActive(false);
 
         }
