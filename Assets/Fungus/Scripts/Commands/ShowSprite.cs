@@ -13,7 +13,7 @@ namespace Fungus
                  "Show Sprite", 
                  "Makes a sprite visible / invisible by setting the color alpha.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ShowSprite : Command
     {
         [Tooltip("Sprite object to be made visible / invisible")]

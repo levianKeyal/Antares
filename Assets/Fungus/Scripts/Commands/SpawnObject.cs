@@ -17,7 +17,7 @@ namespace Fungus
                  "Instantiate",
                  "Instantiate a game object")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SpawnObject : Command
     {
         [Tooltip("Game object to copy when spawning. Can be a scene object or a prefab.")]

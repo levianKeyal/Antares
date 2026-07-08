@@ -24,7 +24,7 @@ namespace Fungus
     /// <summary>
     /// Abstract base class for iTween commands.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public abstract class iTweenCommand : Command
     {
         [Tooltip("Target game object to apply the Tween to")]

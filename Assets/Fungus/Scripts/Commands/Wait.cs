@@ -13,7 +13,7 @@ namespace Fungus
                  "Wait", 
                  "Waits for period of time before executing the next command in the block.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Wait : Command
     {
         [Tooltip("Duration to wait for")]

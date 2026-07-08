@@ -13,7 +13,7 @@ namespace Fungus
                  "Conversation",
                  "Do multiple say and portrait commands in a single block of text. Format is: [character] [portrait] [stage position] [hide] [<<< | >>>] [clear | noclear] [wait | nowait] [fade | nofade] [: Story text]")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Conversation : Command
     {
         [SerializeField] protected StringDataMulti conversationText;

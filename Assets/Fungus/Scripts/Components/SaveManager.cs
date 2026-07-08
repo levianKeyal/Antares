@@ -1,4 +1,4 @@
-﻿// This code is part of the Fungus library (https://github.com/snozbot/fungus)
+// This code is part of the Fungus library (https://github.com/snozbot/fungus)
 // It is released for free under the MIT open source license (https://github.com/snozbot/fungus/blob/master/LICENSE)
 
 #if UNITY_5_3_OR_NEWER
@@ -87,7 +87,7 @@ namespace Fungus
             SavePointLoaded.NotifyEventHandlers(savePointKey);
 
             // Execute any block containing a SavePoint command matching the save key, with Resume On Load enabled
-            var savePoints = UnityEngine.Object.FindObjectsOfType<SavePoint>();
+            var savePoints = UnityEngine.Object.FindObjectsByType<SavePoint>(FindObjectsSortMode.None);
             for (int i = 0; i < savePoints.Length; i++)
             {
                 var savePoint = savePoints[i];
@@ -113,7 +113,7 @@ namespace Fungus
             // Each scene should have one Save Point with the IsStartPoint property enabled.
             // We automatically start execution from this command whenever the scene starts 'normally' (i.e. first play, restart or scene load via the Load Scene command or SceneManager.LoadScene).
 
-            var savePoints = UnityEngine.Object.FindObjectsOfType<SavePoint>();
+            var savePoints = UnityEngine.Object.FindObjectsByType<SavePoint>(FindObjectsSortMode.None);
             for (int i = 0; i < savePoints.Length; i++)
             {
                 var savePoint = savePoints[i];

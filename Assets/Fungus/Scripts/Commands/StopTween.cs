@@ -13,7 +13,7 @@ namespace Fungus
                  "Stop Tween", 
                  "Stops an active iTween by name.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class StopTween : Command
     {
         [Tooltip("Stop and destroy any Tweens in current scene with the supplied name")]

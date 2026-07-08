@@ -11,7 +11,7 @@ namespace Fungus
     /// <summary>
     /// Define a set of screen positions where character sprites can be displayed and controls portraits.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Stage : PortraitController
     {
         [Tooltip("Canvas object containing the stage positions.")]

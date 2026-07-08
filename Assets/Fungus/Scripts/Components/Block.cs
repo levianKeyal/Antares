@@ -23,7 +23,7 @@ namespace Fungus
     /// <summary>
     /// A container for a sequence of Fungus comands.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     [RequireComponent(typeof(Flowchart))]
     [AddComponentMenu("")]
     public class Block : Node

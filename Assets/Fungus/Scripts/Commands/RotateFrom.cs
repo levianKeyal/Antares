@@ -14,7 +14,7 @@ namespace Fungus
                  "Rotate From", 
                  "Rotates a game object from the specified angles back to its starting orientation over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class RotateFrom : iTweenCommand
     {
         [Tooltip("Target transform that the GameObject will rotate from")]

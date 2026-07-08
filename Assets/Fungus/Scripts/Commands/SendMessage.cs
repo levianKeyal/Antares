@@ -28,7 +28,7 @@ namespace Fungus
                  "Send Message", 
                  "Sends a message to either the owner Flowchart or all Flowcharts in the scene. Blocks can listen for this message using a Message Received event handler.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SendMessage : Command
     {
         [Tooltip("Target flowchart(s) to send the message to")]
@@ -54,7 +54,7 @@ namespace Fungus
             }
             else
             {
-                receivers = GameObject.FindObjectsOfType<MessageReceived>();
+                receivers = Object.FindObjectsByType<MessageReceived>(FindObjectsSortMode.None);
             }
 
             if (receivers != null)

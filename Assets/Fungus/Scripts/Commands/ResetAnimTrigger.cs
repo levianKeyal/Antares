@@ -13,7 +13,7 @@ namespace Fungus
                  "Reset Anim Trigger", 
                  "Resets a trigger parameter on an Animator component.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ResetAnimTrigger : Command
     {
         [Tooltip("Reference to an Animator component in a game object")]

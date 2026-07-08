@@ -63,7 +63,7 @@ namespace Fungus.EditorUtils
             {
                 if (t._Stage == null)        // If no default specified, try to get any portrait stage in the scene
                 {
-                    s = GameObject.FindObjectOfType<Stage>();
+                    s = FindFirstObjectByType<Stage>();
                 }
                 if (s == null)
                 {

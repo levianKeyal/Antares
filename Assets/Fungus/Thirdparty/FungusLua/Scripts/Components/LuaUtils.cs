@@ -156,7 +156,7 @@ namespace Fungus
         /// </summary>
         protected virtual void InitBindings()
         {
-            LuaBindingsBase[] bindings = GameObject.FindObjectsOfType<LuaBindingsBase>();
+            LuaBindingsBase[] bindings = UnityEngine.Object.FindObjectsByType<LuaBindingsBase>(FindObjectsSortMode.None);
             foreach (LuaBindingsBase binding in bindings)
             {
                 binding.AddBindings(luaEnvironment);

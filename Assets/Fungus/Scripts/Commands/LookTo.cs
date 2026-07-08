@@ -14,7 +14,7 @@ namespace Fungus
                  "Look To", 
                  "Rotates a GameObject to look at a supplied Transform or Vector3 over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class LookTo : iTweenCommand
     {
         [Tooltip("Target transform that the GameObject will look at")]

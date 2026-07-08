@@ -66,7 +66,7 @@ namespace Fungus.EditorUtils
 
             var targetBlock = target as Block;
 
-            var callers = FindObjectsOfType<MonoBehaviour>()
+            var callers = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
                 .Where(x => x is IBlockCaller)
                 .Select(x => x as IBlockCaller)
                 .Where(x => x.MayCallBlock(targetBlock))

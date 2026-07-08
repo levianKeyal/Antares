@@ -14,7 +14,7 @@ namespace Fungus
                  "Scale From", 
                  "Changes a game object's scale to the specified value and back to its original scale over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ScaleFrom : iTweenCommand
     {
         [Tooltip("Target transform that the GameObject will scale from")]

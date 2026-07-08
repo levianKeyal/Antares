@@ -14,7 +14,7 @@ namespace Fungus
                  "Menu Shuffle", 
 		"Shuffle the order of the items in a Fungus Menu")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class MenuShuffle : Command
     {
 		public enum Mode

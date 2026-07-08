@@ -14,7 +14,7 @@ namespace Fungus
                  "Menu Timer", 
                  "Displays a timer bar and executes a target block if the player fails to select a menu option in time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class MenuTimer : Command, IBlockCaller
     {
         [Tooltip("Length of time to display the timer for")]

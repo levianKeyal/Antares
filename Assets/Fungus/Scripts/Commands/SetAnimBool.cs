@@ -13,7 +13,7 @@ namespace Fungus
                  "Set Anim Bool", 
                  "Sets a boolean parameter on an Animator component to control a Unity animation")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SetAnimBool : Command
     {
         [Tooltip("Reference to an Animator component in a game object")]

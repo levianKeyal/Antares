@@ -388,7 +388,7 @@ namespace Fungus
         [DidReloadScripts()]
         protected static void DidReloadScripts()
         {
-            var luaBindingsList = GameObject.FindObjectsOfType<LuaBindings>();
+            var luaBindingsList = Object.FindObjectsByType<LuaBindings>(FindObjectsSortMode.None);
             foreach (var luaBindings in luaBindingsList)
             {
                 SerializedObject so = new SerializedObject(luaBindings);

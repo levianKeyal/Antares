@@ -13,7 +13,7 @@ namespace Fungus
                  "Set Language", 
                  "Set the active language for the scene. A Localization object with a localization file must be present in the scene.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SetLanguage : Command
     {
         [Tooltip("Code of the language to set. e.g. ES, DE, JA")]
@@ -25,7 +25,7 @@ namespace Fungus
 
         public override void OnEnter()
         {
-            Localization localization = GameObject.FindObjectOfType<Localization>();
+            Localization localization = FindFirstObjectByType<Localization>();
             if (localization != null)
             {
                 localization.SetActiveLanguage(_languageCode.Value, true);

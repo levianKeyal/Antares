@@ -13,7 +13,7 @@ namespace Fungus
                  "Destroy",
                  "Destroys a specified game object in the scene.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Destroy : Command
     {
         [Tooltip("Reference to game object to destroy")]

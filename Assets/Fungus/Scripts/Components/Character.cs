@@ -11,7 +11,7 @@ namespace Fungus
     /// <summary>
     /// A Character that can be used in dialogue via the Say, Conversation and Portrait commands.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Character : MonoBehaviour, ILocalizable, IComparer<Character>
     {
         [Tooltip("Character name as displayed in Say Dialog.")]

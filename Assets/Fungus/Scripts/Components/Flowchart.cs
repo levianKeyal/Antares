@@ -15,7 +15,7 @@ namespace Fungus
     /// Visual scripting controller for the Flowchart programming language.
     /// Flowchart objects may be edited visually using the Flowchart editor window.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Flowchart : MonoBehaviour, ISubstitutionHandler
     {
         public const string SubstituteVariableRegexString = "{\\$.*?}";
@@ -120,7 +120,7 @@ namespace Fungus
                 return;
             }
             
-            EventSystem eventSystem = GameObject.FindObjectOfType<EventSystem>();
+            EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
             if (eventSystem == null)
             {
                 // Auto spawn an Event System from the prefab
@@ -307,7 +307,7 @@ namespace Fungus
         /// </summary>
         public static void BroadcastFungusMessage(string messageName)
         {
-            var eventHandlers = UnityEngine.Object.FindObjectsOfType<MessageReceived>();
+            var eventHandlers = UnityEngine.Object.FindObjectsByType<MessageReceived>(FindObjectsSortMode.None);
             for (int i = 0; i < eventHandlers.Length; i++)
             {
                 var eventHandler = eventHandlers[i];

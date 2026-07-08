@@ -1,4 +1,4 @@
-﻿// This code is part of the Fungus library (https://github.com/snozbot/fungus)
+// This code is part of the Fungus library (https://github.com/snozbot/fungus)
 // It is released for free under the MIT open source license (https://github.com/snozbot/fungus/blob/master/LICENSE)
 
 #if UNITY_5_3_OR_NEWER
@@ -67,7 +67,7 @@ namespace Fungus
             var savePointData = Create(_savePointKey, _savePointDescription, _sceneName);
 
             // Look for a SaveData component in the scene to populate the save data items.
-            var saveData = GameObject.FindObjectOfType<SaveData>();
+            var saveData = UnityEngine.Object.FindFirstObjectByType<SaveData>();
             if (saveData != null)
             {
                 saveData.Encode(savePointData.SaveDataItems);
@@ -97,7 +97,7 @@ namespace Fungus
                 SceneManager.sceneLoaded -= onSceneLoadedAction;
 
                 // Look for a SaveData component in the scene to process the save data items.
-                var saveData = GameObject.FindObjectOfType<SaveData>();
+                var saveData = UnityEngine.Object.FindFirstObjectByType<SaveData>();
                 if (saveData != null)
                 {
                     saveData.Decode(savePointData.SaveDataItems);

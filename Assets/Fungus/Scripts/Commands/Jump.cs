@@ -13,7 +13,7 @@ namespace Fungus
                  "Jump", 
                  "Move execution to a specific Label command in the same block")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class Jump : Command
     {
         [Tooltip("Name of a label in this block to jump to")]

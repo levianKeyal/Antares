@@ -28,7 +28,7 @@ namespace Fungus.EditorUtils
             }
 
             // Reset these variables before save so that they won't cause a git conflict
-            Flowchart[] flowcharts = UnityEngine.Object.FindObjectsOfType<Flowchart>();
+            Flowchart[] flowcharts = UnityEngine.Object.FindObjectsByType<Flowchart>(UnityEngine.FindObjectsSortMode.None);
             foreach (Flowchart f in flowcharts)
             {
                 if (!f.SaveSelection)

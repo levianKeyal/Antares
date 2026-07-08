@@ -14,7 +14,7 @@ namespace Fungus
                  "Wait Frames", 
                  "Waits for a number of frames before executing the next command in the block.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class WaitFrames : Command
     {
         [Tooltip("Number of frames to wait for")]

@@ -14,7 +14,7 @@ namespace Fungus
                  "Shake Position", 
                  "Randomly shakes a GameObject's position by a diminishing amount over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ShakePosition : iTweenCommand
     {
         [Tooltip("A translation offset in space the GameObject will animate to")]

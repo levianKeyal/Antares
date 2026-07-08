@@ -9,7 +9,7 @@ namespace Fungus
     /// Defines a camera view point.
     /// The position and rotation are specified using the game object's transform, so this class only needs to specify the ortographic view size.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class View : MonoBehaviour
     {
         [Tooltip("Orthographic size of the camera view in world units.")]

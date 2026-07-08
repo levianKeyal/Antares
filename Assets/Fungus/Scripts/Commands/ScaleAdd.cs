@@ -14,7 +14,7 @@ namespace Fungus
                  "Scale Add", 
                  "Changes a game object's scale by a specified offset over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ScaleAdd : iTweenCommand
     {
         [Tooltip("A scale offset in space the GameObject will animate to")]

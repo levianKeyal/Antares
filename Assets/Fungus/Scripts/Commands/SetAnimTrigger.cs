@@ -13,7 +13,7 @@ namespace Fungus
                  "Set Anim Trigger", 
                  "Sets a trigger parameter on an Animator component to control a Unity animation")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SetAnimTrigger : Command
     {
         [Tooltip("Reference to an Animator component in a game object")]

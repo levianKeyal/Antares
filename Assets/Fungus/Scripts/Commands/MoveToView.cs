@@ -41,7 +41,7 @@ namespace Fungus
             targetCamera = Camera.main;
             if (targetCamera == null)
             {
-                targetCamera = GameObject.FindObjectOfType<Camera>();
+                targetCamera = FindFirstObjectByType<Camera>();
             }
         }
 

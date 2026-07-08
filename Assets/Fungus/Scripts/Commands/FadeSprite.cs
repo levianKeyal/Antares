@@ -13,7 +13,7 @@ namespace Fungus
                  "Fade Sprite", 
                  "Fades a sprite to a target color over a period of time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class FadeSprite : Command
     {
         [Tooltip("Sprite object to be faded")]

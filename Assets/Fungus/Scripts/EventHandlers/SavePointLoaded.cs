@@ -1,4 +1,4 @@
-﻿// This code is part of the Fungus library (https://github.com/snozbot/fungus)
+// This code is part of the Fungus library (https://github.com/snozbot/fungus)
 // It is released for free under the MIT open source license (https://github.com/snozbot/fungus/blob/master/LICENSE)
 
 using UnityEngine;
@@ -32,7 +32,7 @@ namespace Fungus
         public static void NotifyEventHandlers(string _savePointKey)
         {
             // Fire any matching SavePointLoaded event handler with matching save key.
-            var eventHandlers = Object.FindObjectsOfType<SavePointLoaded>();
+            var eventHandlers = Object.FindObjectsByType<SavePointLoaded>(FindObjectsSortMode.None);
             for (int i = 0; i < eventHandlers.Length; i++)
             {
                 var eventHandler = eventHandlers[i];

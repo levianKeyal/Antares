@@ -40,7 +40,7 @@ namespace Fungus
     /// <summary>
     /// Component which manages a list of bound objects to be accessed in Lua scripts.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class LuaBindings : LuaBindingsBase 
     {
         [Tooltip("Add bindings to every Lua Environment in the scene. If false, only add bindings to a specific Lua Environment.")]

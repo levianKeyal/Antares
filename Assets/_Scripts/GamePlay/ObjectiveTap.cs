@@ -6,6 +6,7 @@ public class ObjectiveTap : MonoBehaviour
 {
     PlayerMovement player;
     FireCanonManager fireManager;
+    TutorialManager tutorialManager;
 
     [Header("Rotation")]
     public bool rotateTowardsPlayer = true;
@@ -19,10 +20,24 @@ public class ObjectiveTap : MonoBehaviour
     {
         player = FindFirstObjectByType<PlayerMovement>();
         fireManager = FindFirstObjectByType<FireCanonManager>();
+        tutorialManager = FindFirstObjectByType<TutorialManager>();
     }
+
     public void CalculateDistanceToPlayer()
     {
-        distanceToPlayer = Vector3.Distance (transform.position, player.transform.position);
+        if (player == null)
+        {
+            distanceToPlayer = float.MaxValue;
+            return;
+        }
+
+        Vector3 playerPosition = player.transform.position;
+        Vector3 objectivePosition = transform.position;
+
+        playerPosition.y = 0f;
+        objectivePosition.y = 0f;
+
+        distanceToPlayer = Vector3.Distance(objectivePosition, playerPosition);
     }
 
     public void OnObjectiveTapped()
@@ -41,43 +56,58 @@ public class ObjectiveTap : MonoBehaviour
         if (GameSettings.Instance.interactionBlocked)
             return;
 
+        if (player == null)
+        {
+            player = FindFirstObjectByType<PlayerMovement>();
+        }
+
+        if (fireManager == null)
+        {
+            fireManager = FindFirstObjectByType<FireCanonManager>();
+        }
+
+        if (tutorialManager == null)
+        {
+            tutorialManager = FindFirstObjectByType<TutorialManager>();
+        }
+
+        if (player == null || fireManager == null)
+        {
+            Debug.LogWarning("ObjectiveTap: missing player or cannon manager reference.");
+            return;
+        }
+
         CalculateDistanceToPlayer();
 
-        if (FindFirstObjectByType<TutorialManager>() != null)
-        {
-            if (distanceToPlayer <= fireManager.maxRange)
-            {
-                if (FindFirstObjectByType<TutorialManager>().tutoBlockNum == 2)
-                {
-                    Debug.Log("Tuto 3 active");
-                    FindFirstObjectByType<TutorialManager>().CallTutoBlock();
-                }
-            }
-            else if (distanceToPlayer > fireManager.maxRange)
-            {
-                fungusWarning.SetActive(true);
-                Debug.Log(fireManager.maxRange);
-                Debug.Log("Out of reach of Cannon");
-            }
-        }
-        else if (FindFirstObjectByType<TutorialManager>() == null)
-        {
-            if (distanceToPlayer <= fireManager.maxRange)
-            {
-                Debug.Log(fireManager.maxRange);
-                Debug.Log("In reach of Cannon");
-            }
-            else
-            {
-                fungusWarning.SetActive(true);
-                Debug.Log(fireManager.maxRange);
-                Debug.Log("Out of reach of Cannon");
-            }
-        }
+        bool inRange = distanceToPlayer <= fireManager.maxRange;
 
-        StartGamePlay.Instance.StartPhase1(
+        if (inRange)
+        {
+            Debug.Log("in reach of cannon");
+
+            if (fungusWarning != null)
+            {
+                fungusWarning.SetActive(false);
+            }
+
+            if (tutorialManager != null && tutorialManager.tutoBlockNum == 2)
+            {
+                Debug.Log("Tuto 3 active");
+                tutorialManager.CallTutoBlock();
+            }
+
+            StartGamePlay.Instance.StartPhase1(
                 gameObject,
                 rotateTowardsPlayer
             );
+            return;
+        }
+
+        if (fungusWarning != null)
+        {
+            fungusWarning.SetActive(true);
+        }
+
+        Debug.Log("out of reach of cannon");
     }
 }

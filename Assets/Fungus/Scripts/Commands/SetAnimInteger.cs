@@ -13,7 +13,7 @@ namespace Fungus
                  "Set Anim Integer", 
                  "Sets an integer parameter on an Animator component to control a Unity animation")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class SetAnimInteger : Command
     {
         [Tooltip("Reference to an Animator component in a game object")]

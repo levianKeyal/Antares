@@ -14,7 +14,7 @@ namespace Fungus
                  "Rotate Add", 
                  "Rotates a game object by the specified angles over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class RotateAdd : iTweenCommand
     {
         [Tooltip("A rotation offset in space the GameObject will animate to")]

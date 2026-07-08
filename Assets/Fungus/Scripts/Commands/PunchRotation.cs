@@ -14,7 +14,7 @@ namespace Fungus
                  "Punch Rotation", 
                  "Applies a jolt of force to a GameObject's rotation and wobbles it back to its initial rotation.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class PunchRotation : iTweenCommand
     {
         [Tooltip("A rotation offset in space the GameObject will animate to")]

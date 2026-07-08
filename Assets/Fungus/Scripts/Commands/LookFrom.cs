@@ -14,7 +14,7 @@ namespace Fungus
                  "Look From", 
                  "Instantly rotates a GameObject to look at the supplied Vector3 then returns it to it's starting rotation over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class LookFrom : iTweenCommand
     {
         [Tooltip("Target transform that the GameObject will look at")]

@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 #if UNITY_EDITOR
-[ExecuteInEditMode]
+[ExecuteAlways]
 #endif
 
 [AddComponentMenu("")]

@@ -14,7 +14,7 @@ namespace Fungus
                  "Shake Scale", 
                  "Randomly shakes a GameObject's rotation by a diminishing amount over time.")]
     [AddComponentMenu("")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ShakeScale : iTweenCommand
     {
         [Tooltip("A scale offset in space the GameObject will animate to")]

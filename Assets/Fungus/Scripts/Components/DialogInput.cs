@@ -59,7 +59,7 @@ namespace Fungus
         // This method will automatically instantiate one if none exists.
         protected virtual void CheckEventSystem()
         {
-            EventSystem eventSystem = GameObject.FindObjectOfType<EventSystem>();
+            EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
             if (eventSystem == null)
             {
                 // Auto spawn an Event System from the prefab

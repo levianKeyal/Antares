@@ -30,7 +30,7 @@ namespace Fungus
     [CommandInfo("Audio", 
                  "Control Audio",
                  "Plays, loops, or stops an audiosource. Any AudioSources with the same tag as the target Audio Source will automatically be stoped.")]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class ControlAudio : Command
     {
         [Tooltip("What to do to audio")]
@@ -65,7 +65,7 @@ namespace Fungus
                 return;
             }
 
-            var audioSources = GameObject.FindObjectsOfType<AudioSource>();
+            var audioSources = Object.FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
             for (int i = 0; i < audioSources.Length; i++)
             {
                 var a = audioSources[i];
