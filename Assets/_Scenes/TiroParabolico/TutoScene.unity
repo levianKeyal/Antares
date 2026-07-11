@@ -3169,6 +3169,61 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &355871210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 355871212}
+  - component: {fileID: 355871211}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &355871211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 355871210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ae6b6820f0e5b245a6c814ef9b50156, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PirateCombatDebug
+  startGamePlay: {fileID: 1382542675}
+  fireCanonManager: {fileID: 1030918676}
+  levelManager: {fileID: 1382542678}
+  debugText: {fileID: 0}
+  showOnScreenDebug: 1
+  guiSize: {x: 360, y: 180}
+  drawWorldGizmos: 1
+  enemyLineColor: {r: 1, g: 0, b: 0, a: 1}
+  rangeColor: {r: 0, g: 1, b: 1, a: 1}
+  rangeCircleHeightOffset: 0.15
+  rangeCircleSegments: 48
+--- !u!4 &355871212
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 355871210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &359551240
 GameObject:
   m_ObjectHideFlags: 0
@@ -4165,8 +4220,8 @@ MonoBehaviour:
   description: 
   eventHandler: {fileID: 439683390}
   commandList:
-  - {fileID: 439683366}
   - {fileID: 439683379}
+  - {fileID: 439683366}
   - {fileID: 439683378}
   - {fileID: 439683377}
   - {fileID: 439683376}
@@ -4210,7 +4265,8 @@ MonoBehaviour:
     height: 859
   selectedBlocks:
   - {fileID: 439683363}
-  selectedCommands: []
+  selectedCommands:
+  - {fileID: 439683366}
   variables: []
   description: 
   stepPause: 0
@@ -7838,7 +7894,8 @@ MonoBehaviour:
     height: 859
   selectedBlocks:
   - {fileID: 1366753559}
-  selectedCommands: []
+  selectedCommands:
+  - {fileID: 1366753555}
   variables: []
   description: 
   stepPause: 0
@@ -7867,7 +7924,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1366753562
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 2
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -7915,7 +7972,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61dddfdc5e0e44ca298d8f46f7f5a915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fungus::Fungus.FungusState
-  selectedFlowchart: {fileID: 1559607278}
+  selectedFlowchart: {fileID: 439683364}
 --- !u!4 &1370971909
 Transform:
   m_ObjectHideFlags: 1
@@ -18401,3 +18458,4 @@ SceneRoots:
   - {fileID: 1893276475}
   - {fileID: 399158269}
   - {fileID: 1559607279}
+  - {fileID: 355871212}
