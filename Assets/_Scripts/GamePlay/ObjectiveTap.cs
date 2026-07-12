@@ -11,7 +11,7 @@ public class ObjectiveTap : MonoBehaviour
     [Header("Rotation")]
     public bool rotateTowardsPlayer = true;
 
-    public float distanceToPlayer;
+    public float distanceToTarget;
 
     [Header("Story Elements")]
     public GameObject fungusWarning;
@@ -25,33 +25,54 @@ public class ObjectiveTap : MonoBehaviour
 
     public void CalculateDistanceToPlayer()
     {
-        if (player == null)
+        if (fireManager == null || fireManager.cannonMuzzle == null)
         {
-            distanceToPlayer = float.MaxValue;
+            distanceToTarget = float.MaxValue;
             return;
         }
 
-        Vector3 playerPosition = player.transform.position;
-        Vector3 objectivePosition = transform.position;
+        Vector3 cannonMuzzlePosition = fireManager.cannonMuzzle.position;
+        Vector3 objectivePosition = GetObjectiveCenter();
 
-        playerPosition.y = 0f;
+        cannonMuzzlePosition.y = 0f;
         objectivePosition.y = 0f;
 
-        distanceToPlayer = Vector3.Distance(objectivePosition, playerPosition);
+        distanceToTarget = Vector3.Distance(objectivePosition, cannonMuzzlePosition);
+    }
+
+    Vector3 GetObjectiveCenter()
+    {
+        Collider objectiveCollider = GetComponent<Collider>();
+        if (objectiveCollider != null)
+        {
+            return objectiveCollider.bounds.center;
+        }
+
+        Collider childCollider = GetComponentInChildren<Collider>();
+        if (childCollider != null)
+        {
+            return childCollider.bounds.center;
+        }
+
+        Renderer objectiveRenderer = GetComponent<Renderer>();
+        if (objectiveRenderer != null)
+        {
+            return objectiveRenderer.bounds.center;
+        }
+
+        Renderer childRenderer = GetComponentInChildren<Renderer>();
+        if (childRenderer != null)
+        {
+            return childRenderer.bounds.center;
+        }
+
+        return transform.position;
     }
 
     public void OnObjectiveTapped()
     {
-        // ====================================
-        // CINEMATIC PAUSE
-        // ====================================
-
         if (GameSettings.Instance.cinematicPause)
             return;
-
-        // ====================================
-        // INTERACTION BLOCKED
-        // ====================================
 
         if (GameSettings.Instance.interactionBlocked)
             return;
@@ -79,7 +100,14 @@ public class ObjectiveTap : MonoBehaviour
 
         CalculateDistanceToPlayer();
 
-        bool inRange = distanceToPlayer <= fireManager.maxRange;
+        Vector3 targetCenter = GetObjectiveCenter();
+
+        fireManager.PrepareChallengeFromEnemy(
+            player.transform.position,
+            targetCenter
+        );
+
+        bool inRange = distanceToTarget <= fireManager.maxRange;
 
         if (inRange)
         {

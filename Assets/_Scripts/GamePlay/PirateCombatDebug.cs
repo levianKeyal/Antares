@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -8,7 +7,6 @@ public class PirateCombatDebug : MonoBehaviour
     [Header("References")]
     [SerializeField] StartGamePlay startGamePlay;
     [SerializeField] FireCanonManager fireCanonManager;
-    [SerializeField] LevelManager levelManager;
 
     [Header("UI")]
     [SerializeField] TMP_Text debugText;
@@ -20,11 +18,9 @@ public class PirateCombatDebug : MonoBehaviour
     [SerializeField] Color enemyLineColor = Color.red;
     [SerializeField] Color rangeColor = Color.cyan;
     [SerializeField] float rangeCircleHeightOffset = 0.15f;
-    [SerializeField] int rangeCircleSegments = 48;
 
     readonly StringBuilder debugBuilder = new StringBuilder(256);
     string cachedDebugText = string.Empty;
-    readonly List<GameObject> currentEnemies = new List<GameObject>(3);
 
     void Start()
     {
@@ -55,47 +51,31 @@ public class PirateCombatDebug : MonoBehaviour
         }
 
         CacheReferences();
-        RebuildDebugData();
 
-        Transform playerTransform = GetPlayerTransform();
-        if (playerTransform == null)
+        Transform rangeOriginTransform = GetRangeOriginTransform();
+        Transform selectedEnemyTransform = GetSelectedEnemyTransform();
+
+        if (rangeOriginTransform == null || selectedEnemyTransform == null)
         {
             return;
         }
+
+        Vector3 rangeOriginPosition = rangeOriginTransform.position;
+        Vector3 enemyCenter = GetEnemyCenter(selectedEnemyTransform);
 
         float maxRange = fireCanonManager != null
             ? fireCanonManager.maxRange
             : 0f;
 
-        Vector3 playerPosition = playerTransform.position;
-        Vector3 playerDebugPosition = playerPosition + Vector3.up * rangeCircleHeightOffset;
+        Vector3 originDebugPosition = rangeOriginPosition + Vector3.up * rangeCircleHeightOffset;
+        Vector3 enemyDebugPosition = enemyCenter + Vector3.up * rangeCircleHeightOffset;
 
         Gizmos.color = rangeColor;
-        DrawRangeCircle(playerPosition, maxRange);
+        DrawRangeCircle(rangeOriginPosition, maxRange);
 
-        Vector3 flatPlayerPosition = Flatten(playerPosition);
-        int visibleEnemyIndex = 0;
-
-        for (int i = 0; i < currentEnemies.Count && visibleEnemyIndex < 3; i++)
-        {
-            GameObject enemy = currentEnemies[i];
-            if (enemy == null || !enemy.activeInHierarchy)
-            {
-                continue;
-            }
-
-            Vector3 enemyPosition = enemy.transform.position;
-            Vector3 enemyDebugPosition = enemyPosition + Vector3.up * rangeCircleHeightOffset;
-
-            float distance = Vector3.Distance(flatPlayerPosition, Flatten(enemyPosition));
-            Gizmos.color = enemyLineColor;
-            Gizmos.DrawLine(playerDebugPosition, enemyDebugPosition);
-
-            Vector3 midpoint = (playerDebugPosition + enemyDebugPosition) * 0.5f;
-            Gizmos.DrawSphere(midpoint, 0.12f);
-
-            visibleEnemyIndex++;
-        }
+        Gizmos.color = enemyLineColor;
+        Gizmos.DrawLine(originDebugPosition, enemyDebugPosition);
+        Gizmos.DrawSphere((originDebugPosition + enemyDebugPosition) * 0.5f, 0.12f);
     }
 
     void CacheReferences()
@@ -109,25 +89,26 @@ public class PirateCombatDebug : MonoBehaviour
         {
             fireCanonManager = FindFirstObjectByType<FireCanonManager>();
         }
-
-        if (levelManager == null)
-        {
-            levelManager = FindFirstObjectByType<LevelManager>();
-        }
     }
 
     void RebuildDebugData()
     {
-        Transform playerTransform = GetPlayerTransform();
-        if (playerTransform == null)
+        Transform rangeOriginTransform = GetRangeOriginTransform();
+        Transform selectedEnemyTransform = GetSelectedEnemyTransform();
+
+        if (rangeOriginTransform == null)
         {
-            cachedDebugText = "Pirate combat debug: missing player reference.";
+            cachedDebugText = "Pirate combat debug: missing CannonMuzzle reference.";
             PushTextToUI();
             return;
         }
 
-        currentEnemies.Clear();
-        currentEnemies.AddRange(GetEnemies());
+        if (selectedEnemyTransform == null)
+        {
+            cachedDebugText = "Pirate combat debug: missing selected enemy reference.";
+            PushTextToUI();
+            return;
+        }
 
         if (fireCanonManager == null)
         {
@@ -136,38 +117,21 @@ public class PirateCombatDebug : MonoBehaviour
             return;
         }
 
+        Vector3 enemyCenter = GetEnemyCenter(selectedEnemyTransform);
+        float distance = Vector3.Distance(rangeOriginTransform.position, enemyCenter);
         float maxRange = fireCanonManager.maxRange;
-        Vector3 flatPlayerPosition = Flatten(playerTransform.position);
 
         debugBuilder.Clear();
         debugBuilder.AppendLine("Pirate Combat Debug");
+        debugBuilder.Append("Origin: CannonMuzzle");
+        debugBuilder.AppendLine();
+        debugBuilder.Append("Selected Enemy Distance: ");
+        debugBuilder.Append(distance.ToString("F2"));
+        debugBuilder.Append(distance <= maxRange ? " m (in range)" : " m (out of range)");
+        debugBuilder.AppendLine();
         debugBuilder.Append("Max Range: ");
         debugBuilder.Append(maxRange.ToString("F2"));
         debugBuilder.AppendLine(" m");
-
-        int visibleEnemyIndex = 0;
-        for (int i = 0; i < currentEnemies.Count && visibleEnemyIndex < 3; i++)
-        {
-            GameObject enemy = currentEnemies[i];
-            if (enemy == null || !enemy.activeInHierarchy)
-            {
-                continue;
-            }
-
-            float distance = Vector3.Distance(
-                flatPlayerPosition,
-                Flatten(enemy.transform.position)
-            );
-
-            debugBuilder.Append("Enemy ");
-            debugBuilder.Append(visibleEnemyIndex + 1);
-            debugBuilder.Append(": ");
-            debugBuilder.Append(distance.ToString("F2"));
-            debugBuilder.Append(distance <= maxRange ? " m (in range)" : " m (out of range)");
-            debugBuilder.AppendLine();
-
-            visibleEnemyIndex++;
-        }
 
         cachedDebugText = debugBuilder.ToString();
         PushTextToUI();
@@ -181,50 +145,72 @@ public class PirateCombatDebug : MonoBehaviour
         }
     }
 
-    Transform GetPlayerTransform()
+    Transform GetSelectedEnemyTransform()
     {
-        if (startGamePlay != null && startGamePlay.player != null)
+        if (startGamePlay != null && startGamePlay.currentObjective != null)
         {
-            return startGamePlay.player.transform;
-        }
-
-        GameObject playerObject = GameObject.FindWithTag("Player");
-        if (playerObject != null)
-        {
-            return playerObject.transform;
+            return startGamePlay.currentObjective.transform;
         }
 
         return null;
     }
 
-    List<GameObject> GetEnemies()
+    Transform GetRangeOriginTransform()
     {
-        if (levelManager != null && levelManager.enemies != null && levelManager.enemies.Count > 0)
+        if (fireCanonManager != null && fireCanonManager.cannonMuzzle != null)
         {
-            return levelManager.enemies;
+            return fireCanonManager.cannonMuzzle;
         }
 
-        GameObject[] enemyObjects = GameObject.FindGameObjectsWithTag("Enemy");
-        return new List<GameObject>(enemyObjects);
+        return null;
     }
 
-    Vector3 Flatten(Vector3 position)
+    Vector3 GetEnemyCenter(Transform enemy)
     {
-        position.y = 0f;
-        return position;
+        if (enemy == null)
+        {
+            return Vector3.zero;
+        }
+
+        Collider enemyCollider = enemy.GetComponent<Collider>();
+        if (enemyCollider != null)
+        {
+            return enemyCollider.bounds.center;
+        }
+
+        Collider childCollider = enemy.GetComponentInChildren<Collider>();
+        if (childCollider != null)
+        {
+            return childCollider.bounds.center;
+        }
+
+        Renderer enemyRenderer = enemy.GetComponent<Renderer>();
+        if (enemyRenderer != null)
+        {
+            return enemyRenderer.bounds.center;
+        }
+
+        Renderer childRenderer = enemy.GetComponentInChildren<Renderer>();
+        if (childRenderer != null)
+        {
+            return childRenderer.bounds.center;
+        }
+
+        return enemy.position;
     }
 
     void DrawRangeCircle(Vector3 center, float radius)
     {
-        if (radius <= 0f || rangeCircleSegments < 3)
+        if (radius <= 0f)
         {
             return;
         }
 
+        const int segments = 48;
         Vector3 previousPoint = center + new Vector3(radius, rangeCircleHeightOffset, 0f);
-        float angleStep = 360f / rangeCircleSegments;
+        float angleStep = 360f / segments;
 
-        for (int i = 1; i <= rangeCircleSegments; i++)
+        for (int i = 1; i <= segments; i++)
         {
             float angle = angleStep * i * Mathf.Deg2Rad;
             Vector3 nextPoint = center + new Vector3(

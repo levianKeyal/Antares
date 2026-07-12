@@ -45,6 +45,9 @@ public class StartGamePlay : MonoBehaviour
     public Transform edgePoint;
     public Transform centerPoint;
 
+    Transform battleCameraFocusPoint;
+    float battleCameraDistance;
+
     Camera mainCamera;
 
     [HideInInspector]
@@ -100,6 +103,7 @@ public class StartGamePlay : MonoBehaviour
 
         // CREATE DEBUG POINTS ONCE
         CreateDebugPoints();
+        CreateBattleCameraFocusPoint();
 
         // INITIAL CAMERA
         playerCamera.m_Priority = 1;
@@ -113,6 +117,7 @@ public class StartGamePlay : MonoBehaviour
         if (encounterActive)
         {
             UpdateRotations();
+            UpdateBattleCameraFollow();
         }
 
     }
@@ -267,7 +272,7 @@ public class StartGamePlay : MonoBehaviour
 
         ActivateBattleCamera();
 
-        // ACTIVAR UI DE CAÑÓN
+        // ACTIVAR UI DE CAÃ‘Ã“N
         if (cannonCanvas != null)
         {
             cannonCanvas.SetActive(true);
@@ -283,7 +288,7 @@ public class StartGamePlay : MonoBehaviour
         // PLAYER LOOKS AT OBJECTIVE
 
         Vector3 playerDirection =
-            currentObjective.transform.position -
+            GetObjectiveCenter(currentObjective) -
             player.transform.position;
 
         playerDirection.y = 0;
@@ -302,7 +307,7 @@ public class StartGamePlay : MonoBehaviour
         {
             Vector3 objectiveDirection =
                 player.transform.position -
-                currentObjective.transform.position;
+                GetObjectiveCenter(currentObjective);
 
             objectiveDirection.y = 0;
 
@@ -369,16 +374,16 @@ public class StartGamePlay : MonoBehaviour
     {
         circleCenter =
             (player.transform.position +
-             currentObjective.transform.position) / 2f;
+             GetObjectiveCenter(currentObjective)) / 2f;
 
         circleRadius =
             Vector3.Distance(
                 player.transform.position,
-                currentObjective.transform.position
+                GetObjectiveCenter(currentObjective)
             ) / 2f;
 
         Vector3 direction =
-            (currentObjective.transform.position -
+            (GetObjectiveCenter(currentObjective) -
              player.transform.position)
             .normalized;
 
@@ -397,6 +402,40 @@ public class StartGamePlay : MonoBehaviour
         centerPoint.gameObject.SetActive(true);
 
         showCircle = true;
+    }
+
+    Vector3 GetObjectiveCenter(GameObject objective)
+    {
+        if (objective == null)
+        {
+            return Vector3.zero;
+        }
+
+        Collider objectiveCollider = objective.GetComponent<Collider>();
+        if (objectiveCollider != null)
+        {
+            return objectiveCollider.bounds.center;
+        }
+
+        Collider childCollider = objective.GetComponentInChildren<Collider>();
+        if (childCollider != null)
+        {
+            return childCollider.bounds.center;
+        }
+
+        Renderer objectiveRenderer = objective.GetComponent<Renderer>();
+        if (objectiveRenderer != null)
+        {
+            return objectiveRenderer.bounds.center;
+        }
+
+        Renderer childRenderer = objective.GetComponentInChildren<Renderer>();
+        if (childRenderer != null)
+        {
+            return childRenderer.bounds.center;
+        }
+
+        return objective.transform.position;
     }
 
     void CreateDebugPoints()
@@ -422,15 +461,35 @@ public class StartGamePlay : MonoBehaviour
     }
 
     // ====================================
+    void CreateBattleCameraFocusPoint()
+    {
+        if (battleCameraFocusPoint != null)
+        {
+            return;
+        }
+
+        GameObject focusPoint = new GameObject("BattleCameraFocusPoint");
+        battleCameraFocusPoint = focusPoint.transform;
+        DontDestroyOnLoad(focusPoint);
+    }
+
     // CAMERA
     // ====================================
 
     public void ActivateBattleCamera()
     {
+        if (battleCamera == null || player == null || currentObjective == null)
+        {
+            return;
+        }
+
         playerCamera.m_Priority = 0;
         battleCamera.m_Priority = 1;
 
-        battleCamera.m_LookAt = centerPoint;
+        if (battleCameraFocusPoint == null)
+        {
+            CreateBattleCameraFocusPoint();
+        }
 
         float radius = circleRadius;
 
@@ -439,23 +498,22 @@ public class StartGamePlay : MonoBehaviour
 
         float distance = 0;
 
-        if(GameSettings.Instance.isPortrait)
+        if (GameSettings.Instance.isPortrait)
         {
             distance =
             (radius /
             Mathf.Sin(fov * Mathf.Deg2Rad / 2f))
             * paddingMultiplier;
         }
-        else if(GameSettings.Instance.isLandscape)
+        else if (GameSettings.Instance.isLandscape)
         {
             distance =
             (radius /
             Mathf.Sin(fov * Mathf.Deg2Rad / 2f));
         }
-        
 
         Vector3 direction =
-            (currentObjective.transform.position -
+            (GetObjectiveCenter(currentObjective) -
              player.transform.position)
             .normalized;
 
@@ -463,9 +521,58 @@ public class StartGamePlay : MonoBehaviour
             Vector3.Cross(Vector3.up, direction)
             .normalized;
 
+        battleCameraDistance = distance;
+        UpdateBattleCameraFollow();
+    }
+
+    public void UpdateBattleCameraFollow()
+    {
+        if (battleCamera == null || player == null || currentObjective == null)
+        {
+            return;
+        }
+
+        Vector3 playerPosition = player.transform.position;
+        Vector3 objectiveCenter = GetObjectiveCenter(currentObjective);
+        Vector3 midpoint = (playerPosition + objectiveCenter) / 2f;
+
+        Vector3 direction = objectiveCenter - playerPosition;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = battleCamera.transform.forward;
+            direction.y = 0f;
+        }
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = Vector3.forward;
+        }
+
+        direction.Normalize();
+
+        Vector3 cameraDirection =
+            Vector3.Cross(Vector3.up, direction).normalized;
+
+        if (cameraDirection.sqrMagnitude < 0.0001f)
+        {
+            cameraDirection = battleCamera.transform.right;
+        }
+
+        if (battleCameraFocusPoint != null)
+        {
+            battleCameraFocusPoint.position = midpoint;
+            battleCamera.m_LookAt = battleCameraFocusPoint;
+        }
+        else
+        {
+            battleCamera.m_LookAt = centerPoint;
+        }
+
         battleCamera.transform.position =
-            circleCenter +
-            cameraDirection * distance;
+            midpoint +
+            cameraDirection * battleCameraDistance;
     }
 
     // ====================================
@@ -492,7 +599,7 @@ public class StartGamePlay : MonoBehaviour
         battleCamera.m_Priority = 0;
 
         /*
-        // DESACTIVAR UI DE CAÑÓN
+        // DESACTIVAR UI DE CAÃ‘Ã“N
         if (cannonCanvas != null)
         {
             cannonCanvas.SetActive(false);
@@ -561,3 +668,6 @@ public class StartGamePlay : MonoBehaviour
         }
     }
 }
+
+
+

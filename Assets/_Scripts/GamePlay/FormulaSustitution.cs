@@ -14,41 +14,65 @@ public class FormulaSustitution : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        fManager = GetComponent<FireCanonManager>();
+        if (fManager == null)
+        {
+            fManager = GetComponent<FireCanonManager>();
+        }
+
+        if (fManager == null)
+        {
+            fManager = FindFirstObjectByType<FireCanonManager>();
+        }
+
         UpdateFormulaValues();
     }
 
     public void UpdateFormulaValues()
     {
-        Vo.text =
-    FormatFloat(
-        VoSquare()
-    );
+        if (fManager == null)
+        {
+            return;
+        }
 
-        angle.text =
-            FormatFloat(
-                CalculateSin()
-            );
+        if (Vo != null)
+        {
+            Vo.text = FormatFloat(VoSquare());
+        }
 
-        gravity.text =
-            FormatFloat(
-                fManager.gravity
-            );
+        if (angle != null)
+        {
+            angle.text = FormatFloat(CalculateSin());
+        }
 
-        range.text =
-            FormatFloat(
-                Range()
-            );
+        if (gravity != null)
+        {
+            gravity.text = FormatFloat(fManager.gravity);
+        }
+
+        if (range != null)
+        {
+            range.text = FormatFloat(Range());
+        }
     }
 
     float VoSquare()
     {
+        if (fManager == null)
+        {
+            return 0f;
+        }
+
         float voSquare = fManager.initialVelocity * fManager.initialVelocity;
         return voSquare;
     }
 
     float CalculateSin()
     {
+        if (fManager == null)
+        {
+            return 0f;
+        }
+
         float angleDegrees = fManager.currentAngle;
         float angleRadians = angleDegrees * Mathf.Deg2Rad;
 
@@ -59,6 +83,11 @@ public class FormulaSustitution : MonoBehaviour
 
     float Range()
     {
+        if (fManager == null || Mathf.Approximately(fManager.gravity, 0f))
+        {
+            return 0f;
+        }
+
         float range = (VoSquare() * CalculateSin()) / fManager.gravity;
         return range;
     }

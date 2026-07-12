@@ -3180,12 +3180,12 @@ GameObject:
   - component: {fileID: 355871212}
   - component: {fileID: 355871211}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Debugger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &355871211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3200,7 +3200,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PirateCombatDebug
   startGamePlay: {fileID: 1382542675}
   fireCanonManager: {fileID: 1030918676}
-  levelManager: {fileID: 1382542678}
   debugText: {fileID: 0}
   showOnScreenDebug: 1
   guiSize: {x: 360, y: 180}
@@ -3208,7 +3207,6 @@ MonoBehaviour:
   enemyLineColor: {r: 1, g: 0, b: 0, a: 1}
   rangeColor: {r: 0, g: 1, b: 1, a: 1}
   rangeCircleHeightOffset: 0.15
-  rangeCircleSegments: 48
 --- !u!4 &355871212
 Transform:
   m_ObjectHideFlags: 0
@@ -6062,7 +6060,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectiveTap
   rotateTowardsPlayer: 1
-  distanceToPlayer: 0
+  distanceToTarget: 0
   fungusWarning: {fileID: 215879558}
 --- !u!65 &984669657
 BoxCollider:
@@ -6249,10 +6247,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcd1e2a51fc820146b16a498d24b8acf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireCanonManager
-  formulaSustition: {fileID: 0}
+  formulaSustition: {fileID: 1030918678}
+  physicsMode: 2
   angleText: {fileID: 1964322856}
   velocitySlider: {fileID: 351383531}
   velocityValue: {fileID: 1432351104}
+  answerInputField: {fileID: 0}
+  answerPromptText: {fileID: 0}
   angleTextTransform: {fileID: 1964322855}
   cannonMuzzle: {fileID: 189622318}
   cannonBallPrefab: {fileID: 3799680181136585321, guid: a5b5c20377aabaf4796d9fcbdd1aca02, type: 3}
@@ -6265,6 +6266,21 @@ MonoBehaviour:
   gravity: 9.81
   currentAngle: 0
   currentRange: 0
+  challengeRange: 25
+  challengeInitialVelocity: 20
+  challengeAngle: 35
+  challengeAngleSeed: 35
+  challengeInitialVelocitySeed: 20
+  minRandomChallengeRange: 45
+  solveRangeMoveDuration: 0.75
+  solveRangeFireDelay: 1
+  challengeTargetCenter: {x: 0, y: 0, z: 0}
+  challengePlayerPosition: {x: 0, y: 0, z: 0}
+  challengeTargetDistance: 0
+  userAnswerValue: 0
+  resolvedLaunchVelocity: 0
+  resolvedLaunchAngle: 0
+  resolvedLaunchRange: 0
   showTrajectory: 1
   trajectoryDotPrefab: {fileID: 1099732320080254684, guid: b7155c13002fa354ca9e0aca108ee35a, type: 3}
   maxDots: 100
@@ -6294,7 +6310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dacfbd18694ab7345b9e7f01f3925112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FormulaSustitution
-  fManager: {fileID: 0}
+  fManager: {fileID: 1030918676}
   range: {fileID: 545801015}
   Vo: {fileID: 1263382028}
   angle: {fileID: 1381181180}
@@ -6710,7 +6726,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1232704155
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7387,7 +7403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectiveTap
   rotateTowardsPlayer: 1
-  distanceToPlayer: 0
+  distanceToTarget: 0
   fungusWarning: {fileID: 215879558}
 --- !u!65 &1327958705
 BoxCollider:
@@ -7737,7 +7753,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1366753554
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -7894,8 +7910,7 @@ MonoBehaviour:
     height: 859
   selectedBlocks:
   - {fileID: 1366753559}
-  selectedCommands:
-  - {fileID: 1366753555}
+  selectedCommands: []
   variables: []
   description: 
   stepPause: 0
@@ -7972,7 +7987,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61dddfdc5e0e44ca298d8f46f7f5a915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Fungus::Fungus.FungusState
-  selectedFlowchart: {fileID: 439683364}
+  selectedFlowchart: {fileID: 1559607278}
 --- !u!4 &1370971909
 Transform:
   m_ObjectHideFlags: 1
@@ -12740,7 +12755,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObjectiveTap
   rotateTowardsPlayer: 1
-  distanceToPlayer: 0
+  distanceToTarget: 0
   fungusWarning: {fileID: 215879558}
 --- !u!54 &1995802930
 Rigidbody:

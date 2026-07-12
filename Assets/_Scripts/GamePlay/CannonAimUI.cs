@@ -1,4 +1,4 @@
-using Fungus;
+﻿using Fungus;
 using UnityEngine;
 
 public class CannonAimUI : MonoBehaviour
@@ -36,7 +36,7 @@ public class CannonAimUI : MonoBehaviour
     void Start()
     {  
         formulaSustitution=GetComponent<FormulaSustitution>();  
-        // GUARDAR ROTACIÓN INICIAL
+        // GUARDAR ROTACIÃ“N INICIAL
         initialRotation =
             cannonPivot.localRotation;
 
@@ -81,8 +81,8 @@ public class CannonAimUI : MonoBehaviour
 
     void InitializeAngle()
     {
-        // UI EN 90°
-        // = CAÑÓN EN 0°
+        // UI EN 90Â°
+        // = CAÃ‘Ã“N EN 0Â°
 
         targetAngle = 0f;
 
@@ -230,7 +230,7 @@ public class CannonAimUI : MonoBehaviour
             aimImage.position;
 
         // ====================================
-        // DIRECCIÓN ACTUAL
+        // DIRECCIÃ“N ACTUAL
         // ====================================
 
         Vector2 currentDirection =
@@ -286,11 +286,11 @@ public class CannonAimUI : MonoBehaviour
 
     void RotateCannon()
     {
-        // RELACIÓN:
+        // RELACIÃ“N:
         //
-        // UI 90°  = Cannon 0°
-        // UI 180° = Cannon -90°
-        // UI 270° = Cannon -180°
+        // UI 90Â°  = Cannon 0Â°
+        // UI 180Â° = Cannon -90Â°
+        // UI 270Â° = Cannon -180Â°
 
         cannonPivot.localRotation =
             initialRotation *
@@ -319,6 +319,28 @@ public class CannonAimUI : MonoBehaviour
     }
 
     // ====================================
+    // PROGRAMMATIC ANGLE
+    // ====================================
+
+    public void SetCurrentAngle(float angle)
+    {
+        targetAngle =
+            Mathf.Clamp(
+                angle,
+                minAngle,
+                maxAngle
+            );
+
+        RotateCannon();
+        UpdateUIRotation();
+
+        if (formulaSustitution != null)
+        {
+            formulaSustitution.UpdateFormulaValues();
+        }
+    }
+
+    // ====================================
     // GET CURRENT ANGLE
     // ====================================
 
@@ -327,3 +349,5 @@ public class CannonAimUI : MonoBehaviour
         return targetAngle;
     }
 }
+
+

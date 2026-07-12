@@ -1,17 +1,35 @@
 using Fungus;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum CannonPhysicsMode
+{
+    Tutorial,
+    SolveInitialVelocity,
+    SolveRange,
+    SolveAngle
+}
+
 public class FireCanonManager : MonoBehaviour
 {
     public FormulaSustitution formulaSustition;
+
+    [Header("Physics Mode")]
+    public CannonPhysicsMode physicsMode = CannonPhysicsMode.Tutorial;
 
     [Header("UI")]
     public TMP_Text angleText;
     public Slider velocitySlider;
     public TMP_Text velocityValue;
+
+    [Header("Answer Input")]
+    public TMP_InputField answerInputField;
+
+    public TMP_Text answerPromptText;
 
     [Header("UI Rotation")]
     public RectTransform angleTextTransform;
@@ -27,19 +45,60 @@ public class FireCanonManager : MonoBehaviour
     public GameObject cannonballFiredFx;
 
     [Header("Physics")]
-    
+
     [Header("Velocity Range")]
     public float minInitialVelocity = 5f;
-
     public float maxInitialVelocity = 50f;
-
     public float initialVelocity = 20f;
-
     public float gravity = 9.81f;
-
     public float currentAngle;
-
     public float currentRange;
+
+    [Header("Challenge Data")]
+    [Tooltip("Range given by the problem when the mode needs it.")]
+    public float challengeRange = 25f;
+
+    [Tooltip("Initial velocity given by the problem when the mode needs it.")]
+    public float challengeInitialVelocity = 20f;
+
+    [Tooltip("Angle given by the problem when the mode needs it.")]
+    [Range(0f, 89.9f)]
+    public float challengeAngle = 35f;
+
+    [Header("Challenge Seeds")]
+    [Tooltip("Angle used to generate challenge values when the mode needs a seed angle.")]
+    [Range(0f, 89.9f)]
+    public float challengeAngleSeed = 35f;
+
+    [Tooltip("Initial velocity used to generate challenge values when the mode needs a seed velocity.")]
+    public float challengeInitialVelocitySeed = 20f;
+
+    [Tooltip("Minimum range allowed when randomizing Solve Range challenges.")]
+    public float minRandomChallengeRange = 45f;
+
+    [Header("Solve Range Movement")]
+    public float solveRangeMoveDuration = 0.75f;
+    public float solveRangeFireDelay = 1f;
+
+    bool isSolveRangeSequenceRunning;
+
+    [Header("Challenge Target")]
+    public Vector3 challengeTargetCenter;
+
+    public Vector3 challengePlayerPosition;
+
+    public float challengeTargetDistance;
+
+    [Header("User Answer")]
+    [Tooltip("Value entered by the player. UI can write here later.")]
+    public float userAnswerValue;
+
+    [Header("Resolved Launch")]
+    public float resolvedLaunchVelocity;
+
+    public float resolvedLaunchAngle;
+
+    public float resolvedLaunchRange;
 
     public float maxRange => (maxInitialVelocity * maxInitialVelocity) / gravity;
 
@@ -76,7 +135,7 @@ public class FireCanonManager : MonoBehaviour
     public float dotMaxAlpha = 1f;
 
     [Header("Ground")]
-    public LayerMask groundLayer;    
+    public LayerMask groundLayer;
 
     List<GameObject> trajectoryDots =
         new List<GameObject>();
@@ -89,31 +148,57 @@ public class FireCanonManager : MonoBehaviour
     {
         formulaSustition = GetComponent<FormulaSustitution>();
         CreateTrajectoryPool();
-        InitializeVelocitySlider();
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            InitializeVelocitySlider();
+        }
+        else if (velocitySlider != null)
+        {
+            velocitySlider.interactable = false;
+        }
+
+        InitializeAnswerInput();
+        UpdateAnswerPrompt();
+
+        SyncModeValues();
+        UpdateResolvedLaunchValues();
     }
 
     void Update()
     {
         // ====================================
-        // SLIDER INTERACTION
-        // ====================================
-
-        if (velocitySlider != null)
-        {
-            velocitySlider.interactable =
-                !GameSettings.Instance.cinematicPause;
-        }
-
-        // ====================================
         // CINEMATIC PAUSE
         // ====================================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+        if (settings != null && settings.cinematicPause)
         {
             return;
         }
 
-        CalculateRange();
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            // ====================================
+            // SLIDER INTERACTION
+            // ====================================
+
+            if (velocitySlider != null)
+            {
+                velocitySlider.interactable =
+                    settings == null || !settings.cinematicPause;
+            }
+
+            CalculateRange();
+        }
+        else
+        {
+            SyncModeValues();
+        }
+
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
 
         UpdateTrajectory();
 
@@ -143,7 +228,9 @@ public class FireCanonManager : MonoBehaviour
         // CINEMATIC PAUSE
         // ====================================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
             return;
 
         bool encounterActive =
@@ -151,18 +238,27 @@ public class FireCanonManager : MonoBehaviour
            &&
            StartGamePlay.Instance.encounterActive;
 
-        if (encounterActive)
-        {
-            Fire();
-            Instantiate(cannonballFiredFx);
+        if (!encounterActive)
+            return;
 
-            Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        if (physicsMode == CannonPhysicsMode.SolveRange)
+        {
+            if (!isSolveRangeSequenceRunning)
+            {
+                StartCoroutine(PrepareSolveRangeShotSequence());
+            }
+
+            return;
         }
+
+        Fire();
+        Instantiate(cannonballFiredFx);
+        Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
     }
 
     // ====================================
     // CALCULATE RANGE
-    // ====================================
+    // ====================================    // ====================================
 
     void CalculateRange()
     {
@@ -171,7 +267,9 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
 
         float visualAngle =
-            cannonAimUI.GetCurrentAngle();
+            cannonAimUI != null
+                ? cannonAimUI.GetCurrentAngle()
+                : currentAngle;
 
         // ====================================
         // PHYSICAL ANGLE
@@ -205,16 +303,545 @@ public class FireCanonManager : MonoBehaviour
         // CALCULATE RANGE
         // ====================================
 
+        currentRange =
+            CalculateRangeFrom(
+                initialVelocity,
+                currentAngle
+            );
+    }
+
+    public float CalculateRangeFrom(float velocity, float angleDegrees)
+    {
         float radians =
-            currentAngle *
+            Mathf.Abs(angleDegrees) *
             Mathf.Deg2Rad;
 
-        currentRange =
-            (
-                initialVelocity *
-                initialVelocity *
-                Mathf.Sin(2f * radians)
-            ) / gravity;
+        return (
+            velocity *
+            velocity *
+            Mathf.Sin(2f * radians)
+        ) / gravity;
+    }
+
+    public bool TryCalculateInitialVelocity(
+        float range,
+        float angleDegrees,
+        out float velocity)
+    {
+        velocity = 0f;
+
+        if (gravity <= 0f || range < 0f)
+        {
+            return false;
+        }
+
+        float radians =
+            Mathf.Abs(angleDegrees) *
+            Mathf.Deg2Rad;
+
+        float sinDoubleAngle =
+            Mathf.Sin(2f * radians);
+
+        if (Mathf.Abs(sinDoubleAngle) < 0.0001f)
+        {
+            return false;
+        }
+
+        float value =
+            (range * gravity) /
+            sinDoubleAngle;
+
+        if (value < 0f)
+        {
+            return false;
+        }
+
+        velocity =
+            Mathf.Sqrt(value);
+
+        return !float.IsNaN(velocity) &&
+               !float.IsInfinity(velocity);
+    }
+
+    public bool TryCalculateRange(
+        float velocity,
+        float angleDegrees,
+        out float range)
+    {
+        range = CalculateRangeFrom(
+            velocity,
+            angleDegrees
+        );
+
+        return !float.IsNaN(range) &&
+               !float.IsInfinity(range);
+    }
+
+    public bool TryCalculatePrincipalAngle(
+        float range,
+        float velocity,
+        out float angleDegrees)
+    {
+        angleDegrees = 0f;
+
+        if (gravity <= 0f || velocity <= 0f || range < 0f)
+        {
+            return false;
+        }
+
+        float ratio =
+            (range * gravity) /
+            (velocity * velocity);
+
+        if (ratio < -1f || ratio > 1f)
+        {
+            return false;
+        }
+
+        float doubleAngleRadians =
+            Mathf.Asin(ratio);
+
+        angleDegrees =
+            (doubleAngleRadians * Mathf.Rad2Deg) / 2f;
+
+        return !float.IsNaN(angleDegrees) &&
+               !float.IsInfinity(angleDegrees);
+    }
+
+    public bool TryGetExpectedAnswer(out float expectedAnswer)
+    {
+        expectedAnswer = 0f;
+
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveInitialVelocity:
+                return TryCalculateInitialVelocity(
+                    challengeRange,
+                    challengeAngle,
+                    out expectedAnswer
+                );
+
+            case CannonPhysicsMode.SolveRange:
+                return TryCalculateRange(
+                    challengeInitialVelocity,
+                    challengeAngle,
+                    out expectedAnswer
+                );
+
+            case CannonPhysicsMode.SolveAngle:
+                return TryCalculatePrincipalAngle(
+                    challengeRange,
+                    challengeInitialVelocity,
+                    out expectedAnswer
+                );
+
+            case CannonPhysicsMode.Tutorial:
+            default:
+                expectedAnswer = CalculateRangeFrom(
+                    initialVelocity,
+                    currentAngle
+                );
+                return true;
+        }
+    }
+
+    public bool ValidateUserAnswer()
+    {
+        return ValidateUserAnswer(userAnswerValue);
+    }
+
+    public bool ValidateUserAnswer(float value)
+    {
+        if (!TryGetExpectedAnswer(out float expectedAnswer))
+        {
+            return false;
+        }
+
+        GameSettings settings =
+            GameSettings.Instance;
+
+        if (settings == null)
+        {
+            return Mathf.Approximately(
+                value,
+                expectedAnswer
+            );
+        }
+
+        return MathValidator.Validate(
+            (decimal)expectedAnswer,
+            (decimal)value,
+            settings.decimals,
+            settings.validationMode
+        );
+    }
+
+    public void SetUserAnswerValue(float value)
+    {
+        userAnswerValue = value;
+        UpdateResolvedLaunchValues();
+    }
+
+    public void SetUserAnswerValue(string value)
+    {
+        userAnswerValue = ParseAnswerValue(value);
+        UpdateResolvedLaunchValues();
+    }
+
+    float ParseAnswerValue(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0f;
+        }
+
+        value = value.Trim();
+
+        if (float.TryParse(
+            value,
+            System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out float parsedValue))
+        {
+            return parsedValue;
+        }
+
+        value = value.Replace(',', '.');
+
+        if (float.TryParse(
+            value,
+            System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out parsedValue))
+        {
+            return parsedValue;
+        }
+
+        if (float.TryParse(value, out parsedValue))
+        {
+            return parsedValue;
+        }
+
+        return 0f;
+    }
+    public void SyncUserAnswerFromInputField()
+    {
+        if (answerInputField == null)
+        {
+            return;
+        }
+
+        SetUserAnswerValue(answerInputField.text);
+    }
+
+    public bool TryGetResolvedLaunchData(
+        out float launchVelocity,
+        out float launchAngle,
+        out float launchRange)
+    {
+        UpdateResolvedLaunchValues();
+
+        launchVelocity = resolvedLaunchVelocity;
+        launchAngle = resolvedLaunchAngle;
+        launchRange = resolvedLaunchRange;
+
+        return !float.IsNaN(launchVelocity) &&
+               !float.IsNaN(launchAngle) &&
+               !float.IsNaN(launchRange);
+    }
+
+
+    void InitializeAnswerInput()
+    {
+        if (answerInputField == null)
+        {
+            return;
+        }
+
+        answerInputField.onValueChanged.AddListener(SetUserAnswerValue);
+        answerInputField.onEndEdit.AddListener(SetUserAnswerValue);
+        answerInputField.text = string.Empty;
+    }
+
+    void UpdateAnswerPrompt()
+    {
+        if (answerPromptText != null)
+        {
+            answerPromptText.text = GetModePrompt();
+        }
+    }
+
+    void UpdateResolvedLaunchValues()
+    {
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveInitialVelocity:
+                resolvedLaunchAngle = challengeAngle;
+                resolvedLaunchVelocity = userAnswerValue;
+                resolvedLaunchRange = CalculateRangeFrom(
+                    resolvedLaunchVelocity,
+                    resolvedLaunchAngle
+                );
+                break;
+
+            case CannonPhysicsMode.SolveRange:
+                resolvedLaunchVelocity = challengeInitialVelocity;
+                resolvedLaunchAngle = challengeAngle;
+                resolvedLaunchRange = CalculateRangeFrom(
+                    resolvedLaunchVelocity,
+                    resolvedLaunchAngle
+                );
+                break;
+
+            case CannonPhysicsMode.SolveAngle:
+                resolvedLaunchVelocity = challengeInitialVelocity;
+                resolvedLaunchAngle = userAnswerValue;
+                resolvedLaunchRange = CalculateRangeFrom(
+                    resolvedLaunchVelocity,
+                    resolvedLaunchAngle
+                );
+                break;
+
+            case CannonPhysicsMode.Tutorial:
+            default:
+                resolvedLaunchRange = CalculateRangeFrom(
+                    initialVelocity,
+                    currentAngle
+                );
+                resolvedLaunchAngle = currentAngle;
+                resolvedLaunchVelocity = initialVelocity;
+                break;
+        }
+    }
+
+    void ApplyResolvedLaunchToCannon()
+    {
+        UpdateResolvedLaunchValues();
+
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            currentAngle =
+                cannonAimUI != null
+                    ? Mathf.Abs(cannonAimUI.GetCurrentAngle())
+                    : currentAngle;
+
+            currentRange =
+                CalculateRangeFrom(
+                    initialVelocity,
+                    currentAngle
+                );
+
+            return;
+        }
+
+        if (cannonAimUI != null)
+        {
+            cannonAimUI.SetCurrentAngle(-resolvedLaunchAngle);
+        }
+
+        currentAngle = resolvedLaunchAngle;
+        currentRange = resolvedLaunchRange;
+        initialVelocity = resolvedLaunchVelocity;
+    }
+
+    public string GetModePrompt()
+    {
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveInitialVelocity:
+                return "Ingresa la velocidad inicial";
+
+            case CannonPhysicsMode.SolveRange:
+                return "Ingresa el rango";
+
+            case CannonPhysicsMode.SolveAngle:
+                return "Ingresa el angulo principal";
+
+            case CannonPhysicsMode.Tutorial:
+            default:
+                return "Tutorial";
+        }
+    }
+
+    void GenerateRandomSolveRangeChallenge()
+    {
+        const int maxAttempts = 32;
+
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            challengeAngle =
+                UnityEngine.Random.Range(10f, 80f);
+
+            challengeInitialVelocity =
+                UnityEngine.Random.Range(
+                    minInitialVelocity,
+                    maxInitialVelocity
+                );
+
+            challengeRange =
+                CalculateRangeFrom(
+                    challengeInitialVelocity,
+                    challengeAngle
+                );
+
+            if (challengeRange >= minRandomChallengeRange)
+            {
+                return;
+            }
+        }
+
+        challengeAngle = 45f;
+        challengeInitialVelocity = maxInitialVelocity;
+        challengeRange = CalculateRangeFrom(
+            challengeInitialVelocity,
+            challengeAngle
+        );
+
+        if (challengeRange < minRandomChallengeRange)
+        {
+            challengeRange = minRandomChallengeRange;
+        }
+    }
+    public void PrepareChallengeFromEnemy(
+        Vector3 playerPosition,
+        Vector3 targetCenter)
+    {
+        challengePlayerPosition =
+            playerPosition;
+
+        challengeTargetCenter =
+            targetCenter;
+
+        Vector3 cannonOrigin =
+            cannonMuzzle != null
+                ? cannonMuzzle.position
+                : playerPosition;
+
+        challengeTargetDistance =
+            GetHorizontalDistance(
+                cannonOrigin,
+                targetCenter
+            );
+
+        challengeRange =
+            challengeTargetDistance;
+
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveInitialVelocity:
+                challengeAngle =
+                    challengeAngleSeed;
+
+                if (!TryCalculateInitialVelocity(
+                    challengeRange,
+                    challengeAngle,
+                    out challengeInitialVelocity
+                ))
+                {
+                    challengeInitialVelocity = 0f;
+                }
+                break;
+
+            case CannonPhysicsMode.SolveRange:
+                GenerateRandomSolveRangeChallenge();
+                break;
+
+            case CannonPhysicsMode.SolveAngle:
+                challengeInitialVelocity =
+                    challengeInitialVelocitySeed;
+
+                if (!TryCalculatePrincipalAngle(
+                    challengeRange,
+                    challengeInitialVelocity,
+                    out challengeAngle
+                ))
+                {
+                    challengeAngle = 0f;
+                }
+                break;
+
+            case CannonPhysicsMode.Tutorial:
+            default:
+                challengeAngle = currentAngle;
+                challengeInitialVelocity = initialVelocity;
+                break;
+        }
+
+        SyncModeValues();
+        UpdateAnswerPrompt();
+
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
+
+        UpdateResolvedLaunchValues();
+    }
+
+    public float GetHorizontalDistance(
+        Vector3 a,
+        Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+
+        return Vector3.Distance(a, b);
+    }
+
+    void SyncModeValues()
+    {
+        if (cannonAimUI != null)
+        {
+            cannonAimUI.inputBlocked =
+                physicsMode == CannonPhysicsMode.SolveInitialVelocity ||
+                physicsMode == CannonPhysicsMode.SolveRange;
+        }
+
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            return;
+        }
+
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveInitialVelocity:
+                currentAngle = challengeAngle;
+                currentRange = challengeRange;
+                initialVelocity = userAnswerValue;
+                break;
+
+            case CannonPhysicsMode.SolveRange:
+                currentAngle = challengeAngle;
+                initialVelocity = challengeInitialVelocity;
+                currentRange = challengeRange;
+                break;
+
+            case CannonPhysicsMode.SolveAngle:
+                initialVelocity = challengeInitialVelocity;
+                currentRange = challengeRange;
+                currentAngle = userAnswerValue;
+                break;
+        }
+
+        if (physicsMode != CannonPhysicsMode.Tutorial && cannonAimUI != null)
+        {
+            cannonAimUI.SetCurrentAngle(-currentAngle);
+        }
+
+        if (velocityValue != null)
+        {
+            velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+        }
+
+        if (angleText != null)
+        {
+            angleText.text = currentAngle.ToString("F1") + "°";
+        }
+
+        if (angleTextTransform != null)
+        {
+            angleTextTransform.rotation = Quaternion.identity;
+        }
     }
 
     // ====================================
@@ -317,7 +944,10 @@ public class FireCanonManager : MonoBehaviour
         velocitySlider.onValueChanged
             .AddListener(UpdateVelocityFromSlider);
 
-        velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+        if (velocityValue != null)
+        {
+            velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+        }
     }
 
     void UpdateVelocityFromSlider(float value)
@@ -328,7 +958,11 @@ public class FireCanonManager : MonoBehaviour
                 minInitialVelocity,
                 maxInitialVelocity
             );
-        velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+
+        if (velocityValue != null)
+        {
+            velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
+        }
 
         formulaSustition.UpdateFormulaValues();
     }
@@ -521,6 +1155,8 @@ public class FireCanonManager : MonoBehaviour
         if (cannonBallPrefab == null)
             return;
 
+        ApplyResolvedLaunchToCannon();
+
         // ====================================
         // CREATE BALL
         // ====================================
@@ -555,7 +1191,7 @@ public class FireCanonManager : MonoBehaviour
 
         Vector3 velocity =
             forward *
-            initialVelocity;
+            resolvedLaunchVelocity;
 
         // ====================================
         // INITIALIZE BALL
@@ -565,5 +1201,278 @@ public class FireCanonManager : MonoBehaviour
             velocity,
             gravity
         );
+    }
+
+    Transform GetPlayerTransform()
+    {
+        if (StartGamePlay.Instance != null && StartGamePlay.Instance.player != null)
+        {
+            return StartGamePlay.Instance.player.transform;
+        }
+
+        PlayerMovement playerMovement =
+            FindFirstObjectByType<PlayerMovement>();
+
+        return playerMovement != null
+            ? playerMovement.transform
+            : null;
+    }
+
+    PlayerMovement GetPlayerMovement()
+    {
+        if (StartGamePlay.Instance != null && StartGamePlay.Instance.player != null)
+        {
+            return StartGamePlay.Instance.player.GetComponent<PlayerMovement>();
+        }
+
+        return FindFirstObjectByType<PlayerMovement>();
+    }
+
+    Rigidbody GetPlayerRigidbody()
+    {
+        Transform playerTransform = GetPlayerTransform();
+        return playerTransform != null
+            ? playerTransform.GetComponent<Rigidbody>()
+            : null;
+    }
+
+    float GetHorizontalDistanceToSelectedTarget()
+    {
+        if (cannonMuzzle == null)
+        {
+            return 0f;
+        }
+
+        Vector3 targetCenter = challengeTargetCenter;
+        Vector3 muzzlePosition = cannonMuzzle.position;
+
+        targetCenter.y = 0f;
+        muzzlePosition.y = 0f;
+
+        return Vector3.Distance(muzzlePosition, targetCenter);
+    }
+
+    Vector3 GetSolveRangeTargetPosition(float targetRange)
+    {
+        Transform playerTransform = GetPlayerTransform();
+        if (playerTransform == null || cannonMuzzle == null)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 targetPosition = challengeTargetCenter;
+        Vector3 cannonOrigin = cannonMuzzle.position;
+
+        targetPosition.y = 0f;
+        cannonOrigin.y = 0f;
+
+        Vector3 directionFromCannonToTarget =
+            targetPosition - cannonOrigin;
+        directionFromCannonToTarget.y = 0f;
+
+        if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
+        {
+            directionFromCannonToTarget = playerTransform.forward;
+            directionFromCannonToTarget.y = 0f;
+        }
+
+        if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
+        {
+            directionFromCannonToTarget = Vector3.forward;
+        }
+
+        directionFromCannonToTarget.Normalize();
+
+        float currentHorizontalDistance =
+            GetHorizontalDistanceToSelectedTarget();
+
+        float moveDistance =
+            currentHorizontalDistance - Mathf.Max(0f, targetRange);
+
+        return playerTransform.position +
+               directionFromCannonToTarget * moveDistance;
+    }
+
+    IEnumerator MovePlayerToPosition(
+        Transform playerTransform,
+        Rigidbody playerRigidbody,
+        Vector3 targetPosition,
+        float duration)
+    {
+        if (playerTransform == null)
+        {
+            yield break;
+        }
+
+        Vector3 startPosition = playerTransform.position;
+
+        if (duration <= 0f)
+        {
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.position = targetPosition;
+                playerRigidbody.linearVelocity = Vector3.zero;
+                playerRigidbody.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                playerTransform.position = targetPosition;
+            }
+
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
+
+            float t = Mathf.Clamp01(elapsed / duration);
+            Vector3 nextPosition = Vector3.Lerp(startPosition, targetPosition, t);
+
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.MovePosition(nextPosition);
+            }
+            else
+            {
+                playerTransform.position = nextPosition;
+            }
+        }
+
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.position = targetPosition;
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+        else
+        {
+            playerTransform.position = targetPosition;
+        }
+    }
+    IEnumerator SnapCannonMuzzleToSolveRange(
+        Transform playerTransform,
+        Rigidbody playerRigidbody,
+        float targetRange)
+    {
+        if (playerTransform == null || cannonMuzzle == null)
+        {
+            yield break;
+        }
+
+        const float tolerance = 0.01f;
+        const int maxIterations = 8;
+
+        for (int i = 0; i < maxIterations; i++)
+        {
+            float currentHorizontalDistance =
+                GetHorizontalDistanceToSelectedTarget();
+
+            float moveDistance =
+                currentHorizontalDistance - Mathf.Max(0f, targetRange);
+
+            if (Mathf.Abs(moveDistance) <= tolerance)
+            {
+                yield break;
+            }
+
+            Vector3 targetCenter = challengeTargetCenter;
+            Vector3 cannonOrigin = cannonMuzzle.position;
+            targetCenter.y = 0f;
+            cannonOrigin.y = 0f;
+
+            Vector3 directionFromCannonToTarget =
+                targetCenter - cannonOrigin;
+            directionFromCannonToTarget.y = 0f;
+
+            if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
+            {
+                directionFromCannonToTarget = playerTransform.forward;
+                directionFromCannonToTarget.y = 0f;
+            }
+
+            if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
+            {
+                yield break;
+            }
+
+            directionFromCannonToTarget.Normalize();
+
+            Vector3 correctedPosition =
+                playerTransform.position +
+                directionFromCannonToTarget * moveDistance;
+
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.MovePosition(correctedPosition);
+                playerRigidbody.linearVelocity = Vector3.zero;
+                playerRigidbody.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                playerTransform.position = correctedPosition;
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+    }
+
+    IEnumerator PrepareSolveRangeShotSequence()
+    {
+        isSolveRangeSequenceRunning = true;
+
+        SyncUserAnswerFromInputField();
+
+        string answerText = answerInputField != null ? answerInputField.text : string.Empty;
+        float targetRange = answerInputField != null
+            ? Mathf.Max(0f, ParseAnswerValue(answerText))
+            : Mathf.Max(0f, userAnswerValue);
+        float initialHorizontalDistance = GetHorizontalDistanceToSelectedTarget();
+        float moveDelta = initialHorizontalDistance - targetRange;
+
+        Debug.Log(
+            $"[SolveRange] input text: '{answerText}' | inspector answer: {userAnswerValue:F2} | initial horizontal distance: {initialHorizontalDistance:F2} | target range: {targetRange:F2} | move delta: {moveDelta:F2}"
+        );
+
+        Transform playerTransform = GetPlayerTransform();
+        Rigidbody playerRigidbody = GetPlayerRigidbody();
+        PlayerMovement playerMovement = GetPlayerMovement();
+
+        if (playerMovement != null)
+        {
+            playerMovement.StopMovementImmediately();
+        }
+
+        if (playerTransform != null)
+        {
+            Vector3 targetPosition =
+                GetSolveRangeTargetPosition(targetRange);
+
+            yield return MovePlayerToPosition(
+                playerTransform,
+                playerRigidbody,
+                targetPosition,
+                solveRangeMoveDuration
+            );
+        }
+
+        float finalHorizontalDistance = GetHorizontalDistanceToSelectedTarget();
+        Debug.Log(
+            $"[SolveRange] final horizontal distance: {finalHorizontalDistance:F2} | expected range: {targetRange:F2}"
+        );
+
+        if (solveRangeFireDelay > 0f)
+        {
+            yield return new WaitForSeconds(solveRangeFireDelay);
+        }
+
+        Fire();
+        Instantiate(cannonballFiredFx);
+        Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+
+        isSolveRangeSequenceRunning = false;
     }
 }
