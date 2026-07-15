@@ -6142,11 +6142,14 @@ MonoBehaviour:
   acceleration: 20
   rotationSpeed: 90
   movementArea: {fileID: 1382542677}
-  avoidanceRadius: 5
-  avoidanceStrength: 3
-  avoidanceLayers:
-    serializedVersion: 2
-    m_Bits: 64
+  avoidanceRadius: 100
+  escapeAccelerationMultiplier: 3.5
+  escapeSpeedBurstBonus: 1.75
+  escapeSpeedHoldSeconds: 2.5
+  escapeSpeedFollowBuffer: 0.15
+  escapeSpeedMinimum: 6
+  showAvoidanceDebug: 1
+  avoidanceDebugColor: {r: 1, g: 0.85, b: 0.15, a: 0.9}
 --- !u!114 &984669661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6271,7 +6274,6 @@ MonoBehaviour:
   challengeAngle: 35
   challengeAngleSeed: 35
   challengeInitialVelocitySeed: 20
-  minRandomChallengeRange: 45
   solveRangeMoveDuration: 0.75
   solveRangeFireDelay: 1
   challengeTargetCenter: {x: 0, y: 0, z: 0}
@@ -7485,11 +7487,14 @@ MonoBehaviour:
   acceleration: 20
   rotationSpeed: 90
   movementArea: {fileID: 1382542677}
-  avoidanceRadius: 5
-  avoidanceStrength: 3
-  avoidanceLayers:
-    serializedVersion: 2
-    m_Bits: 64
+  avoidanceRadius: 100
+  escapeAccelerationMultiplier: 100
+  escapeSpeedBurstBonus: 100
+  escapeSpeedHoldSeconds: 10
+  escapeSpeedFollowBuffer: 0.1
+  escapeSpeedMinimum: 6
+  showAvoidanceDebug: 1
+  avoidanceDebugColor: {r: 1, g: 0.85, b: 0.15, a: 0.9}
 --- !u!114 &1327958709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12800,11 +12805,14 @@ MonoBehaviour:
   acceleration: 10
   rotationSpeed: 90
   movementArea: {fileID: 1382542677}
-  avoidanceRadius: 5
-  avoidanceStrength: 3
-  avoidanceLayers:
-    serializedVersion: 2
-    m_Bits: 64
+  avoidanceRadius: 100
+  escapeAccelerationMultiplier: 30
+  escapeSpeedBurstBonus: 25
+  escapeSpeedHoldSeconds: 8
+  escapeSpeedFollowBuffer: 0.15
+  escapeSpeedMinimum: 35
+  showAvoidanceDebug: 1
+  avoidanceDebugColor: {r: 1, g: 0.85, b: 0.15, a: 0.9}
 --- !u!114 &1995802932
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -74,7 +74,6 @@ public class FireCanonManager : MonoBehaviour
     public float challengeInitialVelocitySeed = 20f;
 
     [Tooltip("Minimum range allowed when randomizing Solve Range challenges.")]
-    public float minRandomChallengeRange = 45f;
 
     [Header("Solve Range Movement")]
     public float solveRangeMoveDuration = 0.75f;
@@ -665,42 +664,20 @@ public class FireCanonManager : MonoBehaviour
 
     void GenerateRandomSolveRangeChallenge()
     {
-        const int maxAttempts = 32;
+        challengeAngle =
+            UnityEngine.Random.Range(10f, 80f);
 
-        for (int i = 0; i < maxAttempts; i++)
-        {
-            challengeAngle =
-                UnityEngine.Random.Range(10f, 80f);
+        challengeInitialVelocity =
+            UnityEngine.Random.Range(
+                minInitialVelocity,
+                maxInitialVelocity
+            );
 
-            challengeInitialVelocity =
-                UnityEngine.Random.Range(
-                    minInitialVelocity,
-                    maxInitialVelocity
-                );
-
-            challengeRange =
-                CalculateRangeFrom(
-                    challengeInitialVelocity,
-                    challengeAngle
-                );
-
-            if (challengeRange >= minRandomChallengeRange)
-            {
-                return;
-            }
-        }
-
-        challengeAngle = 45f;
-        challengeInitialVelocity = maxInitialVelocity;
-        challengeRange = CalculateRangeFrom(
-            challengeInitialVelocity,
-            challengeAngle
-        );
-
-        if (challengeRange < minRandomChallengeRange)
-        {
-            challengeRange = minRandomChallengeRange;
-        }
+        challengeRange =
+            CalculateRangeFrom(
+                challengeInitialVelocity,
+                challengeAngle
+            );
     }
     public void PrepareChallengeFromEnemy(
         Vector3 playerPosition,
@@ -1304,9 +1281,13 @@ public class FireCanonManager : MonoBehaviour
             yield break;
         }
 
-        Vector3 startPosition = playerTransform.position;
+        const float minimumCinematicDuration = 1.15f;
 
-        if (duration <= 0f)
+        Vector3 startPosition = playerTransform.position;
+        float effectiveDuration =
+            Mathf.Max(duration, minimumCinematicDuration);
+
+        if (effectiveDuration <= 0f)
         {
             if (playerRigidbody != null)
             {
@@ -1324,13 +1305,19 @@ public class FireCanonManager : MonoBehaviour
 
         float elapsed = 0f;
 
-        while (elapsed < duration)
+        while (elapsed < effectiveDuration)
         {
             yield return new WaitForFixedUpdate();
             elapsed += Time.fixedDeltaTime;
 
-            float t = Mathf.Clamp01(elapsed / duration);
-            Vector3 nextPosition = Vector3.Lerp(startPosition, targetPosition, t);
+            float t = Mathf.Clamp01(elapsed / effectiveDuration);
+            float easedT = Mathf.SmoothStep(0f, 1f, t);
+
+            Vector3 nextPosition = Vector3.Lerp(
+                startPosition,
+                targetPosition,
+                easedT
+            );
 
             if (playerRigidbody != null)
             {

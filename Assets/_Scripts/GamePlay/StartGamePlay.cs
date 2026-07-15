@@ -48,6 +48,7 @@ public class StartGamePlay : MonoBehaviour
     Transform battleCameraFocusPoint;
     float battleCameraDistance;
 
+    Vector3 battleObjectiveCenter;
     Camera mainCamera;
 
     [HideInInspector]
@@ -266,6 +267,7 @@ public class StartGamePlay : MonoBehaviour
             currentBoatMover.StopMovementImmediately();
         }
 
+        battleObjectiveCenter = GetObjectiveCenter(currentObjective);
         SetupRotations(objectiveLooksAtPlayer);
 
         CalculateCircle();
@@ -533,7 +535,7 @@ public class StartGamePlay : MonoBehaviour
         }
 
         Vector3 playerPosition = player.transform.position;
-        Vector3 objectiveCenter = GetObjectiveCenter(currentObjective);
+        Vector3 objectiveCenter = battleObjectiveCenter;
         Vector3 midpoint = (playerPosition + objectiveCenter) / 2f;
 
         Vector3 direction = objectiveCenter - playerPosition;
