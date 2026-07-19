@@ -55,3 +55,10 @@ ServerData/
 ExportedObj/
 /Assets/_Recovery
 /APKs
+
+# Local build / repair artifacts
+.utmp/
+_Recovery_backup/
+unity-batch.log
+
+_Recovery_backup.meta
