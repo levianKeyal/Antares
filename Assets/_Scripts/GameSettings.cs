@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameSettings : MonoBehaviour
@@ -145,9 +145,14 @@ public class GameSettings : MonoBehaviour
             Screen.width;
     }
 
-    void UpdateUIElements()
+        void UpdateUIElements()
     {
         EncounterUIManager encounterUIManager = FindAnyObjectByType<EncounterUIManager>();
+        if (encounterUIManager == null)
+        {
+            return;
+        }
+
         encounterUIManager.UpdateUIElements();
     }
 

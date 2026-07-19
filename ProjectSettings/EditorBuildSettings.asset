@@ -24,8 +24,20 @@ EditorBuildSettings:
     path: Assets/_Scenes/Area Inicial.unity
     guid: 214ec8b4c6be38044a05eb0360a59aa6
   - enabled: 1
-    path: Assets/_Scenes/TiroParabolico/DemoScene.unity
+    path: Assets/_Scenes/TiroParabolico/StartFlowPirates.unity
+    guid: 3c655bcfe89fc28448096a43f58a14ed
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/TutoScene.unity
     guid: 9ff314a0acec96a48b5132aaadcce771
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveAngle.unity
+    guid: 1344574dfcb08584a9e7094c290a269c
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveVelocity.unity
+    guid: 2b95ae882067b58419e063f138539bc7
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveRange.unity
+    guid: 33edcaae4d1b7e145944133440560c92
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

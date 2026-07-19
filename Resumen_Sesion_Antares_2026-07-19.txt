@@ -1,0 +1,68 @@
+Resumen de la sesión - Antares
+Fecha: 2026-07-19
+
+Durante esta sesión avanzamos en varios sistemas del proyecto Antares, principalmente en el comportamiento de los barcos enemigos, la UI de los modos de juego y la documentación del proyecto.
+
+1. Sistema de enemigos y navegación
+- Se revisó y ajustó el script BoatMover.cs.
+- Se trabajó en el comportamiento de Escape para que el enemigo se aleje del player con una aceleración más fuerte, pero sin volverse incontrolable.
+- Después se agregó el comportamiento Chase, con distancias configurables desde el inspector:
+  - Detection Distance
+  - Battle Distance
+- Se corrigió la lógica para que el enemigo siguiera avanzando hacia el player en modo Chase en vez de detenerse al entrar en rango.
+- Se suavizó el giro del enemigo para que tuviera inercia y se sintiera más como un barco real.
+- Se revisó el avoidance para que siguiera funcionando en movimiento normal, Escape y Chase.
+- Se agregó soporte para que avoidance también considere objetos con tag Obstacle.
+
+2. Ajustes visuales y de movimiento
+- Se revisó la lógica de partículas en PlayerMovement y se replicó el comportamiento en BoatMover.
+- Se revisó el Trail Renderer de los barcos para que se visualizara correctamente por encima del agua.
+- También se revisó el comportamiento de un SpriteRenderer con material de agua para evitar problemas de renderizado.
+- Se trabajó con una Cinemachine virtual camera para darle movimiento aleatorio con rotación suave, límites de área y una trayectoria más orgánica.
+
+3. Modos de juego y UI
+- Se trabajó sobre los modos:
+  - Tutorial
+  - SolveRange
+  - SolveAngle
+  - SolveInitialVelocity
+- Se organizó la UI para que cada modo muestre solo lo necesario.
+- Se hicieron ajustes para ocultar o mostrar:
+  - AnswerHolder
+  - CannonHolder
+  - VelocityHolder
+  - FireButtonHolder
+- Se agregó soporte para mostrar valores de challengeData en textos TMP.
+- Se configuró que en cada modo se muestre solo la información relevante y que el valor no usado aparezca como ??.
+- Se revisó el Input Field de respuesta para que funcione correctamente en los modos que lo requieren.
+- Se habló sobre la función de answerPromptText y su relación con el flujo de entrada del usuario.
+
+4. Documentación
+- Se actualizaron los archivos:
+  - README.md
+  - Technical Specification v1.1.txt
+- Se separó claramente la documentación de la app Arithmetic Practice Generator y la del juego de tiro parabólico.
+- Se añadió un apartado específico para el juego de tiro parabólico.
+- También se agregaron diagramas y flujo de modos para el nuevo sistema.
+
+5. Escenas, flujo de juego y referencias
+- Se revisó la carga entre escenas y el flujo general del juego.
+- Se hicieron ajustes para evitar que referencias de escena se pierdan al cambiar de una escena a otra.
+- Se eliminó el script Overlord y se dejó GameSettings como responsable de esa parte.
+- Se revisaron errores de referencia en GameSettings y en StartGamePlay.
+- Se trató el caso en el que un script deja de existir en escena y debe hacer bypass sin romper el juego.
+
+6. Problema pendiente al final de la sesión
+- El último tema importante fue edgePoint y centerPoint en StartGamePlay.
+- Se detectó que esos objetos no deben ser persistentes entre escenas.
+- Deben crearse en runtime cada vez que inicia una escena.
+- La intención es que StartGamePlay los reasigne al cargar la escena actual y no conserve referencias viejas.
+- Esto es importante porque esos puntos se usan en todas las escenas, pero no deben sobrevivir a un cambio de escena.
+
+Errores que seguimos tratando de corregir
+- MissingReferenceException en StartGamePlay.CalculateCircle().
+- El error aparece cuando edgePoint o centerPoint siguen apuntando a objetos destruidos después de cambiar de escena.
+- El objetivo es que esos puntos se inicialicen otra vez en cada escena, evitando referencias obsoletas.
+- También se venían corrigiendo errores derivados de referencias perdidas al volver a entrar al tutorial o al cambiar entre escenas.
+
+Fin del resumen.

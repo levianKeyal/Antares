@@ -75,8 +75,6 @@ public class StartGamePlay : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -84,18 +82,17 @@ public class StartGamePlay : MonoBehaviour
         }
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
     void Start()
     {
-        mainCamera = Camera.main;
-
-        // CACHE PLAYER
-        player = GameObject.FindWithTag("Player");
-
-        if (player != null)
-        {
-            playerMovement =
-                player.GetComponent<PlayerMovement>();
-        }
+        RefreshSceneReferences();
 
         if (cannonCanvas != null)
         {
@@ -106,13 +103,121 @@ public class StartGamePlay : MonoBehaviour
         CreateDebugPoints();
         CreateBattleCameraFocusPoint();
 
-        // INITIAL CAMERA
-        playerCamera.m_Priority = 1;
-        battleCamera.m_Priority = 0;
+        SetCameraPriorities();
+    }
+    void RefreshSceneReferences()
+    {
+        mainCamera = Camera.main;
+
+        player = GameObject.FindWithTag("Player");
+        playerMovement =
+            player != null
+                ? player.GetComponent<PlayerMovement>()
+                : null;
+
+        virtualJoystick = FindFirstObjectByType<VirtualJoystick>();
+
+        GameObject cannonCanvasObject = GameObject.Find("Cannon Canvas");
+        if (cannonCanvasObject != null)
+        {
+            cannonCanvas = cannonCanvasObject;
+        }
+
+        RebindBattleCameras();
     }
 
+    void RebindBattleCameras()
+    {
+        CinemachineVirtualCamera[] cameras =
+            FindObjectsByType<CinemachineVirtualCamera>(FindObjectsSortMode.None);
+
+        CinemachineVirtualCamera bestPlayerCamera = null;
+        CinemachineVirtualCamera bestBattleCamera = null;
+        int bestPlayerPriority = int.MinValue;
+        int bestBattlePriority = int.MinValue;
+
+        foreach (CinemachineVirtualCamera cam in cameras)
+        {
+            if (cam == null)
+            {
+                continue;
+            }
+
+            bool isBattleCamera = cam.gameObject.name == "Battle Camera";
+
+            if (isBattleCamera)
+            {
+                if (cam.m_Priority >= bestBattlePriority)
+                {
+                    bestBattlePriority = cam.m_Priority;
+                    bestBattleCamera = cam;
+                }
+            }
+            else if (cam.m_Priority >= bestPlayerPriority)
+            {
+                bestPlayerPriority = cam.m_Priority;
+                bestPlayerCamera = cam;
+            }
+        }
+
+        if (bestPlayerCamera != null)
+        {
+            playerCamera = bestPlayerCamera;
+        }
+
+        if (bestBattleCamera != null)
+        {
+            battleCamera = bestBattleCamera;
+        }
+    }
+
+    void SetCameraPriorities()
+    {
+        if (playerCamera != null)
+        {
+            playerCamera.m_Priority = 1;
+        }
+
+        if (battleCamera != null)
+        {
+            battleCamera.m_Priority = 0;
+        }
+    }
+
+    void ResetEncounterState()
+    {
+        rotatePlayer = false;
+        rotateObjective = false;
+        encounterActive = false;
+        currentObjective = null;
+        currentBoatMover = null;
+        showCircle = false;
+
+        SetDebugPointsVisible(false);
+
+        if (virtualJoystick != null)
+        {
+            virtualJoystick.inputBlocked = false;
+        }
+
+        if (GameSettings.Instance != null)
+        {
+            GameSettings.Instance.cinematicPause = false;
+            GameSettings.Instance.interactionBlocked = false;
+        }
+
+        if (cannonCanvas != null)
+        {
+            cannonCanvas.SetActive(false);
+        }
+    }
     void Update()
     {
+        if (player == null || mainCamera == null)
+        {
+            RefreshSceneReferences();
+        }
+
         HandleInput();
 
         if (encounterActive)
@@ -133,7 +238,9 @@ public class StartGamePlay : MonoBehaviour
         // CINEMATIC PAUSE
         // ====================================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings == null || settings.cinematicPause)
         {
             return;
         }
@@ -203,6 +310,16 @@ public class StartGamePlay : MonoBehaviour
         // RAYCAST
         // ====================================
 
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        if (mainCamera == null)
+        {
+            return;
+        }
+
         Ray ray =
             mainCamera.ScreenPointToRay(
                 screenPosition
@@ -242,6 +359,14 @@ public class StartGamePlay : MonoBehaviour
         bool objectiveLooksAtPlayer
     )
     {
+        RefreshSceneReferences();
+        CreateDebugPoints();
+
+        if (player == null || target == null)
+        {
+            return;
+        }
+
         // BLOQUEAR JOYSTICK
         if (virtualJoystick != null)
         {
@@ -274,7 +399,7 @@ public class StartGamePlay : MonoBehaviour
 
         ActivateBattleCamera();
 
-        // ACTIVAR UI DE CAÃ‘Ã“N
+        // ACTIVAR UI DE CAÃƒâ€˜Ãƒâ€œN
         if (cannonCanvas != null)
         {
             cannonCanvas.SetActive(true);
@@ -374,6 +499,7 @@ public class StartGamePlay : MonoBehaviour
 
     void CalculateCircle()
     {
+        CreateDebugPoints();
         circleCenter =
             (player.transform.position +
              GetObjectiveCenter(currentObjective)) / 2f;
@@ -397,11 +523,17 @@ public class StartGamePlay : MonoBehaviour
             circleCenter +
             rightDirection * circleRadius;
 
-        edgePoint.position = edgePosition;
-        centerPoint.position = circleCenter;
+        if (edgePoint != null)
+        {
+            edgePoint.position = edgePosition;
+            edgePoint.gameObject.SetActive(true);
+        }
 
-        edgePoint.gameObject.SetActive(true);
-        centerPoint.gameObject.SetActive(true);
+        if (centerPoint != null)
+        {
+            centerPoint.position = circleCenter;
+            centerPoint.gameObject.SetActive(true);
+        }
 
         showCircle = true;
     }
@@ -444,24 +576,33 @@ public class StartGamePlay : MonoBehaviour
     {
         if (edgePoint == null)
         {
-            GameObject edge =
-                new GameObject("EdgePoint");
-
+            GameObject edge = new GameObject("EdgePoint");
             edgePoint = edge.transform;
         }
 
         if (centerPoint == null)
         {
-            GameObject center =
-                new GameObject("CenterPoint");
-
+            GameObject center = new GameObject("CenterPoint");
             centerPoint = center.transform;
         }
 
-        edgePoint.gameObject.SetActive(false);
-        centerPoint.gameObject.SetActive(false);
+        SetDebugPointsVisible(false);
     }
 
+    void SetDebugPointsVisible(bool visible)
+    {
+        if (edgePoint != null)
+        {
+            edgePoint.gameObject.SetActive(visible);
+        }
+
+        if (centerPoint != null)
+        {
+            centerPoint.gameObject.SetActive(visible);
+        }
+    }
+
+    // ====================================
     // ====================================
     void CreateBattleCameraFocusPoint()
     {
@@ -472,7 +613,6 @@ public class StartGamePlay : MonoBehaviour
 
         GameObject focusPoint = new GameObject("BattleCameraFocusPoint");
         battleCameraFocusPoint = focusPoint.transform;
-        DontDestroyOnLoad(focusPoint);
     }
 
     // CAMERA
@@ -594,14 +734,13 @@ public class StartGamePlay : MonoBehaviour
 
         showCircle = false;
 
-        edgePoint.gameObject.SetActive(false);
-        centerPoint.gameObject.SetActive(false);
 
+        SetDebugPointsVisible(false);
         playerCamera.m_Priority = 1;
         battleCamera.m_Priority = 0;
 
         /*
-        // DESACTIVAR UI DE CAÃ‘Ã“N
+        // DESACTIVAR UI DE CAÃƒâ€˜Ãƒâ€œN
         if (cannonCanvas != null)
         {
             cannonCanvas.SetActive(false);

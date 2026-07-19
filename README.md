@@ -320,3 +320,57 @@ Planned scalability:
 # License
 
 Internal academic project (adjust as needed).
+
+---
+
+# Parabolic Shot Game (Antares)
+
+Antares also includes a separate gameplay system focused on parabolic shooting and naval encounters.
+
+This module is designed around:
+
+* cannon angle control
+* initial velocity control
+* projectile range solving
+* enemy detection and battle triggering
+* cinematic boat movement with pursuit and escape behaviors
+* avoidance between boats
+* in-editor configuration for gameplay tuning
+
+Main gameplay modes currently supported:
+
+* Tutorial
+* Solve Initial Velocity
+* Solve Range
+* Solve Angle
+
+Mode flow diagram:
+
+```mermaid
+flowchart TD
+    A[Tutorial] --> B[Solve Initial Velocity]
+    A --> C[Solve Range]
+    A --> D[Solve Angle]
+    B --> E[Battle / Fire]
+    C --> E
+    D --> E
+```
+
+
+Additional systems included in this module:
+
+* `FireCannonManager`
+* `BoatMover`
+* `StartGamePlay`
+* `EncounterUIManager`
+
+Core scripts and responsibilities:
+
+| Script | Role |
+| ------ | ---- |
+| `FireCannonManager` | Cannon physics, mode management, and battle transition logic |
+| `BoatMover` | Enemy and player boat movement, pursuit, escape, and avoidance |
+| `StartGamePlay` | Battle phase startup and encounter flow control |
+| `EncounterUIManager` | Encounter UI state and presentation |
+
+This section documents the interactive projectile game as a distinct part of the project, separate from the arithmetic generator.

@@ -1,0 +1,69 @@
+Resumen detallado del ultimo error encontrado en StartGamePlay
+
+El ultimo error que encontramos estuvo relacionado con StartGamePlay y, en particular, con los objetos edgePoint y centerPoint.
+
+Que estaba pasando
+- Al volver a entrar a una escena, especialmente despues de salir y regresar al tutorial, Unity marcaba un error como MissingReferenceException.
+- El error ocurria dentro de StartGamePlay.CalculateCircle().
+- La causa era que edgePoint y centerPoint seguian apuntando a objetos que ya habian sido destruidos al cambiar de escena.
+- Como StartGamePlay permanece activo entre escenas, esas referencias viejas se quedaban guardadas y luego el script intentaba usarlas otra vez.
+
+Que intente hacer para repararlo
+La idea fue cambiar el flujo para que esos puntos no fueran persistentes, sino creados de nuevo en runtime cada vez que se cargara una escena.
+
+Se intento implementar lo siguiente:
+1. Detectar cada carga de escena.
+2. Reinicializar las referencias de escena al entrar.
+3. Crear nuevamente edgePoint y centerPoint en ese momento.
+4. Evitar que se reutilizaran referencias destruidas.
+5. Hacer que CalculateCircle() validara o recreara los puntos antes de usarlos.
+
+La intencion tecnica detras del arreglo
+- StartGamePlay debia seguir siendo el controlador general.
+- Pero edgePoint y centerPoint debian pertenecer a la escena actual, no conservarse entre escenas.
+- La logica buscaba que cada vez que cargara una escena:
+  - se limpiaran referencias viejas,
+  - se volvieran a asignar los objetos necesarios,
+  - y se evitara el MissingReferenceException.
+
+Soluciones que se estaban proponiendo para arreglarlo
+1. Recrear los puntos en OnSceneLoaded
+- Escuchar el evento de carga de escena.
+- Al entrar a una nueva escena, volver a crear o reasignar edgePoint y centerPoint.
+
+2. Limpiar referencias al cambiar de escena
+- Poner edgePoint = null;
+- Poner centerPoint = null;
+- Asi se fuerza su recreacion y no se usa una referencia destruida.
+
+3. Crear una rutina dedicada para inicializarlos
+- Algo tipo CreateDebugPoints().
+- Esa rutina se encargaria de instanciarlos si no existian.
+
+4. Proteger CalculateCircle()
+- Antes de usar los puntos, verificar que existieran.
+- Si no existian, crearlos ahi mismo.
+
+5. No hacer persistentes esos objetos
+- No usar DontDestroyOnLoad para esos puntos.
+- Mantener persistente solo el controlador logico si hacia falta, pero no los objetos visuales de la escena.
+
+En que se detuvo el trabajo
+Cuando estabamos revisando el archivo y tratando de confirmar si los cambios quedaron bien aplicados, el acceso al sandbox local empezo a fallar.
+
+El bloqueo fue este:
+- windows sandbox: helper_unknown_error: setup refresh had errors
+
+Eso impidio:
+- verificar el contenido actual de StartGamePlay.cs,
+- confirmar si el archivo quedo sintacticamente limpio,
+- y terminar de validar la reparacion directamente en el proyecto.
+
+Estado final del problema
+Lo que si quedo claro fue esto:
+- El problema real no era CalculateCircle() en si.
+- El problema era la vida util de edgePoint y centerPoint.
+- Esos objetos no deben sobrevivir entre escenas.
+- La reparacion correcta es recrearlos cada vez que se carga una escena y reasignarlos al script.
+
+Fin del resumen tecnico.

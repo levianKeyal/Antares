@@ -16,6 +16,7 @@ public enum CannonPhysicsMode
 
 public class FireCanonManager : MonoBehaviour
 {
+
     public FormulaSustitution formulaSustition;
 
     [Header("Physics Mode")]
@@ -23,12 +24,19 @@ public class FireCanonManager : MonoBehaviour
 
     [Header("UI")]
     public TMP_Text angleText;
-    public Slider velocitySlider;
     public TMP_Text velocityValue;
+    public Slider velocitySlider;
+
+    [Header("UI Holders")]
+    public GameObject cannonHolder;
+    public CanvasGroup cannonHolderCanvasGroup;
+    public GameObject velocityHolder;
+    public CanvasGroup velocityHolderCanvasGroup;
+    public GameObject fireButtonHolder;
 
     [Header("Answer Input")]
+    public GameObject answerHolder;
     public TMP_InputField answerInputField;
-
     public TMP_Text answerPromptText;
 
     [Header("UI Rotation")]
@@ -36,7 +44,6 @@ public class FireCanonManager : MonoBehaviour
 
     [Header("References")]
     public Transform cannonMuzzle;
-
     public GameObject cannonBallPrefab;
 
     [Header("Cannon")]
@@ -64,28 +71,40 @@ public class FireCanonManager : MonoBehaviour
     [Tooltip("Angle given by the problem when the mode needs it.")]
     [Range(0f, 89.9f)]
     public float challengeAngle = 35f;
+    [Header("Challenge Data UI")]
+    public TMP_Text challengeRangeText;
+    public TMP_Text challengeInitialVelocityText;
+    public TMP_Text challengeAngleText;
+
 
     [Header("Challenge Seeds")]
     [Tooltip("Angle used to generate challenge values when the mode needs a seed angle.")]
     [Range(0f, 89.9f)]
+    [HideInInspector]
     public float challengeAngleSeed = 35f;
 
     [Tooltip("Initial velocity used to generate challenge values when the mode needs a seed velocity.")]
+    [HideInInspector]
     public float challengeInitialVelocitySeed = 20f;
 
     [Tooltip("Minimum range allowed when randomizing Solve Range challenges.")]
 
     [Header("Solve Range Movement")]
+    [HideInInspector]
     public float solveRangeMoveDuration = 0.75f;
+    [HideInInspector]
     public float solveRangeFireDelay = 1f;
 
     bool isSolveRangeSequenceRunning;
 
     [Header("Challenge Target")]
+    [HideInInspector]
     public Vector3 challengeTargetCenter;
 
+    [HideInInspector]
     public Vector3 challengePlayerPosition;
 
+    [HideInInspector]
     public float challengeTargetDistance;
 
     [Header("User Answer")]
@@ -93,10 +112,13 @@ public class FireCanonManager : MonoBehaviour
     public float userAnswerValue;
 
     [Header("Resolved Launch")]
+    [HideInInspector]
     public float resolvedLaunchVelocity;
 
+    [HideInInspector]
     public float resolvedLaunchAngle;
 
+    [HideInInspector]
     public float resolvedLaunchRange;
 
     public float maxRange => (maxInitialVelocity * maxInitialVelocity) / gravity;
@@ -139,7 +161,6 @@ public class FireCanonManager : MonoBehaviour
     List<GameObject> trajectoryDots =
         new List<GameObject>();
 
-    // ====================================
     // UNITY
     // ====================================
 
@@ -158,7 +179,8 @@ public class FireCanonManager : MonoBehaviour
 
         InitializeAnswerInput();
         UpdateAnswerPrompt();
-
+        UpdateAnswerInputVisibility();
+        UpdateTutorialUIVisibility();
         SyncModeValues();
         UpdateResolvedLaunchValues();
     }
@@ -170,6 +192,8 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
 
         GameSettings settings = GameSettings.Instance;
+        UpdateAnswerInputVisibility();
+        UpdateTutorialUIVisibility();
         if (settings != null && settings.cinematicPause)
         {
             return;
@@ -220,7 +244,6 @@ public class FireCanonManager : MonoBehaviour
             Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
         }
     }
-
     public void FireButton()
     {
         // ====================================
@@ -407,6 +430,11 @@ public class FireCanonManager : MonoBehaviour
                !float.IsInfinity(angleDegrees);
     }
 
+    float GetSolveAngleChallengeVelocity()
+    {
+        return Mathf.Max(0.1f, maxInitialVelocity);
+    }
+
     public bool TryGetExpectedAnswer(out float expectedAnswer)
     {
         expectedAnswer = 0f;
@@ -422,7 +450,7 @@ public class FireCanonManager : MonoBehaviour
 
             case CannonPhysicsMode.SolveRange:
                 return TryCalculateRange(
-                    challengeInitialVelocity,
+                    GetSolveAngleChallengeVelocity(),
                     challengeAngle,
                     out expectedAnswer
                 );
@@ -430,7 +458,7 @@ public class FireCanonManager : MonoBehaviour
             case CannonPhysicsMode.SolveAngle:
                 return TryCalculatePrincipalAngle(
                     challengeRange,
-                    challengeInitialVelocity,
+                    GetSolveAngleChallengeVelocity(),
                     out expectedAnswer
                 );
 
@@ -570,6 +598,93 @@ public class FireCanonManager : MonoBehaviour
         }
     }
 
+    void UpdateChallengeDataUI()
+    {
+        bool isSolveInitialVelocity =
+            physicsMode == CannonPhysicsMode.SolveInitialVelocity;
+        bool isSolveRange = physicsMode == CannonPhysicsMode.SolveRange;
+        bool isSolveAngle = physicsMode == CannonPhysicsMode.SolveAngle;
+
+        if (challengeRangeText != null)
+        {
+            challengeRangeText.text = isSolveInitialVelocity || isSolveAngle
+                ? challengeRange.ToString("F2") + " m"
+                : isSolveRange
+                    ? "??"
+                    : challengeRange.ToString("F2") + " m";
+        }
+
+        if (challengeInitialVelocityText != null)
+        {
+            challengeInitialVelocityText.text = isSolveRange || isSolveAngle
+                ? challengeInitialVelocity.ToString("F2") + " m/s"
+                : isSolveInitialVelocity
+                    ? "??"
+                    : challengeInitialVelocity.ToString("F2") + " m/s";
+        }
+
+        if (challengeAngleText != null)
+        {
+            challengeAngleText.text = isSolveInitialVelocity || isSolveRange
+                ? challengeAngle.ToString("F1") + "°"
+                : isSolveAngle
+                    ? "??"
+                    : challengeAngle.ToString("F1") + "°";
+        }
+    }
+
+    void UpdateAnswerInputVisibility()
+    {
+        if (answerInputField == null)
+        {
+            return;
+        }
+
+        bool showAnswerInput =
+            physicsMode != CannonPhysicsMode.Tutorial;
+
+        SetGameObjectActive(answerHolder, showAnswerInput);
+
+        if (answerInputField != null)
+        {
+            answerInputField.interactable = showAnswerInput;
+        }
+    }
+
+    void UpdateTutorialUIVisibility()
+    {
+        bool showTutorialUI = physicsMode == CannonPhysicsMode.Tutorial;
+
+        SetCanvasGroupState(cannonHolderCanvasGroup, showTutorialUI);
+        SetCanvasGroupState(velocityHolderCanvasGroup, showTutorialUI);
+        SetGameObjectActive(fireButtonHolder, showTutorialUI);
+    }
+
+    void SetCanvasGroupState(CanvasGroup canvasGroup, bool visible)
+    {
+        if (canvasGroup == null)
+        {
+            return;
+        }
+
+        canvasGroup.alpha = visible ? 1f : 0f;
+        canvasGroup.interactable = visible;
+        canvasGroup.blocksRaycasts = visible;
+    }
+
+    void SetGameObjectActive(GameObject target, bool active)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        if (target.activeSelf != active)
+        {
+            target.SetActive(active);
+        }
+    }
+
     void UpdateResolvedLaunchValues()
     {
         switch (physicsMode)
@@ -584,7 +699,7 @@ public class FireCanonManager : MonoBehaviour
                 break;
 
             case CannonPhysicsMode.SolveRange:
-                resolvedLaunchVelocity = challengeInitialVelocity;
+                resolvedLaunchVelocity = GetSolveAngleChallengeVelocity();
                 resolvedLaunchAngle = challengeAngle;
                 resolvedLaunchRange = CalculateRangeFrom(
                     resolvedLaunchVelocity,
@@ -593,7 +708,7 @@ public class FireCanonManager : MonoBehaviour
                 break;
 
             case CannonPhysicsMode.SolveAngle:
-                resolvedLaunchVelocity = challengeInitialVelocity;
+                resolvedLaunchVelocity = GetSolveAngleChallengeVelocity();
                 resolvedLaunchAngle = userAnswerValue;
                 resolvedLaunchRange = CalculateRangeFrom(
                     resolvedLaunchVelocity,
@@ -668,16 +783,14 @@ public class FireCanonManager : MonoBehaviour
             UnityEngine.Random.Range(10f, 80f);
 
         challengeInitialVelocity =
-            UnityEngine.Random.Range(
-                minInitialVelocity,
-                maxInitialVelocity
-            );
+            GetSolveAngleChallengeVelocity();
 
         challengeRange =
             CalculateRangeFrom(
                 challengeInitialVelocity,
                 challengeAngle
             );
+        UpdateChallengeDataUI();
     }
     public void PrepareChallengeFromEnemy(
         Vector3 playerPosition,
@@ -720,12 +833,12 @@ public class FireCanonManager : MonoBehaviour
                 break;
 
             case CannonPhysicsMode.SolveRange:
+                challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 GenerateRandomSolveRangeChallenge();
                 break;
 
             case CannonPhysicsMode.SolveAngle:
-                challengeInitialVelocity =
-                    challengeInitialVelocitySeed;
+                challengeInitialVelocity = GetSolveAngleChallengeVelocity();
 
                 if (!TryCalculatePrincipalAngle(
                     challengeRange,
@@ -745,6 +858,7 @@ public class FireCanonManager : MonoBehaviour
         }
 
         SyncModeValues();
+        UpdateChallengeDataUI();
         UpdateAnswerPrompt();
 
         if (formulaSustition != null)
@@ -771,7 +885,8 @@ public class FireCanonManager : MonoBehaviour
         {
             cannonAimUI.inputBlocked =
                 physicsMode == CannonPhysicsMode.SolveInitialVelocity ||
-                physicsMode == CannonPhysicsMode.SolveRange;
+                physicsMode == CannonPhysicsMode.SolveRange ||
+                physicsMode == CannonPhysicsMode.SolveAngle;
         }
 
         if (physicsMode == CannonPhysicsMode.Tutorial)
@@ -788,18 +903,23 @@ public class FireCanonManager : MonoBehaviour
                 break;
 
             case CannonPhysicsMode.SolveRange:
+                challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 currentAngle = challengeAngle;
                 initialVelocity = challengeInitialVelocity;
+                challengeRange = CalculateRangeFrom(
+                    challengeInitialVelocity,
+                    challengeAngle
+                );
                 currentRange = challengeRange;
                 break;
 
             case CannonPhysicsMode.SolveAngle:
+                challengeInitialVelocity = GetSolveAngleChallengeVelocity();
+                currentAngle = userAnswerValue;
                 initialVelocity = challengeInitialVelocity;
                 currentRange = challengeRange;
-                currentAngle = userAnswerValue;
                 break;
         }
-
         if (physicsMode != CannonPhysicsMode.Tutorial && cannonAimUI != null)
         {
             cannonAimUI.SetCurrentAngle(-currentAngle);

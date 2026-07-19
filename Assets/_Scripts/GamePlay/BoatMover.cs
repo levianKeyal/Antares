@@ -609,6 +609,10 @@ public class BoatMover : MonoBehaviour
             {
                 shouldAvoid = true;
             }
+            else if (hit.CompareTag("Obstacle"))
+            {
+                shouldAvoid = true;
+            }
             else if (AvoidOtherBoats)
             {
                 BoatMover otherBoat = hit.GetComponentInParent<BoatMover>();
@@ -653,6 +657,10 @@ public class BoatMover : MonoBehaviour
             candidatePosition.y = 0f;
 
             if (AvoidPlayer && hit.CompareTag("Player"))
+            {
+                shouldAvoid = true;
+            }
+            else if (hit.CompareTag("Obstacle"))
             {
                 shouldAvoid = true;
             }

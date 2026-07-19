@@ -3,12 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 
-public class StartFlowManager : MonoBehaviour
+public class StartFlowPirates : MonoBehaviour
 {
-    [SerializeField] Button _additionScene;
-    [SerializeField] Button _subtractScene;
-    [SerializeField] Button _multiplyScene;
-    [SerializeField] Button _divideScene;
+    [SerializeField] Button _tutorialScene;
+    [SerializeField] Button _angleScene;
+    [SerializeField] Button _velocityScene;
+    [SerializeField] Button _rangeScene;
 
     [SerializeField] TMP_Dropdown decimalsDropdown;
     [SerializeField] TMP_Dropdown validationDropdown;
@@ -45,13 +45,12 @@ public class StartFlowManager : MonoBehaviour
     private static bool hasInitialized = false;
 
     private void Awake()
-    {
-        // Scene navigation buttons
-        _additionScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Add"); });
-        _subtractScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Subtract"); });
-        _multiplyScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Multiply"); });
-        _divideScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("Divide"); });
-
+    {       
+        //Pirate Scene buttons
+        _tutorialScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("TutoScene"); });
+        _angleScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveAngle"); });
+        _velocityScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveVelocity"); });
+        _rangeScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveRange"); });
 
         //Operands integer and decimals values
 
@@ -291,7 +290,7 @@ public class StartFlowManager : MonoBehaviour
         UpdateMultiplicationDecimalSliderLimits();
         UpdateDivisionDecimalSliderLimits();
     }
-
+    
     // NEW: Handle sign mode change
     public void OnSignsModeChanged(int index)
     {

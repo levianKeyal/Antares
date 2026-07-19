@@ -318,3 +318,47 @@ invalid transformation cases
 ---
 
 # End of Specification
+
+---
+
+# 0. Parabolic Shot Game Specification
+
+This project also contains a parabolic shot gameplay module used for naval encounters and cannon-based problem solving.
+
+Core gameplay responsibilities:
+
+* projectile angle control
+* projectile velocity solving
+* live range calculations
+* enemy detection and battle transition
+* pursuit and escape movement behaviors
+* avoidance between boats
+* inspector-driven tuning of gameplay values
+
+Primary runtime scripts involved:
+
+* `FireCannonManager`
+* `BoatMover`
+* `StartGamePlay`
+* `EncounterUIManager`
+
+Supported gameplay modes:
+
+* Tutorial
+* Solve Initial Velocity
+* Solve Range
+* Solve Angle
+
+Mode flow diagram:
+
+```mermaid
+flowchart TD
+    A[Tutorial] --> B[Solve Initial Velocity]
+    A --> C[Solve Range]
+    A --> D[Solve Angle]
+    B --> E[Battle / Fire]
+    C --> E
+    D --> E
+```
+
+This module is independent from the arithmetic generator, but shares the same Unity project and editor workflow.
