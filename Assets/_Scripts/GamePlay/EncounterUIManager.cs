@@ -29,13 +29,30 @@ public class EncounterUIManager : MonoBehaviour
 
     private void Start()
     {
-        startGamePlay = FindAnyObjectByType<StartGamePlay>();
+        startGamePlay = StartGamePlay.Instance;
+
+        if (startGamePlay == null)
+        {
+            startGamePlay = FindAnyObjectByType<StartGamePlay>();
+        }
+
+        if (GameSettings.Instance != null)
+        {
+            GameSettings.Instance.RegisterEncounterUIManager(this);
+        }
+
         UpdateUIElements();
     }
 
     public void UpdateUIElements()
     {
-        if (GameSettings.Instance.isPortrait)
+        GameSettings settings = GameSettings.Instance;
+        if (settings == null)
+        {
+            return;
+        }
+
+        if (settings.isPortrait)
         {
             formulaUI.anchoredPosition = new Vector2(0, -200f);
             formulaSustituidaUI.anchoredPosition = new Vector2(-70f, -400f);
@@ -57,13 +74,8 @@ public class EncounterUIManager : MonoBehaviour
             dialArrow.anchoredPosition = new Vector2(0f, -294f);
             velocityArrow.anchoredPosition = new Vector2(172f, -853f);
             shootArrow.anchoredPosition = new Vector2(172f, -853f);
-
-            if(startGamePlay.encounterActive)
-            {
-                startGamePlay.ActivateBattleCamera();
-            }
         }
-        else if (GameSettings.Instance.isLandscape)
+        else if (settings.isLandscape)
         {
             formulaUI.anchoredPosition = new Vector2(0, -75f);
             formulaSustituidaUI.anchoredPosition = new Vector2(-70f, -250f);
@@ -85,11 +97,11 @@ public class EncounterUIManager : MonoBehaviour
             dialArrow.anchoredPosition = new Vector2(0f, -220f);
             velocityArrow.anchoredPosition = new Vector2(-235f, -430f);
             shootArrow.anchoredPosition = new Vector2(600f, -430f);
+        }
 
-            if (startGamePlay.encounterActive)
-            {
-                startGamePlay.ActivateBattleCamera();
-            }
+        if (startGamePlay != null && startGamePlay.encounterActive)
+        {
+            startGamePlay.ActivateBattleCamera();
         }
     }
 }

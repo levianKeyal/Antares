@@ -101,6 +101,16 @@ public class FireCanonManager : MonoBehaviour
     bool isSolveRangeSequenceRunning;
     bool isFireButtonDelayRunning;
     CannonBall activeCannonBall;
+    CannonPhysicsMode cachedPhysicsMode = (CannonPhysicsMode)(-1);
+    bool cachedAnswerInputVisible;
+    bool cachedTutorialUIVisible;
+    bool cachedTrajectoryVisible;
+    bool cachedTrajectoryStateInitialized;
+    Vector3 cachedTrajectoryMuzzlePosition;
+    Vector3 cachedTrajectoryMuzzleForward;
+    float cachedTrajectoryInitialVelocity;
+    float cachedTrajectoryGravity;
+    CannonPhysicsMode cachedTrajectoryPhysicsMode = (CannonPhysicsMode)(-1);
 
     [Header("Challenge Target")]
     [HideInInspector]
@@ -183,13 +193,8 @@ public class FireCanonManager : MonoBehaviour
         }
 
         InitializeAnswerInput();
-        UpdateAnswerPrompt();
-        UpdateAnswerInputVisibility();
-        UpdateTutorialUIVisibility();
         HideAnswerKeyboard();
-        UpdateFireButtonInteractable();
-        SyncModeValues();
-        UpdateResolvedLaunchValues();
+        RefreshModeState(true);
     }
 
     void Update()
@@ -199,14 +204,20 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
 
         GameSettings settings = GameSettings.Instance;
-        UpdateAnswerInputVisibility();
-        UpdateTutorialUIVisibility();
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
+        bool encounterActive =
+            startGamePlay != null &&
+            startGamePlay.encounterActive;
+
+        if (physicsMode != cachedPhysicsMode)
+        {
+            RefreshModeState(true);
+        }
+
         if (settings != null && settings.cinematicPause)
         {
             return;
         }
-
-        UpdateFireButtonInteractable();
 
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
@@ -222,24 +233,10 @@ public class FireCanonManager : MonoBehaviour
 
             CalculateRange();
         }
-        else
-        {
-            SyncModeValues();
-        }
 
-        if (formulaSustition != null)
-        {
-            formulaSustition.UpdateFormulaValues();
-        }
-
-        UpdateTrajectory();
+        UpdateTrajectory(encounterActive);
 
         // TEST FIRE
-
-        bool encounterActive =
-            StartGamePlay.Instance != null
-            &&
-            StartGamePlay.Instance.encounterActive;
 
         if (
             encounterActive
@@ -405,6 +402,13 @@ public class FireCanonManager : MonoBehaviour
                 initialVelocity,
                 currentAngle
             );
+
+        UpdateResolvedLaunchValues();
+
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
     }
 
     public float CalculateRangeFrom(float velocity, float angleDegrees)
@@ -581,13 +585,23 @@ public class FireCanonManager : MonoBehaviour
     public void SetUserAnswerValue(float value)
     {
         userAnswerValue = value;
+        SyncModeValues();
         UpdateResolvedLaunchValues();
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
     }
 
     public void SetUserAnswerValue(string value)
     {
         userAnswerValue = ParseAnswerValue(value);
+        SyncModeValues();
         UpdateResolvedLaunchValues();
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
     }
 
     float ParseAnswerValue(string value)
@@ -662,7 +676,8 @@ public class FireCanonManager : MonoBehaviour
 
         answerInputField.onValueChanged.AddListener(SetUserAnswerValue);
         answerInputField.onEndEdit.AddListener(SetUserAnswerValue);
-        answerInputField.text = string.Empty;
+        answerInputField.SetTextWithoutNotify(string.Empty);
+        userAnswerValue = 0f;
     }
 
     void UpdateAnswerPrompt()
@@ -670,6 +685,29 @@ public class FireCanonManager : MonoBehaviour
         if (answerPromptText != null)
         {
             answerPromptText.text = GetModePrompt();
+        }
+    }
+
+    void RefreshModeState(bool force)
+    {
+        if (!force && physicsMode == cachedPhysicsMode)
+        {
+            return;
+        }
+
+        cachedPhysicsMode = physicsMode;
+
+        UpdateAnswerInputVisibility(true);
+        UpdateTutorialUIVisibility(true);
+        UpdateAnswerPrompt();
+        UpdateChallengeDataUI();
+        SyncModeValues();
+        UpdateResolvedLaunchValues();
+        UpdateFireButtonInteractable();
+
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
         }
     }
 
@@ -708,10 +746,17 @@ public class FireCanonManager : MonoBehaviour
         }
     }
 
-    void UpdateAnswerInputVisibility()
+    void UpdateAnswerInputVisibility(bool force = false)
     {
         bool showAnswerInput =
             physicsMode != CannonPhysicsMode.Tutorial;
+
+        if (!force && cachedAnswerInputVisible == showAnswerInput)
+        {
+            return;
+        }
+
+        cachedAnswerInputVisible = showAnswerInput;
 
         SetGameObjectActive(answerHolder, showAnswerInput);
 
@@ -731,9 +776,16 @@ public class FireCanonManager : MonoBehaviour
         }
     }
 
-    void UpdateTutorialUIVisibility()
+    void UpdateTutorialUIVisibility(bool force = false)
     {
         bool showTutorialUI = physicsMode == CannonPhysicsMode.Tutorial;
+
+        if (!force && cachedTutorialUIVisible == showTutorialUI)
+        {
+            return;
+        }
+
+        cachedTutorialUIVisible = showTutorialUI;
 
         SetCanvasGroupState(cannonHolderCanvasGroup, showTutorialUI);
         SetCanvasGroupState(velocityHolderCanvasGroup, showTutorialUI);
@@ -1220,7 +1272,12 @@ public class FireCanonManager : MonoBehaviour
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
 
-        formulaSustition.UpdateFormulaValues();
+        UpdateResolvedLaunchValues();
+
+        if (formulaSustition != null)
+        {
+            formulaSustition.UpdateFormulaValues();
+        }
     }
 
     public void RefreshVelocitySlider()
@@ -1242,20 +1299,32 @@ public class FireCanonManager : MonoBehaviour
     // UPDATE TRAJECTORY
     // ====================================
 
-    void UpdateTrajectory()
+    void UpdateTrajectory(bool encounterActive)
     {
         // ====================================
         // ENCOUNTER STATE
         // ====================================
 
-        bool encounterActive =
-            StartGamePlay.Instance != null
-            &&
-            StartGamePlay.Instance.encounterActive;
-
         bool visible =
             showTrajectory &&
             encounterActive;
+
+        if (cachedTrajectoryVisible != visible)
+        {
+            cachedTrajectoryVisible = visible;
+            cachedTrajectoryStateInitialized = false;
+
+            if (!visible)
+            {
+                for (int i = 0; i < trajectoryDots.Count; i++)
+                {
+                    if (trajectoryDots[i] != null)
+                    {
+                        trajectoryDots[i].SetActive(false);
+                    }
+                }
+            }
+        }
 
         // ====================================
         // HIDE ALL
@@ -1263,20 +1332,48 @@ public class FireCanonManager : MonoBehaviour
 
         if (!visible)
         {
-            for (int i = 0; i < trajectoryDots.Count; i++)
-            {
-                trajectoryDots[i].SetActive(false);
-            }
-
             return;
         }
+
+        Vector3 currentPosition = cannonMuzzle.position;
+        Vector3 currentForward = cannonMuzzle.forward;
+
+        bool trajectoryStateChanged =
+            !cachedTrajectoryStateInitialized
+            ||
+            cachedTrajectoryPhysicsMode != physicsMode
+            ||
+            !Mathf.Approximately(
+                cachedTrajectoryInitialVelocity,
+                initialVelocity
+            )
+            ||
+            !Mathf.Approximately(
+                cachedTrajectoryGravity,
+                gravity
+            )
+            ||
+            (cachedTrajectoryMuzzlePosition - currentPosition)
+                .sqrMagnitude > 0.000001f
+            ||
+            (cachedTrajectoryMuzzleForward - currentForward)
+                .sqrMagnitude > 0.000001f;
+
+        if (!trajectoryStateChanged)
+        {
+            return;
+        }
+
+        cachedTrajectoryStateInitialized = true;
+        cachedTrajectoryPhysicsMode = physicsMode;
+        cachedTrajectoryMuzzlePosition = currentPosition;
+        cachedTrajectoryMuzzleForward = currentForward;
+        cachedTrajectoryInitialVelocity = initialVelocity;
+        cachedTrajectoryGravity = gravity;
 
         // ====================================
         // INITIAL DATA
         // ====================================
-
-        Vector3 currentPosition =
-            cannonMuzzle.position;
 
         Vector3 currentVelocity =
             cannonMuzzle.forward.normalized *

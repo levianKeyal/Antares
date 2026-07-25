@@ -56,17 +56,24 @@ public class StartGamePlay : MonoBehaviour
 
     bool IsPointerOverUI()
     {
+        EventSystem eventSystem = EventSystem.current;
+
+        if (eventSystem == null)
+        {
+            return false;
+        }
+
         // TOUCH
         if (Input.touchCount > 0)
         {
-            return EventSystem.current
+            return eventSystem
                 .IsPointerOverGameObject(
                     Input.GetTouch(0).fingerId
                 );
         }
 
         // MOUSE
-        return EventSystem.current
+        return eventSystem
             .IsPointerOverGameObject();
     }
 
@@ -124,6 +131,34 @@ public class StartGamePlay : MonoBehaviour
         }
 
         RebindBattleCameras();
+    }
+
+    void RefreshMissingSceneReferences()
+    {
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        if (player == null)
+        {
+            player = GameObject.FindWithTag("Player");
+        }
+
+        if (playerMovement == null && player != null)
+        {
+            playerMovement = player.GetComponent<PlayerMovement>();
+        }
+
+        if (virtualJoystick == null)
+        {
+            virtualJoystick = FindFirstObjectByType<VirtualJoystick>();
+        }
+
+        if (playerCamera == null || battleCamera == null)
+        {
+            RebindBattleCameras();
+        }
     }
 
     void RebindBattleCameras()
@@ -202,8 +237,9 @@ public class StartGamePlay : MonoBehaviour
 
         if (GameSettings.Instance != null)
         {
-            GameSettings.Instance.cinematicPause = false;
-            GameSettings.Instance.interactionBlocked = false;
+            GameSettings settings = GameSettings.Instance;
+            settings.cinematicPause = false;
+            settings.interactionBlocked = false;
         }
 
         if (cannonCanvas != null)
@@ -213,9 +249,9 @@ public class StartGamePlay : MonoBehaviour
     }
     void Update()
     {
-        if (player == null || mainCamera == null)
+        if (player == null || mainCamera == null || virtualJoystick == null)
         {
-            RefreshSceneReferences();
+            RefreshMissingSceneReferences();
         }
 
         HandleInput();
@@ -406,11 +442,11 @@ public class StartGamePlay : MonoBehaviour
         }
 
         battleObjectiveCenter = GetObjectiveCenter(currentObjective);
-        SetupRotations(objectiveLooksAtPlayer);
+        SetupRotations(objectiveLooksAtPlayer, battleObjectiveCenter);
 
-        CalculateCircle();
+        CalculateCircle(battleObjectiveCenter);
 
-        ActivateBattleCamera();
+        ActivateBattleCamera(battleObjectiveCenter);
 
         // ACTIVAR UI DE CAÃƒâ€˜Ãƒâ€œN
         if (cannonCanvas != null)
@@ -423,12 +459,15 @@ public class StartGamePlay : MonoBehaviour
     // ROTATIONS
     // ====================================
 
-    void SetupRotations(bool objectiveLooksAtPlayer)
+    void SetupRotations(
+        bool objectiveLooksAtPlayer,
+        Vector3 objectiveCenter
+    )
     {
         // PLAYER LOOKS AT OBJECTIVE
 
         Vector3 playerDirection =
-            GetObjectiveCenter(currentObjective) -
+            objectiveCenter -
             player.transform.position;
 
         playerDirection.y = 0;
@@ -447,7 +486,7 @@ public class StartGamePlay : MonoBehaviour
         {
             Vector3 objectiveDirection =
                 player.transform.position -
-                GetObjectiveCenter(currentObjective);
+                objectiveCenter;
 
             objectiveDirection.y = 0;
 
@@ -510,21 +549,21 @@ public class StartGamePlay : MonoBehaviour
     // CIRCLE
     // ====================================
 
-    void CalculateCircle()
+    void CalculateCircle(Vector3 objectiveCenter)
     {
         CreateDebugPoints();
         circleCenter =
             (player.transform.position +
-             GetObjectiveCenter(currentObjective)) / 2f;
+             objectiveCenter) / 2f;
 
         circleRadius =
             Vector3.Distance(
                 player.transform.position,
-                GetObjectiveCenter(currentObjective)
+                objectiveCenter
             ) / 2f;
 
         Vector3 direction =
-            (GetObjectiveCenter(currentObjective) -
+            (objectiveCenter -
              player.transform.position)
             .normalized;
 
@@ -631,7 +670,7 @@ public class StartGamePlay : MonoBehaviour
     // CAMERA
     // ====================================
 
-    public void ActivateBattleCamera()
+    public void ActivateBattleCamera(Vector3 objectiveCenter)
     {
         if (battleCamera == null || player == null || currentObjective == null)
         {
@@ -668,7 +707,7 @@ public class StartGamePlay : MonoBehaviour
         }
 
         Vector3 direction =
-            (GetObjectiveCenter(currentObjective) -
+            (objectiveCenter -
              player.transform.position)
             .normalized;
 
@@ -678,6 +717,11 @@ public class StartGamePlay : MonoBehaviour
 
         battleCameraDistance = distance;
         UpdateBattleCameraFollow();
+    }
+
+    public void ActivateBattleCamera()
+    {
+        ActivateBattleCamera(battleObjectiveCenter);
     }
 
     public void UpdateBattleCameraFollow()

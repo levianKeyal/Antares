@@ -41,6 +41,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private TrailRenderer _waterTrail;
 
+    TutorialManager tutorialManager;
+
     // =========================
     // STATES
     // =========================
@@ -51,6 +53,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        tutorialManager = FindFirstObjectByType<TutorialManager>();
     }
 
     void Update()
@@ -59,7 +62,9 @@ public class PlayerMovement : MonoBehaviour
         // CINEMATIC PAUSE
         // =========================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
         {
             moveInput = 0;
             rotationInput = 0;
@@ -143,7 +148,9 @@ public class PlayerMovement : MonoBehaviour
         // CINEMATIC PAUSE
         // =========================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
         {
             StopMovementImmediately();
             return;
@@ -209,11 +216,11 @@ public class PlayerMovement : MonoBehaviour
 
         _waterTrail.emitting = isActuallyMoving;
 
-        if (FindFirstObjectByType<TutorialManager>() != null)
+        if (tutorialManager != null)
         {
-            if (currentSpeed > 0 && FindFirstObjectByType<TutorialManager>().tutoBlockNum == 1)
+            if (currentSpeed > 0 && tutorialManager.tutoBlockNum == 1)
             {
-                FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+                tutorialManager.CallTutoBlock();
                 //FindFirstObjectByType<TutorialManager>().tutoBlockNum++;
             }
         }

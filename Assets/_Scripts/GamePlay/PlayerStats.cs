@@ -1,6 +1,4 @@
-using NUnit.Framework;
 using UnityEngine;
-using System.Collections.Generic;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -14,13 +12,24 @@ public class PlayerStats : MonoBehaviour
     public GameObject boat;
     public GameObject cannon;
 
+    FireCanonManager fireCanonManager;
+
+    void Awake()
+    {
+        fireCanonManager = FindFirstObjectByType<FireCanonManager>();
+    }
+
     public void CheckForPlayerLife()
     {
         if(playerLife == 0)
         {
             boat.SetActive(false);
             cannon.SetActive(false);
-            FindFirstObjectByType<FireCanonManager>().showTrajectory = false;
+
+            if (fireCanonManager != null)
+            {
+                fireCanonManager.showTrajectory = false;
+            }
         }
     }
 

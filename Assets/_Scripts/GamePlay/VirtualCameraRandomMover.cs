@@ -31,10 +31,14 @@ public class VirtualCameraRandomMover : MonoBehaviour
     Vector3 currentDestination;
     float currentSpeed;
     float routeTimer;
+    float destinationReachDistanceSqr;
     bool hasDestination;
 
     void Start()
     {
+        destinationReachDistanceSqr =
+            destinationReachDistance * destinationReachDistance;
+
         currentDirection = transform.forward;
         currentDirection.y = 0f;
 
@@ -69,10 +73,11 @@ public class VirtualCameraRandomMover : MonoBehaviour
             return;
         }
 
-        float distanceToDestination =
-            Vector3.Distance(transform.position, currentDestination);
+        Vector3 toDestination =
+            currentDestination - transform.position;
+        toDestination.y = 0f;
 
-        if (distanceToDestination <= destinationReachDistance)
+        if (toDestination.sqrMagnitude <= destinationReachDistanceSqr)
         {
             PickNewDestination();
         }
@@ -196,6 +201,12 @@ public class VirtualCameraRandomMover : MonoBehaviour
         currentSpeed = Mathf.Max(currentSpeed, moveSpeed * 0.35f);
         routeTimer = Mathf.Max(0.1f, newRouteEverySeconds);
         hasDestination = true;
+    }
+
+    void OnValidate()
+    {
+        destinationReachDistanceSqr =
+            destinationReachDistance * destinationReachDistance;
     }
 
     void KeepInsideArea()

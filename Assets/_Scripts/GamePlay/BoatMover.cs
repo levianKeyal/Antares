@@ -28,14 +28,11 @@ public class BoatMover : MonoBehaviour
     private const float PursuitDistance = 60f;
     private const float PursuitRepathInterval = 0.15f;
     private const float PursuitTurnBias = 15f;
-    private const float PursuitLeadSpeed = 2.25f;
-    private const float PursuitCloseSpeedBuffer = 0f;
     public float escapeAccelerationMultiplier = 3.5f;
     public float escapeSpeedBurstBonus = 1.75f;
     public float escapeSpeedHoldSeconds = 2.5f;
     public float escapeSpeedFollowBuffer = 0.15f;
     public float escapeSpeedMinimum = 6f;
-    private const float EscapeSpeedBuffer = 1.0f;
     private static readonly LayerMask AvoidanceLayers = ~0;
     private const bool AvoidPlayer = true;
     private const bool AvoidOtherBoats = true;
@@ -100,12 +97,40 @@ public class BoatMover : MonoBehaviour
     bool escapeSpeedLockActive;
 
     Collider[] avoidanceHits = new Collider[16];
+    bool hasFramePlayerCache;
+    Vector3 framePlayerPosition;
+    float framePlayerSpeed;
+    bool hasFrameAvoidanceCache;
+    int frameAvoidanceHitCount;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        CachePlayerReferences();
         ChooseRandomDirection();
         currentDirection = desiredDirection;
+    }
+
+    void CachePlayerReferences()
+    {
+        if (playerTarget != null)
+            return;
+
+        if (StartGamePlay.Instance != null && StartGamePlay.Instance.player != null)
+        {
+            playerTarget = StartGamePlay.Instance.player.transform;
+            playerMovement = StartGamePlay.Instance.player.GetComponent<PlayerMovement>();
+            playerRigidbody = StartGamePlay.Instance.player.GetComponent<Rigidbody>();
+            return;
+        }
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject == null)
+            return;
+
+        playerTarget = playerObject.transform;
+        playerMovement = playerObject.GetComponent<PlayerMovement>();
+        playerRigidbody = playerObject.GetComponent<Rigidbody>();
     }
 
     void FixedUpdate()
@@ -126,10 +151,40 @@ public class BoatMover : MonoBehaviour
             return;
         }
 
+        CachePlayerFrameData();
+        CacheAvoidanceFrameData();
+
         UpdateDirection();
         MoveBoat();
         UpdateMovementEffects(rb.linearVelocity.magnitude > 0.1f);
         KeepInsideArea();
+    }
+
+    void CachePlayerFrameData()
+    {
+        hasFramePlayerCache = false;
+        framePlayerPosition = Vector3.zero;
+        framePlayerSpeed = moveSpeed;
+
+        if (!TryGetPlayerPosition(out framePlayerPosition))
+        {
+            return;
+        }
+
+        framePlayerSpeed = GetPlayerSpeed();
+        hasFramePlayerCache = true;
+    }
+
+    void CacheAvoidanceFrameData()
+    {
+        frameAvoidanceHitCount = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            avoidanceRadius,
+            avoidanceHits,
+            AvoidanceLayers
+        );
+
+        hasFrameAvoidanceCache = true;
     }
 
     Transform GetPlayerTarget()
@@ -137,16 +192,18 @@ public class BoatMover : MonoBehaviour
         if (playerTarget != null)
             return playerTarget;
 
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject == null)
-            return null;
-
-        playerTarget = playerObject.transform;
+        CachePlayerReferences();
         return playerTarget;
     }
 
     bool TryGetPlayerPosition(out Vector3 playerPosition)
     {
+        if (hasFramePlayerCache)
+        {
+            playerPosition = framePlayerPosition;
+            return true;
+        }
+
         playerPosition = Vector3.zero;
 
         Transform player = GetPlayerTarget();
@@ -186,6 +243,11 @@ public class BoatMover : MonoBehaviour
 
     float GetPlayerSpeed()
     {
+        if (hasFramePlayerCache)
+        {
+            return framePlayerSpeed;
+        }
+
         Rigidbody playerBody = GetPlayerRigidbody();
         if (playerBody != null)
         {
@@ -654,7 +716,9 @@ public class BoatMover : MonoBehaviour
 
     Vector3 GetAvoidanceDirection()
     {
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, avoidanceRadius, avoidanceHits, AvoidanceLayers);
+        int hitCount = hasFrameAvoidanceCache
+            ? frameAvoidanceHitCount
+            : Physics.OverlapSphereNonAlloc(transform.position, avoidanceRadius, avoidanceHits, AvoidanceLayers);
         Vector3 avoidance = Vector3.zero;
 
         for (int i = 0; i < hitCount; i++)
@@ -702,7 +766,9 @@ public class BoatMover : MonoBehaviour
     {
         targetPosition = Vector3.zero;
 
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, avoidanceRadius, avoidanceHits, AvoidanceLayers);
+        int hitCount = hasFrameAvoidanceCache
+            ? frameAvoidanceHitCount
+            : Physics.OverlapSphereNonAlloc(transform.position, avoidanceRadius, avoidanceHits, AvoidanceLayers);
         float closestDistance = float.MaxValue;
         bool foundTarget = false;
         Vector3 selfPosition = transform.position;

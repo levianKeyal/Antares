@@ -6,9 +6,12 @@ public class EnemyStats : MonoBehaviour
     public int enemyLife;
     public GameObject destroyedFx;
 
+    TutorialManager tutorialManager;
+
     private void Start()
     {
         levelManager = FindAnyObjectByType<LevelManager>();
+        tutorialManager = FindFirstObjectByType<TutorialManager>();
     }
     public void OnCannonBallHit()
     {
@@ -31,9 +34,9 @@ public class EnemyStats : MonoBehaviour
 
             Instantiate(destroyedFx);
 
-            if (FindFirstObjectByType<TutorialManager>() != null)
+            if (tutorialManager != null)
             {
-                FindFirstObjectByType<TutorialManager>().CallTutoBlock();
+                tutorialManager.CallTutoBlock();
             }
 
             this.gameObject.SetActive(false);

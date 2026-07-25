@@ -23,6 +23,8 @@ public class GameSettings : MonoBehaviour
 
     int lastScreenHeight;
 
+    EncounterUIManager encounterUIManager;
+
     [Header("Validation Parameters")]
 
     public int decimals = 2;
@@ -68,6 +70,7 @@ public class GameSettings : MonoBehaviour
     void Start()
     {
         UpdateScreenOrientation();
+        ResolveEncounterUIManager();
         UpdateUIElements();
 
         lastScreenWidth =
@@ -145,15 +148,32 @@ public class GameSettings : MonoBehaviour
             Screen.width;
     }
 
-        void UpdateUIElements()
+    void UpdateUIElements()
     {
-        EncounterUIManager encounterUIManager = FindAnyObjectByType<EncounterUIManager>();
+        if (encounterUIManager == null)
+        {
+            ResolveEncounterUIManager();
+        }
+
         if (encounterUIManager == null)
         {
             return;
         }
 
         encounterUIManager.UpdateUIElements();
+    }
+
+    public void RegisterEncounterUIManager(EncounterUIManager manager)
+    {
+        encounterUIManager = manager;
+    }
+
+    void ResolveEncounterUIManager()
+    {
+        if (encounterUIManager == null)
+        {
+            encounterUIManager = FindFirstObjectByType<EncounterUIManager>();
+        }
     }
 
     void OnValidate()

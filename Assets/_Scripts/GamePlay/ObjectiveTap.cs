@@ -7,6 +7,10 @@ public class ObjectiveTap : MonoBehaviour
     PlayerMovement player;
     FireCanonManager fireManager;
     TutorialManager tutorialManager;
+    Collider objectiveCollider;
+    Collider childCollider;
+    Renderer objectiveRenderer;
+    Renderer childRenderer;
 
     [Header("Rotation")]
     public bool rotateTowardsPlayer = true;
@@ -21,6 +25,22 @@ public class ObjectiveTap : MonoBehaviour
         player = FindFirstObjectByType<PlayerMovement>();
         fireManager = FindFirstObjectByType<FireCanonManager>();
         tutorialManager = FindFirstObjectByType<TutorialManager>();
+        CacheObjectiveCenterReferences();
+    }
+
+    void CacheObjectiveCenterReferences()
+    {
+        objectiveCollider = GetComponent<Collider>();
+        if (objectiveCollider == null)
+        {
+            childCollider = GetComponentInChildren<Collider>();
+        }
+
+        objectiveRenderer = GetComponent<Renderer>();
+        if (objectiveRenderer == null)
+        {
+            childRenderer = GetComponentInChildren<Renderer>();
+        }
     }
 
     public void CalculateDistanceToPlayer()
@@ -42,25 +62,21 @@ public class ObjectiveTap : MonoBehaviour
 
     Vector3 GetObjectiveCenter()
     {
-        Collider objectiveCollider = GetComponent<Collider>();
         if (objectiveCollider != null)
         {
             return objectiveCollider.bounds.center;
         }
 
-        Collider childCollider = GetComponentInChildren<Collider>();
         if (childCollider != null)
         {
             return childCollider.bounds.center;
         }
 
-        Renderer objectiveRenderer = GetComponent<Renderer>();
         if (objectiveRenderer != null)
         {
             return objectiveRenderer.bounds.center;
         }
 
-        Renderer childRenderer = GetComponentInChildren<Renderer>();
         if (childRenderer != null)
         {
             return childRenderer.bounds.center;
@@ -71,13 +87,16 @@ public class ObjectiveTap : MonoBehaviour
 
     public void OnObjectiveTapped()
     {
-        if (StartGamePlay.Instance != null && StartGamePlay.Instance.encounterActive)
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
+        GameSettings settings = GameSettings.Instance;
+
+        if (startGamePlay != null && startGamePlay.encounterActive)
             return;
 
-        if (GameSettings.Instance.cinematicPause)
+        if (settings != null && settings.cinematicPause)
             return;
 
-        if (GameSettings.Instance.interactionBlocked)
+        if (settings != null && settings.interactionBlocked)
             return;
 
         if (player == null)
@@ -101,9 +120,14 @@ public class ObjectiveTap : MonoBehaviour
             return;
         }
 
-        CalculateDistanceToPlayer();
-
         Vector3 targetCenter = GetObjectiveCenter();
+        Vector3 cannonMuzzlePosition = fireManager.cannonMuzzle.position;
+
+        cannonMuzzlePosition.y = 0f;
+        targetCenter.y = 0f;
+
+        distanceToTarget =
+            Vector3.Distance(targetCenter, cannonMuzzlePosition);
 
         fireManager.PrepareChallengeFromEnemy(
             player.transform.position,
@@ -127,10 +151,13 @@ public class ObjectiveTap : MonoBehaviour
                 tutorialManager.CallTutoBlock();
             }
 
-            StartGamePlay.Instance.StartPhase1(
+            if (startGamePlay != null)
+            {
+                startGamePlay.StartPhase1(
                 gameObject,
                 rotateTowardsPlayer
             );
+            }
             return;
         }
 
