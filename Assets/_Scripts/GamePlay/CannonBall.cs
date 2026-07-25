@@ -22,6 +22,8 @@ public class CannonBall : MonoBehaviour
 
     public GameObject waterSplashSoundFX;
 
+    FireCanonManager fireCanonManager;
+
     // ====================================
     // UNITY
     // ====================================
@@ -47,6 +49,11 @@ public class CannonBall : MonoBehaviour
         rb.useGravity = false;
 
         rb.linearVelocity = velocity;
+    }
+
+    public void SetFireCanonManager(FireCanonManager manager)
+    {
+        fireCanonManager = manager;
     }
 
     // ====================================
@@ -190,6 +197,14 @@ public class CannonBall : MonoBehaviour
             Destroy(gameObject);
 
             return;
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (fireCanonManager != null)
+        {
+            fireCanonManager.ClearActiveCannonBall(this);
         }
     }
 }

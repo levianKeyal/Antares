@@ -71,6 +71,9 @@ public class ObjectiveTap : MonoBehaviour
 
     public void OnObjectiveTapped()
     {
+        if (StartGamePlay.Instance != null && StartGamePlay.Instance.encounterActive)
+            return;
+
         if (GameSettings.Instance.cinematicPause)
             return;
 

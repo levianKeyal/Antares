@@ -26111,8 +26111,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 3286963261534618589, guid: 55d65fd78a10f1d4181cb110579ff0c6, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -181065,8 +181064,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StartFlowPirates
   _tutorialScene: {fileID: 1463523855}
   _angleScene: {fileID: 2137965076}
-  _velocityScene: {fileID: 1875453049}
-  _rangeScene: {fileID: 528014130}
+  _velocityScene: {fileID: 528014130}
+  _rangeScene: {fileID: 1875453049}
   decimalsDropdown: {fileID: 2138210385}
   validationDropdown: {fileID: 201529317}
   signsDropdown: {fileID: 938075515}

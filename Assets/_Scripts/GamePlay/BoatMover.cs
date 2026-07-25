@@ -47,6 +47,7 @@ public class BoatMover : MonoBehaviour
     public float chaseAccelerationMultiplier = 2f;
     public float chaseTurnResponsiveness = 1.5f;
     public float chaseRotationMultiplier = 0.6f;
+    public float battleFacingDuration = 1.25f;
     private const float ChaseMinGap = 10f;
     public bool stopWhenBattleStarts = true;
     public UnityEvent onBattlePhaseEntered;
@@ -75,6 +76,12 @@ public class BoatMover : MonoBehaviour
     bool isChasing;
     bool battlePhaseActive;
     bool isActuallyMoving;
+
+    bool battleFacingActive;
+    float battleFacingElapsed;
+    Quaternion battleFacingStartRotation;
+    Vector3 battleFacingTargetPosition;
+    Quaternion battleFacingTargetRotation;
 
 
     float pursuitTimer;
@@ -105,11 +112,20 @@ public class BoatMover : MonoBehaviour
     {
         if (isStopped)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            if (battleFacingActive)
+            {
+                UpdateBattleFacing();
+            }
+            else
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
             UpdateMovementEffects(false);
             return;
         }
+
         UpdateDirection();
         MoveBoat();
         UpdateMovementEffects(rb.linearVelocity.magnitude > 0.1f);
@@ -214,6 +230,53 @@ public class BoatMover : MonoBehaviour
         return Mathf.Max(chaseDetectionDistance, GetEffectiveChaseBattleDistance() + ChaseMinGap);
     }
 
+    public void BeginBattleFacing(Vector3 targetPosition)
+    {
+        battleFacingTargetPosition = targetPosition;
+        battleFacingTargetPosition.y = 0f;
+        battleFacingStartRotation = rb != null ? rb.rotation : transform.rotation;
+        battleFacingElapsed = 0f;
+        battleFacingActive = true;
+    }
+
+    void UpdateBattleFacing()
+    {
+        Vector3 toTarget = battleFacingTargetPosition - rb.position;
+        toTarget.y = 0f;
+
+        if (toTarget.sqrMagnitude < 0.0001f)
+        {
+            battleFacingActive = false;
+            return;
+        }
+
+        battleFacingTargetRotation = Quaternion.LookRotation(toTarget.normalized);
+
+        battleFacingElapsed += Time.fixedDeltaTime;
+        float duration = Mathf.Max(0.05f, battleFacingDuration);
+        float t = Mathf.Clamp01(battleFacingElapsed / duration);
+        float easedT = Mathf.SmoothStep(0f, 1f, t);
+
+        Quaternion smoothRotation = Quaternion.Slerp(
+            battleFacingStartRotation,
+            battleFacingTargetRotation,
+            easedT
+        );
+
+        rb.MoveRotation(smoothRotation);
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        if (t >= 1f || Quaternion.Angle(smoothRotation, battleFacingTargetRotation) < 0.5f)
+        {
+            rb.MoveRotation(battleFacingTargetRotation);
+            currentDirection = battleFacingTargetRotation * Vector3.forward;
+            currentDirection.y = 0f;
+            currentDirection.Normalize();
+            desiredDirection = currentDirection;
+            battleFacingActive = false;
+        }
+    }
     void EnterBattlePhase()
     {
         if (battlePhaseActive)
@@ -703,8 +766,14 @@ public class BoatMover : MonoBehaviour
         UpdateMovementEffects(false);
     }
 
+    public void ClearBattleFacing()
+    {
+        battleFacingActive = false;
+    }
+
     public void ResumeMovement()
     {
+        ClearBattleFacing();
         isStopped = false;
         isReturningToPath = true;
         onPursuit = false;

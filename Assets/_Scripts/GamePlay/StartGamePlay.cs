@@ -338,14 +338,6 @@ public class StartGamePlay : MonoBehaviour
             {
                 objectiveTap.OnObjectiveTapped();
             }
-            else
-            {
-                ClearEncounter();
-            }
-        }
-        else
-        {
-            ClearEncounter();
         }
     }
 
@@ -367,6 +359,31 @@ public class StartGamePlay : MonoBehaviour
             return;
         }
 
+        if (encounterActive)
+        {
+            return;
+        }
+
+        BoatMover targetBoatMover =
+            target.GetComponentInParent<BoatMover>();
+
+        if (targetBoatMover != null)
+        {
+            currentBoatMover = targetBoatMover;
+            currentObjective = targetBoatMover.gameObject;
+        }
+        else
+        {
+            currentObjective = target;
+            currentBoatMover =
+                currentObjective.GetComponent<BoatMover>();
+        }
+
+        if (currentObjective == null)
+        {
+            return;
+        }
+
         // BLOQUEAR JOYSTICK
         if (virtualJoystick != null)
         {
@@ -374,11 +391,6 @@ public class StartGamePlay : MonoBehaviour
         }
 
         encounterActive = true;
-
-        currentObjective = target;
-
-        currentBoatMover =
-            currentObjective.GetComponent<BoatMover>();
 
         // STOP PLAYER
         if (playerMovement != null)
@@ -390,6 +402,7 @@ public class StartGamePlay : MonoBehaviour
         if (currentBoatMover != null)
         {
             currentBoatMover.StopMovementImmediately();
+            currentBoatMover.BeginBattleFacing(player.transform.position);
         }
 
         battleObjectiveCenter = GetObjectiveCenter(currentObjective);
@@ -430,7 +443,7 @@ public class StartGamePlay : MonoBehaviour
 
         // OBJECTIVE LOOKS AT PLAYER
 
-        if (objectiveLooksAtPlayer)
+        if (objectiveLooksAtPlayer && currentBoatMover == null)
         {
             Vector3 objectiveDirection =
                 player.transform.position -

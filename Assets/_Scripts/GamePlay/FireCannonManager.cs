@@ -36,6 +36,8 @@ public class FireCanonManager : MonoBehaviour
 
     [Header("Answer Input")]
     public GameObject answerHolder;
+    public GameObject answerKeyboardHolder;
+    public InGameAnswerKeyboard answerKeyboard;
     public TMP_InputField answerInputField;
     public TMP_Text answerPromptText;
 
@@ -50,6 +52,7 @@ public class FireCanonManager : MonoBehaviour
     public CannonAimUI cannonAimUI;
     public GameObject cannonFireFx;
     public GameObject cannonballFiredFx;
+    public Button fireButton;
 
     [Header("Physics")]
 
@@ -96,6 +99,8 @@ public class FireCanonManager : MonoBehaviour
     public float solveRangeFireDelay = 1f;
 
     bool isSolveRangeSequenceRunning;
+    bool isFireButtonDelayRunning;
+    CannonBall activeCannonBall;
 
     [Header("Challenge Target")]
     [HideInInspector]
@@ -181,6 +186,8 @@ public class FireCanonManager : MonoBehaviour
         UpdateAnswerPrompt();
         UpdateAnswerInputVisibility();
         UpdateTutorialUIVisibility();
+        HideAnswerKeyboard();
+        UpdateFireButtonInteractable();
         SyncModeValues();
         UpdateResolvedLaunchValues();
     }
@@ -198,6 +205,8 @@ public class FireCanonManager : MonoBehaviour
         {
             return;
         }
+
+        UpdateFireButtonInteractable();
 
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
@@ -238,10 +247,11 @@ public class FireCanonManager : MonoBehaviour
             Input.GetKeyDown(KeyCode.Space)
             )
         {
-            Fire();
-            Instantiate(cannonballFiredFx);
-
-            Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+            if (Fire())
+            {
+                Instantiate(cannonballFiredFx);
+                Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+            }
         }
     }
     public void FireButton()
@@ -263,6 +273,13 @@ public class FireCanonManager : MonoBehaviour
         if (!encounterActive)
             return;
 
+        if (HasActiveCannonBall())
+        {
+            return;
+        }
+
+        HideAnswerKeyboard();
+
         if (physicsMode == CannonPhysicsMode.SolveRange)
         {
             if (!isSolveRangeSequenceRunning)
@@ -273,9 +290,67 @@ public class FireCanonManager : MonoBehaviour
             return;
         }
 
-        Fire();
-        Instantiate(cannonballFiredFx);
-        Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        if (Fire())
+        {
+            Instantiate(cannonballFiredFx);
+            Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        }
+    }
+
+    public void FireButtonAfterDelay(float delaySeconds)
+    {
+        if (isFireButtonDelayRunning)
+        {
+            return;
+        }
+
+        StartCoroutine(FireButtonAfterDelayRoutine(delaySeconds));
+    }
+
+    IEnumerator FireButtonAfterDelayRoutine(float delaySeconds)
+    {
+        isFireButtonDelayRunning = true;
+
+        HideAnswerKeyboard();
+
+        if (delaySeconds > 0f)
+        {
+            yield return new WaitForSecondsRealtime(delaySeconds);
+        }
+
+        if (!CanFireNow())
+        {
+            isFireButtonDelayRunning = false;
+            yield break;
+        }
+
+        FireButton();
+
+        isFireButtonDelayRunning = false;
+    }
+
+    public bool CanOpenAnswerKeyboard()
+    {
+        return physicsMode != CannonPhysicsMode.Tutorial &&
+               !HasActiveCannonBall();
+    }
+
+    bool CanFireNow()
+    {
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
+        {
+            return false;
+        }
+
+        if (StartGamePlay.Instance == null ||
+            !StartGamePlay.Instance.encounterActive)
+        {
+            return false;
+        }
+
+        return !HasActiveCannonBall();
     }
 
     // ====================================
@@ -635,19 +710,24 @@ public class FireCanonManager : MonoBehaviour
 
     void UpdateAnswerInputVisibility()
     {
-        if (answerInputField == null)
-        {
-            return;
-        }
-
         bool showAnswerInput =
             physicsMode != CannonPhysicsMode.Tutorial;
 
         SetGameObjectActive(answerHolder, showAnswerInput);
 
+        if (!showAnswerInput)
+        {
+            HideAnswerKeyboard();
+        }
+
         if (answerInputField != null)
         {
             answerInputField.interactable = showAnswerInput;
+            answerInputField.readOnly =
+                showAnswerInput &&
+                Application.isMobilePlatform &&
+                !Application.isEditor;
+            answerInputField.shouldHideMobileInput = true;
         }
     }
 
@@ -682,6 +762,85 @@ public class FireCanonManager : MonoBehaviour
         if (target.activeSelf != active)
         {
             target.SetActive(active);
+        }
+    }
+
+    public void SetAnswerInputText(string value)
+    {
+        if (answerInputField == null)
+        {
+            return;
+        }
+
+        answerInputField.SetTextWithoutNotify(value);
+        SetUserAnswerValue(value);
+    }
+
+    public void AppendAnswerInputText(string value)
+    {
+        if (answerInputField == null || string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
+        SetAnswerInputText(answerInputField.text + value);
+    }
+
+    public void BackspaceAnswerInputText()
+    {
+        if (answerInputField == null)
+        {
+            return;
+        }
+
+        string currentText = answerInputField.text ?? string.Empty;
+
+        if (currentText.Length == 0)
+        {
+            return;
+        }
+
+        SetAnswerInputText(
+            currentText.Substring(0, currentText.Length - 1)
+        );
+    }
+
+    public void ClearAnswerInputText()
+    {
+        SetAnswerInputText(string.Empty);
+    }
+
+    public void ShowAnswerKeyboard()
+    {
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            return;
+        }
+
+        if (answerKeyboard == null)
+        {
+            if (answerKeyboardHolder != null)
+            {
+                SetGameObjectActive(answerKeyboardHolder, true);
+            }
+
+            return;
+        }
+
+        answerKeyboard.ShowKeyboard();
+    }
+
+    public void HideAnswerKeyboard()
+    {
+        if (answerKeyboard != null)
+        {
+            answerKeyboard.HideKeyboard();
+            return;
+        }
+
+        if (answerKeyboardHolder != null)
+        {
+            SetGameObjectActive(answerKeyboardHolder, false);
         }
     }
 
@@ -1247,11 +1406,15 @@ public class FireCanonManager : MonoBehaviour
     // FIRE
     // ====================================
 
-    public void Fire()
+    public bool Fire()
     {
         if (cannonBallPrefab == null)
-            return;
+            return false;
 
+        if (HasActiveCannonBall())
+            return false;
+
+        HideAnswerKeyboard();
         ApplyResolvedLaunchToCannon();
 
         // ====================================
@@ -1273,7 +1436,10 @@ public class FireCanonManager : MonoBehaviour
             ball.GetComponent<CannonBall>();
 
         if (cannonBall == null)
-            return;
+            return false;
+
+        cannonBall.SetFireCanonManager(this);
+        RegisterActiveCannonBall(cannonBall);
 
         // ====================================
         // FORWARD DIRECTION
@@ -1298,6 +1464,36 @@ public class FireCanonManager : MonoBehaviour
             velocity,
             gravity
         );
+
+        return true;
+    }
+
+    public bool HasActiveCannonBall()
+    {
+        return activeCannonBall != null;
+    }
+
+    public void RegisterActiveCannonBall(CannonBall cannonBall)
+    {
+        activeCannonBall = cannonBall;
+        UpdateFireButtonInteractable();
+    }
+
+    public void ClearActiveCannonBall(CannonBall cannonBall)
+    {
+        if (activeCannonBall == cannonBall)
+        {
+            activeCannonBall = null;
+            UpdateFireButtonInteractable();
+        }
+    }
+
+    void UpdateFireButtonInteractable()
+    {
+        if (fireButton != null)
+        {
+            fireButton.interactable = !HasActiveCannonBall();
+        }
     }
 
     Transform GetPlayerTransform()
@@ -1532,6 +1728,7 @@ public class FireCanonManager : MonoBehaviour
         isSolveRangeSequenceRunning = true;
 
         SyncUserAnswerFromInputField();
+        HideAnswerKeyboard();
 
         string answerText = answerInputField != null ? answerInputField.text : string.Empty;
         float targetRange = answerInputField != null
@@ -1576,9 +1773,11 @@ public class FireCanonManager : MonoBehaviour
             yield return new WaitForSeconds(solveRangeFireDelay);
         }
 
-        Fire();
-        Instantiate(cannonballFiredFx);
-        Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        if (Fire())
+        {
+            Instantiate(cannonballFiredFx);
+            Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
+        }
 
         isSolveRangeSequenceRunning = false;
     }

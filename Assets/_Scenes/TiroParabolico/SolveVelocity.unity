@@ -12621,6 +12621,7 @@ GameObject:
   - component: {fileID: 338571550}
   - component: {fileID: 338571549}
   - component: {fileID: 338571551}
+  - component: {fileID: 338571552}
   m_Layer: 5
   m_Name: Answer InputField
   m_TagString: Untagged
@@ -12787,6 +12788,21 @@ MonoBehaviour:
   isAlert: 0
   m_InputValidator: {fileID: 0}
   m_ShouldActivateOnSelect: 1
+--- !u!114 &338571552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338571547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c102e8d4d500344ca6b51e17b039326, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnswerInputKeyboardTrigger
+  inGameAnswerKeyboard: {fileID: 1823701368}
+  fireCanonManager: {fileID: 1030918676}
+  answerInputField: {fileID: 338571551}
 --- !u!1001 &342189049
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17432,6 +17448,7 @@ MonoBehaviour:
   chaseAccelerationMultiplier: 2
   chaseTurnResponsiveness: 1.5
   chaseRotationMultiplier: 0.6
+  battleFacingDuration: 1.25
   stopWhenBattleStarts: 1
   onBattlePhaseEntered:
     m_PersistentCalls:
@@ -17550,6 +17567,8 @@ MonoBehaviour:
   velocityHolderCanvasGroup: {fileID: 766311667}
   fireButtonHolder: {fileID: 1603405578}
   answerHolder: {fileID: 145993739}
+  answerKeyboardHolder: {fileID: 1823701369}
+  answerKeyboard: {fileID: 1823701368}
   answerInputField: {fileID: 338571551}
   answerPromptText: {fileID: 2047627295}
   angleTextTransform: {fileID: 1964322855}
@@ -19394,6 +19413,7 @@ MonoBehaviour:
   chaseAccelerationMultiplier: 2
   chaseTurnResponsiveness: 1.5
   chaseRotationMultiplier: 0.6
+  battleFacingDuration: 1.25
   stopWhenBattleStarts: 1
   onBattlePhaseEntered:
     m_PersistentCalls:
@@ -23821,6 +23841,127 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1810645016}
   m_CullTransparentMesh: 1
+--- !u!1001 &1823701367
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2737170441405291303, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: answerInputField
+      value: 
+      objectReference: {fileID: 338571551}
+    - target: {fileID: 2737170441405291303, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: fireCanonManager
+      value: 
+      objectReference: {fileID: 1030918676}
+    - target: {fileID: 4323987358862562258, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_Name
+      value: Keyboard Canvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+--- !u!114 &1823701368 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2737170441405291303, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+  m_PrefabInstance: {fileID: 1823701367}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1823701369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1dd499360dab0747b6abbed615e0f44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameAnswerKeyboard
+--- !u!1 &1823701369 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4606280802861283003, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+  m_PrefabInstance: {fileID: 1823701367}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1830277324
 GameObject:
   m_ObjectHideFlags: 0
@@ -30191,6 +30332,7 @@ MonoBehaviour:
   chaseAccelerationMultiplier: 2
   chaseTurnResponsiveness: 1.5
   chaseRotationMultiplier: 0.6
+  battleFacingDuration: 1.25
   stopWhenBattleStarts: 1
   onBattlePhaseEntered:
     m_PersistentCalls:
@@ -30836,7 +30978,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 260, y: 65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2047627294
 CanvasRenderer:
@@ -30893,7 +31035,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42.35
+  m_fontSize: 55.05
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -36580,6 +36722,7 @@ SceneRoots:
   - {fileID: 1923680608}
   - {fileID: 1381133838}
   - {fileID: 83688094}
+  - {fileID: 1823701367}
   - {fileID: 1729819014}
   - {fileID: 573104095}
   - {fileID: 104819902}
