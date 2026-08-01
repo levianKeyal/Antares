@@ -8,6 +8,7 @@ public class GameSettings : MonoBehaviour
     [Header("Game State")]
 
     public bool cinematicPause;
+    public bool cannonBallViewActive;
 
     [Header("Interaction")]
 
@@ -110,6 +111,59 @@ public class GameSettings : MonoBehaviour
 
         foreach (BoatMover boat in boats)
         {
+            boat.ResumeMovement();
+        }
+    }
+
+    public void StartCannonBallViewPause()
+    {
+        cinematicPause = true;
+
+        BoatMover[] boats =
+            FindObjectsByType<BoatMover>(
+                FindObjectsSortMode.None
+            );
+
+        foreach (BoatMover boat in boats)
+        {
+            boat.StopMovementImmediately();
+        }
+    }
+
+    public void EndCannonBallViewPause()
+    {
+        cinematicPause = false;
+        cannonBallViewActive = false;
+
+        ResumeBoatsAfterCannonBallView();
+    }
+
+    void ResumeBoatsAfterCannonBallView()
+    {
+        BoatMover battleBoat = null;
+
+        if (StartGamePlay.Instance != null)
+        {
+            battleBoat = StartGamePlay.Instance.currentBoatMover;
+        }
+
+        BoatMover[] boats =
+            FindObjectsByType<BoatMover>(
+                FindObjectsSortMode.None
+            );
+
+        foreach (BoatMover boat in boats)
+        {
+            if (boat == null)
+            {
+                continue;
+            }
+
+            if (battleBoat != null && boat == battleBoat)
+            {
+                continue;
+            }
+
             boat.ResumeMovement();
         }
     }

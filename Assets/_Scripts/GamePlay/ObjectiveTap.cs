@@ -1,5 +1,3 @@
-using Fungus;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ObjectiveTap : MonoBehaviour
@@ -90,7 +88,8 @@ public class ObjectiveTap : MonoBehaviour
         StartGamePlay startGamePlay = StartGamePlay.Instance;
         GameSettings settings = GameSettings.Instance;
 
-        if (startGamePlay != null && startGamePlay.encounterActive)
+        if (startGamePlay == null ||
+            !startGamePlay.CanStartBattleFrom(gameObject))
             return;
 
         if (settings != null && settings.cinematicPause)

@@ -344,6 +344,9 @@ public class BoatMover : MonoBehaviour
         if (battlePhaseActive)
             return;
 
+        if (!CanStartBattlePhase())
+            return;
+
         battlePhaseActive = true;
         isChasing = false;
         currentSpeed = 0f;
@@ -363,6 +366,16 @@ public class BoatMover : MonoBehaviour
         {
             onBattlePhaseEntered?.Invoke();
         }
+    }
+
+    bool CanStartBattlePhase()
+    {
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
+
+        if (startGamePlay == null)
+            return true;
+
+        return !startGamePlay.IsBattleBusy();
     }
 
     void UpdateMovementEffects(bool moving)
@@ -527,7 +540,9 @@ public class BoatMover : MonoBehaviour
 
         float effectiveChaseBattleDistance = GetEffectiveChaseBattleDistance();
 
-        if (!battlePhaseActive && distanceToPlayer <= effectiveChaseBattleDistance)
+        if (!battlePhaseActive &&
+            distanceToPlayer <= effectiveChaseBattleDistance &&
+            CanStartBattlePhase())
             EnterBattlePhase();
     }
 

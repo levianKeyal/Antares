@@ -1,4 +1,3 @@
-using Fungus;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,12 +33,24 @@ public class FireCanonManager : MonoBehaviour
     public CanvasGroup velocityHolderCanvasGroup;
     public GameObject fireButtonHolder;
 
+    [Header("Cannon Ball View")]
+    public float cannonBallViewFadeDuration = 1f;
+
     [Header("Answer Input")]
     public GameObject answerHolder;
+    public CanvasGroup answerHolderCanvasGroup;
     public GameObject answerKeyboardHolder;
     public InGameAnswerKeyboard answerKeyboard;
     public TMP_InputField answerInputField;
     public TMP_Text answerPromptText;
+
+    [Header("Formula")]
+    public GameObject formulaHolder;
+    public CanvasGroup formulaHolderCanvasGroup;
+    public GameObject pergaminoFormula;
+    public GameObject pergaminoFormulaSustituida;
+    public bool showPergaminoFormula;
+    public bool showPergaminoFormulaSustituida;
 
     [Header("UI Rotation")]
     public RectTransform angleTextTransform;
@@ -104,6 +115,7 @@ public class FireCanonManager : MonoBehaviour
     CannonPhysicsMode cachedPhysicsMode = (CannonPhysicsMode)(-1);
     bool cachedAnswerInputVisible;
     bool cachedTutorialUIVisible;
+    bool cachedFormulaHolderVisible;
     bool cachedTrajectoryVisible;
     bool cachedTrajectoryStateInitialized;
     Vector3 cachedTrajectoryMuzzlePosition;
@@ -111,6 +123,11 @@ public class FireCanonManager : MonoBehaviour
     float cachedTrajectoryInitialVelocity;
     float cachedTrajectoryGravity;
     CannonPhysicsMode cachedTrajectoryPhysicsMode = (CannonPhysicsMode)(-1);
+    bool cachedEncounterActive;
+    Coroutine cannonHolderFadeRoutine;
+    Coroutine velocityHolderFadeRoutine;
+    Coroutine answerHolderFadeRoutine;
+    Coroutine formulaHolderFadeRoutine;
 
     [Header("Challenge Target")]
     [HideInInspector]
@@ -195,6 +212,17 @@ public class FireCanonManager : MonoBehaviour
         InitializeAnswerInput();
         HideAnswerKeyboard();
         RefreshModeState(true);
+        RefreshPergaminosState();
+    }
+
+    void OnEnable()
+    {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
+        RefreshPergaminosState();
     }
 
     void Update()
@@ -212,6 +240,16 @@ public class FireCanonManager : MonoBehaviour
         if (physicsMode != cachedPhysicsMode)
         {
             RefreshModeState(true);
+        }
+
+        if (cachedEncounterActive != encounterActive)
+        {
+            cachedEncounterActive = encounterActive;
+
+            if (encounterActive)
+            {
+                RefreshPergaminosState();
+            }
         }
 
         if (settings != null && settings.cinematicPause)
@@ -258,14 +296,14 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
 
         GameSettings settings = GameSettings.Instance;
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
 
         if (settings != null && settings.cinematicPause)
             return;
 
         bool encounterActive =
-           StartGamePlay.Instance != null
-           &&
-           StartGamePlay.Instance.encounterActive;
+            startGamePlay != null &&
+            startGamePlay.encounterActive;
 
         if (!encounterActive)
             return;
@@ -699,6 +737,7 @@ public class FireCanonManager : MonoBehaviour
 
         UpdateAnswerInputVisibility(true);
         UpdateTutorialUIVisibility(true);
+        UpdateFormulaHolderVisibility(true);
         UpdateAnswerPrompt();
         UpdateChallengeDataUI();
         SyncModeValues();
@@ -709,6 +748,51 @@ public class FireCanonManager : MonoBehaviour
         {
             formulaSustition.UpdateFormulaValues();
         }
+    }
+
+    public void EnterCannonBallView()
+    {
+        FadeCanvasGroup(cannonHolderCanvasGroup, 0f, ref cannonHolderFadeRoutine);
+        FadeCanvasGroup(velocityHolderCanvasGroup, 0f, ref velocityHolderFadeRoutine);
+        FadeCanvasGroup(formulaHolderCanvasGroup, 0f, ref formulaHolderFadeRoutine);
+        SetGameObjectActive(fireButtonHolder, false);
+        HideAnswerKeyboard();
+    }
+
+    public void ExitCannonBallView()
+    {
+        RefreshModeState(true);
+    }
+
+    public void RefreshPergaminosState()
+    {
+        ApplyPergaminoFormulaState();
+        ApplyPergaminoFormulaSustituidaState();
+    }
+
+    public void ApplyPergaminoFormulaState()
+    {
+        SetGameObjectActive(pergaminoFormula, showPergaminoFormula);
+    }
+
+    public void ApplyPergaminoFormulaSustituidaState()
+    {
+        SetGameObjectActive(
+            pergaminoFormulaSustituida,
+            showPergaminoFormulaSustituida
+        );
+    }
+
+    public void SetPergaminoFormulaVisible(bool visible)
+    {
+        showPergaminoFormula = visible;
+        ApplyPergaminoFormulaState();
+    }
+
+    public void SetPergaminoFormulaSustituidaVisible(bool visible)
+    {
+        showPergaminoFormulaSustituida = visible;
+        ApplyPergaminoFormulaSustituidaState();
     }
 
     void UpdateChallengeDataUI()
@@ -758,12 +842,16 @@ public class FireCanonManager : MonoBehaviour
 
         cachedAnswerInputVisible = showAnswerInput;
 
-        SetGameObjectActive(answerHolder, showAnswerInput);
-
         if (!showAnswerInput)
         {
             HideAnswerKeyboard();
         }
+
+        FadeCanvasGroup(
+            answerHolderCanvasGroup,
+            showAnswerInput ? 1f : 0f,
+            ref answerHolderFadeRoutine
+        );
 
         if (answerInputField != null)
         {
@@ -787,21 +875,76 @@ public class FireCanonManager : MonoBehaviour
 
         cachedTutorialUIVisible = showTutorialUI;
 
-        SetCanvasGroupState(cannonHolderCanvasGroup, showTutorialUI);
-        SetCanvasGroupState(velocityHolderCanvasGroup, showTutorialUI);
+        FadeCanvasGroup(cannonHolderCanvasGroup, showTutorialUI ? 1f : 0f, ref cannonHolderFadeRoutine);
+        FadeCanvasGroup(velocityHolderCanvasGroup, showTutorialUI ? 1f : 0f, ref velocityHolderFadeRoutine);
         SetGameObjectActive(fireButtonHolder, showTutorialUI);
     }
 
-    void SetCanvasGroupState(CanvasGroup canvasGroup, bool visible)
+    void UpdateFormulaHolderVisibility(bool force = false)
+    {
+        bool showFormulaHolder = true;
+
+        if (!force && cachedFormulaHolderVisible == showFormulaHolder)
+        {
+            return;
+        }
+
+        cachedFormulaHolderVisible = showFormulaHolder;
+
+        FadeCanvasGroup(
+            formulaHolderCanvasGroup,
+            showFormulaHolder ? 1f : 0f,
+            ref formulaHolderFadeRoutine
+        );
+    }
+
+    void FadeCanvasGroup(
+        CanvasGroup canvasGroup,
+        float targetAlpha,
+        ref Coroutine fadeRoutine)
     {
         if (canvasGroup == null)
         {
             return;
         }
 
-        canvasGroup.alpha = visible ? 1f : 0f;
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
+        }
+
+        fadeRoutine =
+            StartCoroutine(FadeCanvasGroupRoutine(canvasGroup, targetAlpha));
+    }
+
+    IEnumerator FadeCanvasGroupRoutine(CanvasGroup canvasGroup, float targetAlpha)
+    {
+        float startAlpha = canvasGroup.alpha;
+        float duration = Mathf.Max(0.01f, cannonBallViewFadeDuration);
+        float elapsed = 0f;
+
+        canvasGroup.gameObject.SetActive(true);
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+            yield return null;
+        }
+
+        canvasGroup.alpha = targetAlpha;
+        bool visible = targetAlpha > 0.95f;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;
+
+        if (!visible)
+        {
+            canvasGroup.gameObject.SetActive(false);
+        }
     }
 
     void SetGameObjectActive(GameObject target, bool active)
@@ -1595,9 +1738,11 @@ public class FireCanonManager : MonoBehaviour
 
     Transform GetPlayerTransform()
     {
-        if (StartGamePlay.Instance != null && StartGamePlay.Instance.player != null)
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
+
+        if (startGamePlay != null && startGamePlay.player != null)
         {
-            return StartGamePlay.Instance.player.transform;
+            return startGamePlay.player.transform;
         }
 
         PlayerMovement playerMovement =
@@ -1610,12 +1755,11 @@ public class FireCanonManager : MonoBehaviour
 
     PlayerMovement GetPlayerMovement()
     {
-        if (StartGamePlay.Instance != null && StartGamePlay.Instance.player != null)
-        {
-            return StartGamePlay.Instance.player.GetComponent<PlayerMovement>();
-        }
+        Transform playerTransform = GetPlayerTransform();
 
-        return FindFirstObjectByType<PlayerMovement>();
+        return playerTransform != null
+            ? playerTransform.GetComponent<PlayerMovement>()
+            : null;
     }
 
     Rigidbody GetPlayerRigidbody()

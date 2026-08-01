@@ -1,5 +1,5 @@
 using Cinemachine;
-using Fungus;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -50,9 +50,37 @@ public class StartGamePlay : MonoBehaviour
 
     Vector3 battleObjectiveCenter;
     Camera mainCamera;
+    ExitToStart exitToStart;
 
     [HideInInspector]
     public bool encounterActive;
+    [HideInInspector]
+    public bool battleTransitionActive;
+
+    public bool IsBattleBusy()
+    {
+        return encounterActive || battleTransitionActive;
+    }
+
+    public bool CanStartBattleFrom(GameObject target)
+    {
+        if (target == null)
+        {
+            return false;
+        }
+
+        if (IsBattleBusy())
+        {
+            return false;
+        }
+
+        if (currentObjective != null && currentObjective != target)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     bool IsPointerOverUI()
     {
@@ -131,6 +159,7 @@ public class StartGamePlay : MonoBehaviour
         }
 
         RebindBattleCameras();
+        CacheExitToStart();
     }
 
     void RefreshMissingSceneReferences()
@@ -452,6 +481,14 @@ public class StartGamePlay : MonoBehaviour
         if (cannonCanvas != null)
         {
             cannonCanvas.SetActive(true);
+
+            FireCanonManager fireCanonManager =
+                cannonCanvas.GetComponent<FireCanonManager>();
+
+            if (fireCanonManager != null)
+            {
+                fireCanonManager.RefreshPergaminosState();
+            }
         }
     }
 
@@ -677,6 +714,8 @@ public class StartGamePlay : MonoBehaviour
             return;
         }
 
+        BeginBattleTransitionLock();
+
         playerCamera.m_Priority = 0;
         battleCamera.m_Priority = 1;
 
@@ -780,6 +819,8 @@ public class StartGamePlay : MonoBehaviour
 
     public void ClearEncounter()
     {
+        BeginBattleTransitionLock();
+
         rotatePlayer = false;
         rotateObjective = false;
 
@@ -789,12 +830,27 @@ public class StartGamePlay : MonoBehaviour
             currentBoatMover = null;
         }
 
+        currentObjective = null;
         showCircle = false;
 
-
         SetDebugPointsVisible(false);
-        playerCamera.m_Priority = 1;
-        battleCamera.m_Priority = 0;
+
+        if (playerCamera != null)
+        {
+            playerCamera.m_Priority = 1;
+        }
+
+        if (battleCamera != null)
+        {
+            battleCamera.m_Priority = 0;
+        }
+
+        if (GameSettings.Instance != null)
+        {
+            GameSettings.Instance.cinematicPause = false;
+            GameSettings.Instance.cannonBallViewActive = false;
+            GameSettings.Instance.interactionBlocked = false;
+        }
 
         /*
         // DESACTIVAR UI DE CAÃƒâ€˜Ãƒâ€œN
@@ -809,7 +865,87 @@ public class StartGamePlay : MonoBehaviour
             virtualJoystick.inputBlocked = false;
         }
 
+        SetCameraPriorities();
         encounterActive = false;
+    }
+
+    void SetExitButtonTransitionLocked(bool locked)
+    {
+        if (exitToStart == null)
+        {
+            CacheExitToStart();
+        }
+
+        if (exitToStart == null)
+        {
+            return;
+        }
+
+        exitToStart.SetTransitionLocked(locked);
+    }
+
+    void CacheExitToStart()
+    {
+        if (exitToStart == null)
+        {
+            exitToStart = FindFirstObjectByType<ExitToStart>();
+        }
+    }
+
+    Coroutine objectiveTapTransitionLockRoutine;
+
+    void BeginBattleTransitionLock()
+    {
+        if (objectiveTapTransitionLockRoutine != null)
+        {
+            StopCoroutine(objectiveTapTransitionLockRoutine);
+            objectiveTapTransitionLockRoutine = null;
+        }
+
+        battleTransitionActive = true;
+        SetExitButtonTransitionLocked(true);
+
+        objectiveTapTransitionLockRoutine =
+            StartCoroutine(
+                UnlockBattleTransitionAfterTransition()
+            );
+    }
+
+    IEnumerator UnlockBattleTransitionAfterTransition()
+    {
+        yield return null;
+
+        while (IsCameraBlending())
+        {
+            yield return null;
+        }
+
+        battleTransitionActive = false;
+        SetExitButtonTransitionLocked(false);
+        objectiveTapTransitionLockRoutine = null;
+    }
+
+    bool IsCameraBlending()
+    {
+        Camera sourceCamera =
+            mainCamera != null
+                ? mainCamera
+                : Camera.main;
+
+        if (sourceCamera == null)
+        {
+            return false;
+        }
+
+        CinemachineBrain brain =
+            sourceCamera.GetComponent<CinemachineBrain>();
+
+        if (brain == null)
+        {
+            return false;
+        }
+
+        return brain.IsBlending;
     }
 
     // ====================================
