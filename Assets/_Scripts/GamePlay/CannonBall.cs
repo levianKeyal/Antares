@@ -7,10 +7,24 @@ using UnityEngine;
 public class CannonBall : MonoBehaviour
 {
     [Header("Debug")]
+    [HideInInspector]
     public Vector3 velocity;
+
+    [HideInInspector]
     public float totalVelocity;
 
+    [HideInInspector]
     public float gravity;
+
+    [Header("Initial Velocity")]
+    public float initialVelocityX;
+    public float initialVelocityY;
+    public float initialVelocityMagnitude;
+
+    [Header("Tap Velocity")]
+    public float velocityX;
+    public float velocityY;
+    public float tapVelocityMagnitude;
 
     [Header("Velocity UI")]
     public TMP_Text velocityXText;
@@ -18,7 +32,11 @@ public class CannonBall : MonoBehaviour
 
     Rigidbody rb;
 
-    Vector3 savedVelocity;
+    float currentVelocityXFormula;
+    float currentVelocityYFormula;
+    float savedVelocityXFormula;
+    float savedVelocityYFormula;
+    Vector3 horizontalDirection = Vector3.forward;
 
     bool isPaused;
 
@@ -150,20 +168,73 @@ public class CannonBall : MonoBehaviour
         float customGravity
     )
     {
-        velocity = startVelocity;
-        totalVelocity = velocity.magnitude;
+        Vector3 projectedHorizontalDirection = new Vector3(
+            startVelocity.x,
+            0f,
+            startVelocity.z
+        );
+
+        if (projectedHorizontalDirection.sqrMagnitude <= 0.0001f)
+        {
+            projectedHorizontalDirection = Vector3.forward;
+        }
+
+        horizontalDirection = projectedHorizontalDirection.normalized;
+        currentVelocityXFormula = initialVelocityX;
+        currentVelocityYFormula = initialVelocityY;
+        totalVelocity = Mathf.Sqrt(
+            currentVelocityXFormula * currentVelocityXFormula +
+            currentVelocityYFormula * currentVelocityYFormula
+        );
 
         gravity = customGravity;
 
         rb.useGravity = false;
 
+        velocity =
+            horizontalDirection * currentVelocityXFormula +
+            Vector3.up * currentVelocityYFormula;
         rb.linearVelocity = velocity;
+        CaptureTapDebugMath();
         UpdateVelocityText();
     }
 
     public void SetFireCanonManager(FireCanonManager manager)
     {
         fireCanonManager = manager;
+    }
+
+    public void SetLaunchDebugMath(
+        float launchVelocity,
+        float angleDegrees
+    )
+    {
+        initialVelocityMagnitude = launchVelocity;
+
+        float radians = Mathf.Abs(angleDegrees) * Mathf.Deg2Rad;
+        float cosine = Mathf.Cos(radians);
+        float sine = Mathf.Sin(radians);
+
+        initialVelocityX = initialVelocityMagnitude * cosine;
+        initialVelocityY = initialVelocityMagnitude * sine;
+    }
+
+    void CaptureTapDebugMath()
+    {
+        velocityX = Mathf.Abs(currentVelocityXFormula);
+        velocityY = currentVelocityYFormula;
+        tapVelocityMagnitude =
+            Mathf.Sqrt(
+                velocityX * velocityX +
+                velocityY * velocityY
+            );
+
+        if (tapVelocityMagnitude <= 0.0001f)
+        {
+            velocityX = 0f;
+            velocityY = 0f;
+            return;
+        }
     }
 
     // ====================================
@@ -181,14 +252,18 @@ public class CannonBall : MonoBehaviour
             // PAUSAR SOLO UNA VEZ
             if (!isPaused)
             {
-                savedVelocity =
-                    velocity;
-                totalVelocity = savedVelocity.magnitude;
+                savedVelocityXFormula = currentVelocityXFormula;
+                savedVelocityYFormula = currentVelocityYFormula;
+                totalVelocity = Mathf.Sqrt(
+                    currentVelocityXFormula * currentVelocityXFormula +
+                    currentVelocityYFormula * currentVelocityYFormula
+                );
 
                 rb.linearVelocity =
                     Vector3.zero;
 
                 isPaused = true;
+                CaptureTapDebugMath();
                 UpdateVelocityText();
             }
 
@@ -201,14 +276,21 @@ public class CannonBall : MonoBehaviour
 
         if (isPaused)
         {
-            velocity =
-                savedVelocity;
-            totalVelocity = velocity.magnitude;
+            currentVelocityXFormula = savedVelocityXFormula;
+            currentVelocityYFormula = savedVelocityYFormula;
+            totalVelocity = Mathf.Sqrt(
+                currentVelocityXFormula * currentVelocityXFormula +
+                currentVelocityYFormula * currentVelocityYFormula
+            );
 
-            rb.linearVelocity =
-                velocity;
+            velocity =
+                horizontalDirection * currentVelocityXFormula +
+                Vector3.up * currentVelocityYFormula;
+
+            rb.linearVelocity = velocity;
 
             isPaused = false;
+            CaptureTapDebugMath();
             UpdateVelocityText();
         }
 
@@ -216,16 +298,20 @@ public class CannonBall : MonoBehaviour
         // GRAVEDAD MANUAL
         // ====================================
 
-        velocity +=
-            Vector3.down *
-            gravity *
-            Time.fixedDeltaTime;
+        currentVelocityYFormula -= gravity * Time.fixedDeltaTime;
 
-        totalVelocity = velocity.magnitude;
+        velocity =
+            horizontalDirection * currentVelocityXFormula +
+            Vector3.up * currentVelocityYFormula;
 
-        rb.linearVelocity =
-            velocity;
+        totalVelocity = Mathf.Sqrt(
+            currentVelocityXFormula * currentVelocityXFormula +
+            currentVelocityYFormula * currentVelocityYFormula
+        );
 
+        rb.linearVelocity = velocity;
+
+        CaptureTapDebugMath();
         UpdateVelocityText();
     }
 
@@ -233,12 +319,12 @@ public class CannonBall : MonoBehaviour
     {
         if (velocityXText != null)
         {
-            velocityXText.text = velocity.x.ToString("F2");
+            velocityXText.text = velocityX.ToString("F2");
         }
 
         if (velocityYText != null)
         {
-            velocityYText.text = velocity.y.ToString("F2");
+            velocityYText.text = velocityY.ToString("F2");
         }
     }
 
@@ -258,6 +344,8 @@ public class CannonBall : MonoBehaviour
 
         isTapPaused = true;
         settings.cannonBallViewActive = true;
+
+        CaptureTapDebugMath();
 
         FadeCannonBallCanvas(1f);
 

@@ -17554,7 +17554,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireCanonManager
   formulaSustition: {fileID: 1030918678}
-  physicsMode: 3
+  physicsMode: 0
   angleText: {fileID: 1964322856}
   velocityValue: {fileID: 1432351104}
   velocitySlider: {fileID: 351383531}

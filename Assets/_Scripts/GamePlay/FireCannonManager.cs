@@ -1479,7 +1479,8 @@ public class FireCanonManager : MonoBehaviour
         }
 
         Vector3 currentPosition = cannonMuzzle.position;
-        Vector3 currentForward = cannonMuzzle.forward;
+        Vector3 currentForward =
+            GetLaunchHorizontalDirectionTowardsSelectedObjective();
 
         bool trajectoryStateChanged =
             !cachedTrajectoryStateInitialized
@@ -1518,9 +1519,18 @@ public class FireCanonManager : MonoBehaviour
         // INITIAL DATA
         // ====================================
 
+        float launchVelocity =
+            Mathf.Max(0f, resolvedLaunchVelocity);
+        float launchAngleRadians =
+            Mathf.Abs(resolvedLaunchAngle) * Mathf.Deg2Rad;
+        float launchHorizontalSpeed =
+            launchVelocity * Mathf.Cos(launchAngleRadians);
+        float launchVerticalSpeed =
+            launchVelocity * Mathf.Sin(launchAngleRadians);
+
         Vector3 currentVelocity =
-            cannonMuzzle.forward.normalized *
-            initialVelocity;
+            currentForward * launchHorizontalSpeed +
+            Vector3.up * launchVerticalSpeed;
 
         int dotIndex = 0;
 
@@ -1679,6 +1689,10 @@ public class FireCanonManager : MonoBehaviour
             return false;
 
         cannonBall.SetFireCanonManager(this);
+        cannonBall.SetLaunchDebugMath(
+            resolvedLaunchVelocity,
+            resolvedLaunchAngle
+        );
         RegisterActiveCannonBall(cannonBall);
 
         // ====================================
@@ -1686,7 +1700,7 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
 
         Vector3 forward =
-            cannonMuzzle.forward.normalized;
+            GetLaunchHorizontalDirectionTowardsSelectedObjective();
 
         // ====================================
         // INITIAL VELOCITY
@@ -1706,6 +1720,49 @@ public class FireCanonManager : MonoBehaviour
         );
 
         return true;
+    }
+
+    Vector3 GetLaunchHorizontalDirectionTowardsSelectedObjective()
+    {
+        Vector3 fallbackDirection =
+            cannonMuzzle != null
+                ? cannonMuzzle.forward
+                : Vector3.forward;
+
+        fallbackDirection.y = 0f;
+
+        StartGamePlay startGamePlay = StartGamePlay.Instance;
+        if (
+            startGamePlay == null ||
+            startGamePlay.currentObjective == null ||
+            cannonMuzzle == null
+        )
+        {
+            return fallbackDirection.sqrMagnitude > 0.0001f
+                ? fallbackDirection.normalized
+                : Vector3.forward;
+        }
+
+        Vector3 targetPosition =
+            startGamePlay.currentObjective.transform.position;
+        Vector3 muzzlePosition =
+            cannonMuzzle.position;
+
+        targetPosition.y = 0f;
+        muzzlePosition.y = 0f;
+
+        Vector3 directionFromMuzzleToObjective =
+            targetPosition - muzzlePosition;
+        directionFromMuzzleToObjective.y = 0f;
+
+        if (directionFromMuzzleToObjective.sqrMagnitude <= 0.0001f)
+        {
+            return fallbackDirection.sqrMagnitude > 0.0001f
+                ? fallbackDirection.normalized
+                : Vector3.forward;
+        }
+
+        return directionFromMuzzleToObjective.normalized;
     }
 
     public bool HasActiveCannonBall()
