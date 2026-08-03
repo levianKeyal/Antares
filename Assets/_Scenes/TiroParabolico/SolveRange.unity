@@ -10243,6 +10243,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 145993740}
+  - component: {fileID: 145993741}
   m_Layer: 5
   m_Name: Answer Holder
   m_TagString: Untagged
@@ -10276,6 +10277,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -538}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &145993741
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 145993739}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &148925920
 GameObject:
   m_ObjectHideFlags: 0
@@ -17668,17 +17681,26 @@ MonoBehaviour:
   velocityHolder: {fileID: 766311665}
   velocityHolderCanvasGroup: {fileID: 766311667}
   fireButtonHolder: {fileID: 1603405578}
+  cannonBallViewFadeDuration: 1
   answerHolder: {fileID: 145993739}
+  answerHolderCanvasGroup: {fileID: 145993741}
   answerKeyboardHolder: {fileID: 1792869020}
   answerKeyboard: {fileID: 1792869019}
   answerInputField: {fileID: 338571551}
   answerPromptText: {fileID: 2047627295}
+  formulaHolder: {fileID: 2112469453}
+  formulaHolderCanvasGroup: {fileID: 2112469455}
+  pergaminoFormula: {fileID: 645803659}
+  pergaminoFormulaSustituida: {fileID: 1810645016}
+  showPergaminoFormula: 0
+  showPergaminoFormulaSustituida: 0
   angleTextTransform: {fileID: 1964322855}
   cannonMuzzle: {fileID: 189622318}
   cannonBallPrefab: {fileID: 3799680181136585321, guid: a5b5c20377aabaf4796d9fcbdd1aca02, type: 3}
   cannonAimUI: {fileID: 1030918675}
   cannonFireFx: {fileID: 6077217943617039344, guid: d04638da8e3686b4a96cab56cd94f72d, type: 3}
   cannonballFiredFx: {fileID: 3106761812438289941, guid: 1635730fe4b18a64a8d74bd8d11424c1, type: 3}
+  fireButton: {fileID: 0}
   minInitialVelocity: 5
   maxInitialVelocity: 50
   initialVelocity: 20
@@ -20252,6 +20274,7 @@ MonoBehaviour:
   edgePoint: {fileID: 0}
   centerPoint: {fileID: 0}
   encounterActive: 0
+  battleTransitionActive: 0
 --- !u!4 &1382542676
 Transform:
   m_ObjectHideFlags: 0
@@ -23746,6 +23769,38 @@ PrefabInstance:
     - target: {fileID: 4323987358862562258, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
       propertyPath: m_Name
       value: Keyboard Canvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 4342987067610971569, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4342987067610971569, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4342987067610971569, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4342987067610971569, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4785388149704366866, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4785388149704366866, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4785388149704366866, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4785388149704366866, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5372950455639407054, guid: 9b52fc5bc21072944bb90b304fb1e483, type: 3}
       propertyPath: m_Pivot.x
@@ -31522,6 +31577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSettings
   cinematicPause: 0
+  cannonBallViewActive: 0
   interactionBlocked: 0
   isLandscape: 0
   isPortrait: 0
@@ -31558,6 +31614,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2112469454}
+  - component: {fileID: 2112469455}
   m_Layer: 5
   m_Name: Formula Holder
   m_TagString: Untagged
@@ -31586,6 +31643,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!225 &2112469455
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2112469453}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2112799131
 GameObject:
   m_ObjectHideFlags: 0
