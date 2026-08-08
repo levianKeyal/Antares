@@ -4,6 +4,7 @@ using UnityEngine;
 public class CannonAimUI : MonoBehaviour
 {
     public FormulaSustitution formulaSustitution;
+    public System.Action<float> onAngleChanged;
     [Header("UI")]
     public RectTransform aimImage;
 
@@ -278,6 +279,7 @@ public class CannonAimUI : MonoBehaviour
             currentDirection;
 
         formulaSustitution.UpdateFormulaValues();
+        onAngleChanged?.Invoke(Mathf.Abs(targetAngle));
     }
 
     // ====================================
@@ -338,6 +340,8 @@ public class CannonAimUI : MonoBehaviour
         {
             formulaSustitution.UpdateFormulaValues();
         }
+
+        onAngleChanged?.Invoke(Mathf.Abs(targetAngle));
     }
 
     // ====================================

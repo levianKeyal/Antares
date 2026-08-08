@@ -344,8 +344,13 @@ public class CannonBall : MonoBehaviour
         {
             challengeFlightElapsed += Time.fixedDeltaTime;
 
+            Vector3 currentHorizontalPosition =
+                Vector3.ProjectOnPlane(transform.position, Vector3.up);
+            Vector3 impactHorizontalPosition =
+                Vector3.ProjectOnPlane(challengeImpactPoint, Vector3.up);
+
             if (challengeFlightElapsed >= challengeFlightTime &&
-                (transform.position - challengeImpactPoint).sqrMagnitude <=
+                (currentHorizontalPosition - impactHorizontalPosition).sqrMagnitude <=
                 ChallengeImpactPointTolerance *
                 ChallengeImpactPointTolerance)
             {
@@ -614,6 +619,7 @@ public class CannonBall : MonoBehaviour
 
         if (fireCanonManager != null)
         {
+            fireCanonManager.StopFlightTimer();
             fireCanonManager.ClearActiveCannonBall(this);
         }
     }

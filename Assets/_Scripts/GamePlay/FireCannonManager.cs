@@ -118,6 +118,7 @@ public class FireCanonManager : MonoBehaviour
 
     bool isSolveRangeSequenceRunning;
     bool isFireButtonDelayRunning;
+    bool isFlightTimerRunning;
     CannonBall activeCannonBall;
     CannonPhysicsMode cachedPhysicsMode = (CannonPhysicsMode)(-1);
     bool cachedAnswerInputVisible;
@@ -206,6 +207,10 @@ public class FireCanonManager : MonoBehaviour
     void Start()
     {
         formulaSustition = GetComponent<FormulaSustitution>();
+        if (cannonAimUI != null)
+        {
+            cannonAimUI.onAngleChanged += HandleCannonAngleChanged;
+        }
         CreateTrajectoryPool();
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
@@ -241,6 +246,14 @@ public class FireCanonManager : MonoBehaviour
         RefreshPergaminosState();
     }
 
+    void OnDestroy()
+    {
+        if (cannonAimUI != null)
+        {
+            cannonAimUI.onAngleChanged -= HandleCannonAngleChanged;
+        }
+    }
+
     void Update()
     {
         // ====================================
@@ -271,6 +284,11 @@ public class FireCanonManager : MonoBehaviour
         if (settings != null && settings.cinematicPause)
         {
             return;
+        }
+
+        if (isFlightTimerRunning)
+        {
+            timer += Time.unscaledDeltaTime;
         }
 
         if (physicsMode == CannonPhysicsMode.Tutorial)
@@ -457,19 +475,18 @@ public class FireCanonManager : MonoBehaviour
                 currentAngle
             );
 
-        UpdateTotalTime();
-
         UpdateResolvedLaunchValues();
 
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
         }
+    }
 
-        if (activeCannonBall != null)
-        {
-            timer += Time.unscaledDeltaTime;
-        }
+    void HandleCannonAngleChanged(float angle)
+    {
+        currentAngle = Mathf.Abs(angle);
+        UpdateTotalTime();
     }
 
     public float CalculateRangeFrom(float velocity, float angleDegrees)
@@ -1163,6 +1180,7 @@ public class FireCanonManager : MonoBehaviour
         currentAngle = resolvedLaunchAngle;
         currentRange = resolvedLaunchRange;
         initialVelocity = resolvedLaunchVelocity;
+        UpdateTotalTime();
     }
 
     public string GetModePrompt()
@@ -1454,6 +1472,8 @@ public class FireCanonManager : MonoBehaviour
         {
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
+
+        UpdateTotalTime();
     }
 
     void UpdateVelocityFromSlider(float value)
@@ -1492,6 +1512,8 @@ public class FireCanonManager : MonoBehaviour
 
         velocitySlider.value =
             initialVelocity;
+
+        UpdateTotalTime();
     }
 
     // ====================================
@@ -1755,6 +1777,7 @@ public class FireCanonManager : MonoBehaviour
         );
         RegisterActiveCannonBall(cannonBall);
         timer = 0f;
+        isFlightTimerRunning = true;
 
         // ====================================
         // FORWARD DIRECTION
@@ -1850,8 +1873,14 @@ public class FireCanonManager : MonoBehaviour
         if (activeCannonBall == cannonBall)
         {
             activeCannonBall = null;
+            StopFlightTimer();
             UpdateFireButtonInteractable();
         }
+    }
+
+    public void StopFlightTimer()
+    {
+        isFlightTimerRunning = false;
     }
 
     public bool TryApplyChallengeDamage(GameObject target)
