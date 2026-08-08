@@ -225,7 +225,6 @@ public class FireCanonManager : MonoBehaviour
         HideAnswerKeyboard();
         RefreshModeState(true);
         RefreshPergaminosState();
-        UpdateTotalTime();
     }
 
     void OnValidate()
@@ -1364,8 +1363,6 @@ public class FireCanonManager : MonoBehaviour
         {
             angleTextTransform.rotation = Quaternion.identity;
         }
-
-        UpdateTotalTime();
     }
 
     // ====================================
@@ -1489,8 +1486,6 @@ public class FireCanonManager : MonoBehaviour
         {
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
-
-        UpdateTotalTime();
         UpdateResolvedLaunchValues();
 
         if (formulaSustition != null)
@@ -1512,8 +1507,6 @@ public class FireCanonManager : MonoBehaviour
 
         velocitySlider.value =
             initialVelocity;
-
-        UpdateTotalTime();
     }
 
     // ====================================

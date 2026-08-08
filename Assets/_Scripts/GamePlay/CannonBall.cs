@@ -270,7 +270,9 @@ public class CannonBall : MonoBehaviour
         // CINEMATIC PAUSE
         // ====================================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
         {
             // PAUSAR SOLO UNA VEZ
             if (!isPaused)

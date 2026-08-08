@@ -50,7 +50,9 @@ public class CannonAimUI : MonoBehaviour
         // CINEMATIC PAUSE
         // ====================================
 
-        if (GameSettings.Instance.cinematicPause)
+        GameSettings settings = GameSettings.Instance;
+
+        if (settings != null && settings.cinematicPause)
         {
             isDragging = false;
 

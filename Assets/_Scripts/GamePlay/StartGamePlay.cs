@@ -139,7 +139,15 @@ public class StartGamePlay : MonoBehaviour
         CreateBattleCameraFocusPoint();
 
         SetCameraPriorities();
+        StartCoroutine(RefreshSceneReferencesAfterFirstFrame());
     }
+
+    IEnumerator RefreshSceneReferencesAfterFirstFrame()
+    {
+        yield return null;
+        RefreshSceneReferences();
+    }
+
     void RefreshSceneReferences()
     {
         mainCamera = Camera.main;
@@ -160,34 +168,6 @@ public class StartGamePlay : MonoBehaviour
 
         RebindBattleCameras();
         CacheExitToStart();
-    }
-
-    void RefreshMissingSceneReferences()
-    {
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-        }
-
-        if (player == null)
-        {
-            player = GameObject.FindWithTag("Player");
-        }
-
-        if (playerMovement == null && player != null)
-        {
-            playerMovement = player.GetComponent<PlayerMovement>();
-        }
-
-        if (virtualJoystick == null)
-        {
-            virtualJoystick = FindFirstObjectByType<VirtualJoystick>();
-        }
-
-        if (playerCamera == null || battleCamera == null)
-        {
-            RebindBattleCameras();
-        }
     }
 
     void RebindBattleCameras()
@@ -278,11 +258,6 @@ public class StartGamePlay : MonoBehaviour
     }
     void Update()
     {
-        if (player == null || mainCamera == null || virtualJoystick == null)
-        {
-            RefreshMissingSceneReferences();
-        }
-
         HandleInput();
 
         if (encounterActive)
