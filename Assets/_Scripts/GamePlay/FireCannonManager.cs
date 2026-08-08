@@ -1744,6 +1744,10 @@ public class FireCanonManager : MonoBehaviour
         if (cannonBall == null)
             return false;
 
+        bool challengeAnswerCorrect =
+            physicsMode != CannonPhysicsMode.Tutorial &&
+            ValidateUserAnswer();
+
         cannonBall.SetFireCanonManager(this);
         cannonBall.SetLaunchDebugMath(
             resolvedLaunchVelocity,
@@ -1767,6 +1771,9 @@ public class FireCanonManager : MonoBehaviour
             forward *
             resolvedLaunchVelocity;
 
+        Vector3 challengeImpactPoint =
+            cannonMuzzle.position + (forward * resolvedLaunchRange);
+
         // ====================================
         // INITIALIZE BALL
         // ====================================
@@ -1774,6 +1781,11 @@ public class FireCanonManager : MonoBehaviour
         cannonBall.Initialize(
             velocity,
             gravity
+        );
+        cannonBall.SetChallengeShotOutcome(
+            challengeAnswerCorrect,
+            challengeImpactPoint,
+            totalTime
         );
 
         return true;
@@ -1840,6 +1852,56 @@ public class FireCanonManager : MonoBehaviour
             activeCannonBall = null;
             UpdateFireButtonInteractable();
         }
+    }
+
+    public bool TryApplyChallengeDamage(GameObject target)
+    {
+        return TryApplyChallengeDamage(target, false);
+    }
+
+    public bool TryApplyChallengeDamage(
+        GameObject target,
+        bool alreadyValidated)
+    {
+        if (physicsMode == CannonPhysicsMode.Tutorial)
+        {
+            return false;
+        }
+
+        if (!alreadyValidated && !ValidateUserAnswer())
+        {
+            return false;
+        }
+
+        GameObject damageTarget =
+            target != null
+                ? target
+                : (StartGamePlay.Instance != null
+                    ? StartGamePlay.Instance.currentObjective
+                    : null);
+
+        if (damageTarget == null)
+        {
+            return false;
+        }
+
+        EnemyStats enemyStats =
+            damageTarget.GetComponent<EnemyStats>() ??
+            damageTarget.GetComponentInChildren<EnemyStats>() ??
+            damageTarget.GetComponentInParent<EnemyStats>();
+
+        if (enemyStats != null)
+        {
+            enemyStats.OnCannonBallHit();
+            return true;
+        }
+
+        damageTarget.SendMessage(
+            "OnCannonBallHit",
+            SendMessageOptions.DontRequireReceiver
+        );
+
+        return true;
     }
 
     void UpdateFireButtonInteractable()

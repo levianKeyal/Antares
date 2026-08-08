@@ -39,6 +39,12 @@ public class CannonBall : MonoBehaviour
     Vector3 horizontalDirection = Vector3.forward;
 
     bool isPaused;
+    bool challengeShotActive;
+    bool challengeAnswerCorrect;
+    float challengeFlightElapsed;
+    float challengeFlightTime;
+    Vector3 challengeImpactPoint;
+    const float ChallengeImpactPointTolerance = 0.5f;
 
     [Header("Impact FX")]
     public GameObject waterImpactPrefab;
@@ -46,6 +52,9 @@ public class CannonBall : MonoBehaviour
     public GameObject hitImpactPrefab;
 
     public GameObject waterSplashSoundFX;
+
+    [Header("FX Offset")]
+    public Vector3 fxSpawnOffset = Vector3.zero;
 
     [Header("Tap Area")]
     public float tapColliderRadius = 0.75f;
@@ -188,6 +197,7 @@ public class CannonBall : MonoBehaviour
         );
 
         gravity = customGravity;
+        challengeFlightElapsed = 0f;
 
         rb.useGravity = false;
 
@@ -202,6 +212,19 @@ public class CannonBall : MonoBehaviour
     public void SetFireCanonManager(FireCanonManager manager)
     {
         fireCanonManager = manager;
+    }
+
+    public void SetChallengeShotOutcome(
+        bool answerCorrect,
+        Vector3 impactPoint,
+        float flightTime
+    )
+    {
+        challengeShotActive = true;
+        challengeAnswerCorrect = answerCorrect;
+        challengeImpactPoint = impactPoint;
+        challengeFlightTime = Mathf.Max(0f, flightTime);
+        challengeFlightElapsed = 0f;
     }
 
     public void SetLaunchDebugMath(
@@ -313,6 +336,63 @@ public class CannonBall : MonoBehaviour
 
         CaptureTapDebugMath();
         UpdateVelocityText();
+
+        if (challengeShotActive &&
+            challengeAnswerCorrect &&
+            fireCanonManager != null &&
+            fireCanonManager.physicsMode != CannonPhysicsMode.Tutorial)
+        {
+            challengeFlightElapsed += Time.fixedDeltaTime;
+
+            if (challengeFlightElapsed >= challengeFlightTime &&
+                (transform.position - challengeImpactPoint).sqrMagnitude <=
+                ChallengeImpactPointTolerance *
+                ChallengeImpactPointTolerance)
+            {
+                GameObject currentObjective =
+                    StartGamePlay.Instance != null
+                        ? StartGamePlay.Instance.currentObjective
+                        : null;
+                bool objectiveAvailable =
+                    currentObjective != null &&
+                    currentObjective.activeInHierarchy;
+
+                if (objectiveAvailable)
+                {
+                    if (hitImpactPrefab != null)
+                    {
+                        Instantiate(
+                            hitImpactPrefab,
+                            GetFxSpawnPosition(challengeImpactPoint),
+                            Quaternion.identity
+                        );
+                    }
+
+                    fireCanonManager.TryApplyChallengeDamage(
+                        null,
+                        true
+                    );
+                }
+                else
+                {
+                    if (waterImpactPrefab != null)
+                    {
+                        Instantiate(
+                            waterImpactPrefab,
+                            GetFxSpawnPosition(challengeImpactPoint),
+                            Quaternion.identity
+                        );
+                    }
+
+                    if (waterSplashSoundFX != null)
+                    {
+                        Instantiate(waterSplashSoundFX);
+                    }
+                }
+
+                Destroy(gameObject);
+            }
+        }
     }
 
     void UpdateVelocityText()
@@ -410,12 +490,20 @@ public class CannonBall : MonoBehaviour
             other.CompareTag("Ground")
         )
         {
+            if (fireCanonManager != null &&
+                fireCanonManager.physicsMode != CannonPhysicsMode.Tutorial &&
+                challengeShotActive &&
+                challengeAnswerCorrect)
+            {
+                return;
+            }
+
             // WATER FX
             if (waterImpactPrefab != null)
             {
                 Instantiate(
                     waterImpactPrefab,
-                    hitPosition,
+                    GetFxSpawnPosition(hitPosition),
                     Quaternion.identity
                 );
             }
@@ -434,22 +522,38 @@ public class CannonBall : MonoBehaviour
             other.CompareTag("Enemy")
         )
         {
+            if (
+                fireCanonManager != null &&
+                fireCanonManager.physicsMode != CannonPhysicsMode.Tutorial
+            )
+            {
+                return;
+            }
+
             // HIT FX
             if (hitImpactPrefab != null)
             {
                 Instantiate(
                     hitImpactPrefab,
-                    hitPosition,
+                    GetFxSpawnPosition(hitPosition),
                     Quaternion.identity
                 );
             }
 
             // CALL METHOD
-            other.SendMessage(
-                "OnCannonBallHit",
-                SendMessageOptions
-                    .DontRequireReceiver
-            );
+            if (fireCanonManager != null &&
+                fireCanonManager.physicsMode != CannonPhysicsMode.Tutorial)
+            {
+                fireCanonManager.TryApplyChallengeDamage(other.gameObject);
+            }
+            else
+            {
+                other.SendMessage(
+                    "OnCannonBallHit",
+                    SendMessageOptions
+                        .DontRequireReceiver
+                );
+            }
 
             Destroy(gameObject);
 
@@ -464,12 +568,20 @@ public class CannonBall : MonoBehaviour
             other.CompareTag("Player")
         )
         {
+            if (
+                fireCanonManager != null &&
+                fireCanonManager.physicsMode != CannonPhysicsMode.Tutorial
+            )
+            {
+                return;
+            }
+
             // HIT FX
             if (hitImpactPrefab != null)
             {
                 Instantiate(
                     hitImpactPrefab,
-                    hitPosition,
+                    GetFxSpawnPosition(hitPosition),
                     Quaternion.identity
                 );
             }
@@ -553,5 +665,10 @@ public class CannonBall : MonoBehaviour
         }
 
         cannonBallCanvasFadeRoutine = null;
+    }
+
+    Vector3 GetFxSpawnPosition(Vector3 basePosition)
+    {
+        return basePosition + fxSpawnOffset;
     }
 }
