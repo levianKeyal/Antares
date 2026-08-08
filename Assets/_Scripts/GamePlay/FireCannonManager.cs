@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public enum CannonPhysicsMode
@@ -74,6 +75,11 @@ public class FireCanonManager : MonoBehaviour
     public float gravity = 9.81f;
     public float currentAngle;
     public float currentRange;
+    [Tooltip("Elapsed real time since the cannon ball was fired.")]
+    public float timer;
+    [Tooltip("Total flight time calculated from the current physics values.")]
+    [FormerlySerializedAs("challengeTotalTime")]
+    public float totalTime;
 
     [Header("Challenge Data")]
     [Tooltip("Range given by the problem when the mode needs it.")]
@@ -85,6 +91,7 @@ public class FireCanonManager : MonoBehaviour
     [Tooltip("Angle given by the problem when the mode needs it.")]
     [Range(0f, 89.9f)]
     public float challengeAngle = 35f;
+
     [Header("Challenge Data UI")]
     public TMP_Text challengeRangeText;
     public TMP_Text challengeInitialVelocityText;
@@ -213,6 +220,15 @@ public class FireCanonManager : MonoBehaviour
         HideAnswerKeyboard();
         RefreshModeState(true);
         RefreshPergaminosState();
+        UpdateTotalTime();
+    }
+
+    void OnValidate()
+    {
+        if (!Application.isPlaying)
+        {
+            UpdateTotalTime();
+        }
     }
 
     void OnEnable()
@@ -263,11 +279,11 @@ public class FireCanonManager : MonoBehaviour
             // SLIDER INTERACTION
             // ====================================
 
-            if (velocitySlider != null)
-            {
-                velocitySlider.interactable =
-                    settings == null || !settings.cinematicPause;
-            }
+        if (velocitySlider != null)
+        {
+            velocitySlider.interactable =
+                settings == null || !settings.cinematicPause;
+        }
 
             CalculateRange();
         }
@@ -441,11 +457,18 @@ public class FireCanonManager : MonoBehaviour
                 currentAngle
             );
 
+        UpdateTotalTime();
+
         UpdateResolvedLaunchValues();
 
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
+        }
+
+        if (activeCannonBall != null)
+        {
+            timer += Time.unscaledDeltaTime;
         }
     }
 
@@ -828,6 +851,32 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeAngle.ToString("F1") + "°";
         }
+
+    }
+
+    void UpdateTotalTime()
+    {
+        initialVelocity = Mathf.Max(0f, initialVelocity);
+        currentAngle = Mathf.Clamp(currentAngle, 0f, 89.9f);
+
+        float launchVelocityY =
+            initialVelocity * Mathf.Sin(
+                Mathf.Abs(currentAngle) * Mathf.Deg2Rad
+            );
+
+        if (gravity <= 0f)
+        {
+            totalTime = 0f;
+            return;
+        }
+
+        totalTime =
+            (2f * launchVelocityY) / gravity;
+
+        if (totalTime < 0f)
+        {
+            totalTime = 0f;
+        }
     }
 
     void UpdateAnswerInputVisibility(bool force = false)
@@ -1080,6 +1129,8 @@ public class FireCanonManager : MonoBehaviour
                 resolvedLaunchVelocity = initialVelocity;
                 break;
         }
+
+        UpdateTotalTime();
     }
 
     void ApplyResolvedLaunchToCannon()
@@ -1098,6 +1149,8 @@ public class FireCanonManager : MonoBehaviour
                     initialVelocity,
                     currentAngle
                 );
+
+            UpdateTotalTime();
 
             return;
         }
@@ -1293,6 +1346,8 @@ public class FireCanonManager : MonoBehaviour
         {
             angleTextTransform.rotation = Quaternion.identity;
         }
+
+        UpdateTotalTime();
     }
 
     // ====================================
@@ -1415,6 +1470,7 @@ public class FireCanonManager : MonoBehaviour
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
 
+        UpdateTotalTime();
         UpdateResolvedLaunchValues();
 
         if (formulaSustition != null)
@@ -1694,6 +1750,7 @@ public class FireCanonManager : MonoBehaviour
             resolvedLaunchAngle
         );
         RegisterActiveCannonBall(cannonBall);
+        timer = 0f;
 
         // ====================================
         // FORWARD DIRECTION
