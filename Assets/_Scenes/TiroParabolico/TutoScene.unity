@@ -17554,7 +17554,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireCanonManager
   formulaSustition: {fileID: 1030918678}
-  physicsMode: 0
+  physicsMode: 6
   angleText: {fileID: 1964322856}
   velocityValue: {fileID: 1432351104}
   velocitySlider: {fileID: 351383531}
@@ -17575,7 +17575,7 @@ MonoBehaviour:
   pergaminoFormula: {fileID: 645803659}
   pergaminoFormulaSustituida: {fileID: 1810645016}
   showPergaminoFormula: 0
-  showPergaminoFormulaSustituida: 0
+  showPergaminoFormulaSustituida: 1
   angleTextTransform: {fileID: 1964322855}
   cannonMuzzle: {fileID: 189622318}
   cannonBallPrefab: {fileID: 3799680181136585321, guid: a5b5c20377aabaf4796d9fcbdd1aca02, type: 3}
@@ -17589,12 +17589,21 @@ MonoBehaviour:
   gravity: 9.81
   currentAngle: 0
   currentRange: 0
+  timer: 0
+  totalFlyingTime: 0
+  timeToMaxHeight: 0
+  maxHeight: 0
   challengeRange: 25
   challengeInitialVelocity: 20
   challengeAngle: 35
+  challengeTotalFlyingTime: 0
+  challengeTimeToMaxHeight: 0
+  challengeMaxHeight: 0
   challengeRangeText: {fileID: 1975367251}
   challengeInitialVelocityText: {fileID: 708132912}
   challengeAngleText: {fileID: 487338098}
+  challengeTotalFlyingTimeText: {fileID: 0}
+  challengeTimeToMaxHeightText: {fileID: 0}
   challengeAngleSeed: 35
   challengeInitialVelocitySeed: 20
   solveRangeMoveDuration: 0.75

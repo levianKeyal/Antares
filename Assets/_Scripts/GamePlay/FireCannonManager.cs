@@ -11,7 +11,10 @@ public enum CannonPhysicsMode
     Tutorial,
     SolveInitialVelocity,
     SolveRange,
-    SolveAngle
+    SolveAngle,
+    SolveTotalFlyingTime,
+    SolveTimeToMaxHeigth,
+    SolveMaxHeight
 }
 
 public class FireCanonManager : MonoBehaviour
@@ -79,7 +82,16 @@ public class FireCanonManager : MonoBehaviour
     public float timer;
     [Tooltip("Total flight time calculated from the current physics values.")]
     [FormerlySerializedAs("challengeTotalTime")]
-    public float totalTime;
+    [FormerlySerializedAs("totalTime")]
+    public float totalFlyingTime;
+
+    [Tooltip("Time needed for the ball to reach the highest point of its arc.")]
+    [InspectorName("TimeToMaxHeight")]
+    public float timeToMaxHeight;
+
+    [Tooltip("Maximum height reached by the cannon ball.")]
+    [InspectorName("MaxHeight")]
+    public float maxHeight;
 
     [Header("Challenge Data")]
     [Tooltip("Range given by the problem when the mode needs it.")]
@@ -92,10 +104,21 @@ public class FireCanonManager : MonoBehaviour
     [Range(0f, 89.9f)]
     public float challengeAngle = 35f;
 
+    [Tooltip("Total flight time for the challenge values.")]
+    public float challengeTotalFlyingTime;
+
+    [Tooltip("Time to reach the highest point for the challenge values.")]
+    public float challengeTimeToMaxHeight;
+
+    [Tooltip("Maximum height for the challenge values.")]
+    public float challengeMaxHeight;
+
     [Header("Challenge Data UI")]
     public TMP_Text challengeRangeText;
     public TMP_Text challengeInitialVelocityText;
     public TMP_Text challengeAngleText;
+    public TMP_Text challengeTotalFlyingTimeText;
+    public TMP_Text challengeTimeToMaxHeightText;
 
 
     [Header("Challenge Seeds")]
@@ -618,6 +641,18 @@ public class FireCanonManager : MonoBehaviour
                     out expectedAnswer
                 );
 
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+                expectedAnswer = challengeTotalFlyingTime;
+                return true;
+
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
+                expectedAnswer = challengeTimeToMaxHeight;
+                return true;
+
+            case CannonPhysicsMode.SolveMaxHeight:
+                expectedAnswer = challengeMaxHeight;
+                return true;
+
             case CannonPhysicsMode.Tutorial:
             default:
                 expectedAnswer = CalculateRangeFrom(
@@ -836,14 +871,23 @@ public class FireCanonManager : MonoBehaviour
 
     void UpdateChallengeDataUI()
     {
+        UpdateChallengeFlightData();
+
         bool isSolveInitialVelocity =
             physicsMode == CannonPhysicsMode.SolveInitialVelocity;
         bool isSolveRange = physicsMode == CannonPhysicsMode.SolveRange;
         bool isSolveAngle = physicsMode == CannonPhysicsMode.SolveAngle;
+        bool isSolveTotalFlyingTime =
+            physicsMode == CannonPhysicsMode.SolveTotalFlyingTime;
+        bool isSolveTimeToMaxHeigth =
+            physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth;
 
         if (challengeRangeText != null)
         {
-            challengeRangeText.text = isSolveInitialVelocity || isSolveAngle
+            challengeRangeText.text = isSolveInitialVelocity ||
+                isSolveAngle ||
+                isSolveTotalFlyingTime ||
+                isSolveTimeToMaxHeigth
                 ? challengeRange.ToString("F2") + " m"
                 : isSolveRange
                     ? "??"
@@ -852,7 +896,10 @@ public class FireCanonManager : MonoBehaviour
 
         if (challengeInitialVelocityText != null)
         {
-            challengeInitialVelocityText.text = isSolveRange || isSolveAngle
+            challengeInitialVelocityText.text = isSolveRange ||
+                isSolveAngle ||
+                isSolveTotalFlyingTime ||
+                isSolveTimeToMaxHeigth
                 ? challengeInitialVelocity.ToString("F2") + " m/s"
                 : isSolveInitialVelocity
                     ? "??"
@@ -866,6 +913,64 @@ public class FireCanonManager : MonoBehaviour
                 : isSolveAngle
                     ? "??"
                     : challengeAngle.ToString("F1") + "°";
+        }
+
+        if (challengeTotalFlyingTimeText != null)
+        {
+            challengeTotalFlyingTimeText.text =
+                isSolveTotalFlyingTime
+                    ? "??"
+                    : challengeTotalFlyingTime.ToString("F2") + " s";
+        }
+
+        if (challengeTimeToMaxHeightText != null)
+        {
+            challengeTimeToMaxHeightText.text =
+                isSolveTimeToMaxHeigth
+                    ? "??"
+                    : challengeTimeToMaxHeight.ToString("F2") + " s";
+        }
+
+    }
+
+    void UpdateChallengeFlightData()
+    {
+        if (gravity <= 0f)
+        {
+            challengeTotalFlyingTime = 0f;
+            challengeTimeToMaxHeight = 0f;
+            challengeMaxHeight = 0f;
+            return;
+        }
+
+        float challengeVelocityY =
+            challengeInitialVelocity * Mathf.Sin(
+                Mathf.Abs(challengeAngle) * Mathf.Deg2Rad
+            );
+
+        challengeTimeToMaxHeight =
+            Mathf.Max(0f, challengeVelocityY) / gravity;
+
+        challengeMaxHeight =
+            (challengeVelocityY * challengeVelocityY) /
+            (2f * gravity);
+
+        challengeTotalFlyingTime =
+            (2f * challengeVelocityY) / gravity;
+
+        if (challengeTotalFlyingTime < 0f)
+        {
+            challengeTotalFlyingTime = 0f;
+        }
+
+        if (challengeTimeToMaxHeight < 0f)
+        {
+            challengeTimeToMaxHeight = 0f;
+        }
+
+        if (challengeMaxHeight < 0f)
+        {
+            challengeMaxHeight = 0f;
         }
 
     }
@@ -882,16 +987,35 @@ public class FireCanonManager : MonoBehaviour
 
         if (gravity <= 0f)
         {
-            totalTime = 0f;
+            totalFlyingTime = 0f;
+            timeToMaxHeight = 0f;
+            maxHeight = 0f;
             return;
         }
 
-        totalTime =
+        timeToMaxHeight =
+            Mathf.Max(0f, launchVelocityY) / gravity;
+
+        maxHeight =
+            (launchVelocityY * launchVelocityY) /
+            (2f * gravity);
+
+        totalFlyingTime =
             (2f * launchVelocityY) / gravity;
 
-        if (totalTime < 0f)
+        if (totalFlyingTime < 0f)
         {
-            totalTime = 0f;
+            totalFlyingTime = 0f;
+        }
+
+        if (timeToMaxHeight < 0f)
+        {
+            timeToMaxHeight = 0f;
+        }
+
+        if (maxHeight < 0f)
+        {
+            maxHeight = 0f;
         }
     }
 
@@ -1135,6 +1259,17 @@ public class FireCanonManager : MonoBehaviour
                 );
                 break;
 
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
+            case CannonPhysicsMode.SolveMaxHeight:
+                resolvedLaunchVelocity = GetSolveAngleChallengeVelocity();
+                resolvedLaunchAngle = challengeAngle;
+                resolvedLaunchRange = CalculateRangeFrom(
+                    resolvedLaunchVelocity,
+                    resolvedLaunchAngle
+                );
+                break;
+
             case CannonPhysicsMode.Tutorial:
             default:
                 resolvedLaunchRange = CalculateRangeFrom(
@@ -1194,6 +1329,15 @@ public class FireCanonManager : MonoBehaviour
 
             case CannonPhysicsMode.SolveAngle:
                 return "Ingresa el angulo principal";
+
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+                return "Ingresa el tiempo total de vuelo";
+
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
+                return "Ingresa el tiempo para llegar a la altura maxima";
+
+            case CannonPhysicsMode.SolveMaxHeight:
+                return "Ingresa la altura maxima";
 
             case CannonPhysicsMode.Tutorial:
             default:
@@ -1262,6 +1406,8 @@ public class FireCanonManager : MonoBehaviour
                 break;
 
             case CannonPhysicsMode.SolveAngle:
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
 
                 if (!TryCalculatePrincipalAngle(
@@ -1310,7 +1456,10 @@ public class FireCanonManager : MonoBehaviour
             cannonAimUI.inputBlocked =
                 physicsMode == CannonPhysicsMode.SolveInitialVelocity ||
                 physicsMode == CannonPhysicsMode.SolveRange ||
-                physicsMode == CannonPhysicsMode.SolveAngle;
+                physicsMode == CannonPhysicsMode.SolveAngle ||
+                physicsMode == CannonPhysicsMode.SolveTotalFlyingTime ||
+                physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth ||
+                physicsMode == CannonPhysicsMode.SolveMaxHeight;
         }
 
         if (physicsMode == CannonPhysicsMode.Tutorial)
@@ -1340,6 +1489,15 @@ public class FireCanonManager : MonoBehaviour
             case CannonPhysicsMode.SolveAngle:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 currentAngle = userAnswerValue;
+                initialVelocity = challengeInitialVelocity;
+                currentRange = challengeRange;
+                break;
+
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
+            case CannonPhysicsMode.SolveMaxHeight:
+                challengeInitialVelocity = GetSolveAngleChallengeVelocity();
+                currentAngle = challengeAngle;
                 initialVelocity = challengeInitialVelocity;
                 currentRange = challengeRange;
                 break;
@@ -1801,7 +1959,7 @@ public class FireCanonManager : MonoBehaviour
         cannonBall.SetChallengeShotOutcome(
             challengeAnswerCorrect,
             challengeImpactPoint,
-            totalTime
+            totalFlyingTime
         );
 
         return true;
