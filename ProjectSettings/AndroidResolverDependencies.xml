@@ -1,6 +1,10 @@
 <dependencies>
   <packages>
+    <package>androidx.credentials:credentials:1.6.0</package>
+    <package>androidx.credentials:credentials-play-services-auth:1.6.0</package>
+    <package>com.google.android.gms:play-services-auth:21.6.0</package>
     <package>com.google.android.gms:play-services-base:18.10.0</package>
+    <package>com.google.android.libraries.identity.googleid:googleid:1.2.0</package>
     <package>com.google.firebase:firebase-analytics:23.2.0</package>
     <package>com.google.firebase:firebase-app-unity:13.15.0</package>
     <package>com.google.firebase:firebase-auth:24.2.0</package>
