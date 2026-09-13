@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "178610511300-kf2orpo80f1r9itq3m9ug8lqi5s1skn4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ffds.antares",
+            "certificate_hash": "e318e8b5a5bdc2458fa67c6b322895e892122fb8"
+          }
+        },
+        {
           "client_id": "178610511300-4fv5p9sahdn0n5j772oi222obf0sivc2.apps.googleusercontent.com",
           "client_type": 3
         }
