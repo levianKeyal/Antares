@@ -73911,6 +73911,7 @@ GameObject:
   - component: {fileID: 873945773}
   - component: {fileID: 873945772}
   - component: {fileID: 873945776}
+  - component: {fileID: 873945777}
   m_Layer: 0
   m_Name: FirebaseServices
   m_TagString: Untagged
@@ -73982,6 +73983,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoogleAuthService
   webClientIdOverride: 
+--- !u!114 &873945777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 873945771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9b99b4a1df56354da26c42651ac8839, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UserService
 --- !u!1 &874406633
 GameObject:
   m_ObjectHideFlags: 0
