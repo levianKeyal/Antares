@@ -15,6 +15,9 @@ public class LoginUIController : MonoBehaviour
     private const string SuccessMessage = "Sesión iniciada con éxito";
     private const string SignedOutMessage = "Sesión cerrada";
     private const string GenericErrorMessage = "No se pudo iniciar sesión";
+    private const string ValidatingAccountMessage = "Validando cuenta...";
+    private const string SuspendedAccountMessage = "Cuenta suspendida. Contactar a un Administrador para más información.";
+    private const string DisabledAccountMessage = "Cuenta deshabilitada. Contactar a un Administrador para más información.";
 
     [SerializeField]
     private TMP_Text userText;
@@ -31,6 +34,7 @@ public class LoginUIController : MonoBehaviour
 
     private GoogleAuthService subscribedGoogleAuthService;
     private FirebaseAuthService subscribedFirebaseAuthService;
+    private AccountAccessService subscribedAccountAccessService;
     private Coroutine logSequenceCoroutine;
     private bool signInInProgress;
 
@@ -82,7 +86,7 @@ public class LoginUIController : MonoBehaviour
         signInInProgress = true;
         RestartLogSequence(
             "Iniciando acceso...",
-            "Validando cuenta...",
+            ValidatingAccountMessage,
             "Autenticando usuario..."
         );
 
@@ -132,6 +136,18 @@ public class LoginUIController : MonoBehaviour
             subscribedFirebaseAuthService = firebaseAuthService;
             subscribedFirebaseAuthService.StateChanged += HandleFirebaseAuthStateChanged;
         }
+
+        AccountAccessService accountAccessService = AccountAccessService.Instance;
+        if (accountAccessService != null && subscribedAccountAccessService != accountAccessService)
+        {
+            if (subscribedAccountAccessService != null)
+            {
+                subscribedAccountAccessService.OnAccountAccessChanged -= HandleAccountAccessChanged;
+            }
+
+            subscribedAccountAccessService = accountAccessService;
+            subscribedAccountAccessService.OnAccountAccessChanged += HandleAccountAccessChanged;
+        }
     }
 
     private void UnsubscribeFromServices()
@@ -146,6 +162,12 @@ public class LoginUIController : MonoBehaviour
         {
             subscribedFirebaseAuthService.StateChanged -= HandleFirebaseAuthStateChanged;
             subscribedFirebaseAuthService = null;
+        }
+
+        if (subscribedAccountAccessService != null)
+        {
+            subscribedAccountAccessService.OnAccountAccessChanged -= HandleAccountAccessChanged;
+            subscribedAccountAccessService = null;
         }
     }
 
@@ -174,13 +196,32 @@ public class LoginUIController : MonoBehaviour
     {
         RefreshUserText(user);
 
+        if (!IsAuthenticated(user))
+        {
+            signInInProgress = false;
+            ShowSingleStatusMessage(SignedOutMessage);
+            return;
+        }
+
         if (!signInInProgress)
         {
-            ShowSingleStatusMessage(IsAuthenticated(user) ? SuccessMessage : SignedOutMessage);
+            RefreshAccountAccessStatus();
             return;
         }
 
         TryShowSuccessfulLogin();
+    }
+
+    private void HandleAccountAccessChanged()
+    {
+        RefreshUserText();
+
+        if (!HasAuthenticatedUser())
+        {
+            return;
+        }
+
+        RefreshAccountAccessStatus();
     }
 
     private void TryShowSuccessfulLogin()
@@ -206,9 +247,8 @@ public class LoginUIController : MonoBehaviour
             return;
         }
 
-        signInInProgress = false;
         RefreshUserText(firebaseAuthService.CurrentUser);
-        ShowSingleStatusMessage(SuccessMessage);
+        RefreshAccountAccessStatus();
     }
 
     private void RefreshSessionStatusWithoutAnimation()
@@ -220,7 +260,50 @@ public class LoginUIController : MonoBehaviour
 
         FirebaseAuthService firebaseAuthService = FirebaseAuthService.Instance;
         FirebaseUser currentUser = firebaseAuthService != null ? firebaseAuthService.CurrentUser : null;
-        ShowSingleStatusMessage(IsAuthenticated(currentUser) ? SuccessMessage : SignedOutMessage);
+        if (!IsAuthenticated(currentUser))
+        {
+            ShowSingleStatusMessage(SignedOutMessage);
+            return;
+        }
+
+        RefreshAccountAccessStatus();
+    }
+
+    private void RefreshAccountAccessStatus()
+    {
+        if (!HasAuthenticatedUser())
+        {
+            return;
+        }
+
+        AccountAccessService accountAccessService = AccountAccessService.Instance;
+        if (accountAccessService == null || !accountAccessService.HasResolvedStatus)
+        {
+            ShowSingleStatusMessage(ValidatingAccountMessage);
+            return;
+        }
+
+        signInInProgress = false;
+
+        switch (accountAccessService.CurrentStatus)
+        {
+            case UserStatus.Suspended:
+                ShowSingleStatusMessage(SuspendedAccountMessage);
+                return;
+            case UserStatus.Disabled:
+                ShowSingleStatusMessage(DisabledAccountMessage);
+                return;
+            case UserStatus.Active:
+            default:
+                ShowSingleStatusMessage(SuccessMessage);
+                return;
+        }
+    }
+
+    private bool HasAuthenticatedUser()
+    {
+        FirebaseAuthService firebaseAuthService = FirebaseAuthService.Instance;
+        return firebaseAuthService != null && IsAuthenticated(firebaseAuthService.CurrentUser);
     }
 
     private bool IsAuthenticated(FirebaseUser user)
