@@ -29,6 +29,8 @@ public sealed class StudentDataSessionService : MonoBehaviour
 
     private void Start()
     {
+        StudentData.Initialize(this);
+
         FirebaseBootstrap.OnFirebaseReady += HandleFirebaseReady;
         subscribedToFirebaseReady = true;
         ResolveServicesAndSubscribe();
