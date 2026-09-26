@@ -26,6 +26,8 @@ public sealed class StudentDataSessionService : MonoBehaviour
     private bool subscribedToAuthService;
     private bool subscribedToUserService;
     private bool subscribedToAccountAccess;
+    private Task<bool> activeFlushTask;
+    private int activeFlushSessionVersion;
 
     private void Start()
     {
@@ -49,25 +51,88 @@ public sealed class StudentDataSessionService : MonoBehaviour
         InvalidateSession();
     }
 
-    public async Task<bool> FlushAsync()
+    private void OnApplicationPause(bool pauseStatus)
     {
-        ResolveServicesAndSubscribe();
+        if (!pauseStatus || !CanRequestFlush())
+        {
+            return;
+        }
+
+        _ = FlushOnApplicationPauseAsync();
+    }
+
+    public Task<bool> FlushAsync()
+    {
+        if (activeFlushTask != null
+            && !activeFlushTask.IsCompleted
+            && activeFlushSessionVersion == sessionVersion)
+        {
+            return activeFlushTask;
+        }
+
+        activeFlushSessionVersion = sessionVersion;
+        activeFlushTask = FlushInternalAsync(activeFlushSessionVersion);
+        return activeFlushTask;
+    }
+
+    private async Task<bool> FlushInternalAsync(int flushSessionVersion)
+    {
+        try
+        {
+            ResolveServicesAndSubscribe();
+            string uid;
+            if (!IsDataReady
+                || RuntimeStore == null
+                || !TryGetValidSessionUid(out uid)
+                || !string.Equals(currentUid, uid, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            StudentDataRuntimeStore runtimeStore = RuntimeStore;
+            StudentDataSaveCoordinator coordinator = saveCoordinator;
+            if (coordinator == null || runtimeStore == null)
+            {
+                return false;
+            }
+
+            return await coordinator.SaveDirtyDataAsync(uid, runtimeStore);
+        }
+        finally
+        {
+            if (activeFlushSessionVersion == flushSessionVersion)
+            {
+                activeFlushTask = null;
+            }
+        }
+    }
+
+    private async Task FlushOnApplicationPauseAsync()
+    {
+        try
+        {
+            bool succeeded = await FlushAsync();
+            if (!succeeded)
+            {
+                Debug.LogWarning("[StudentDataAutoSave] Application pause flush FAILED. Dirty data preserved for retry.");
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"[StudentDataAutoSave] Application pause flush EXCEPTION. {exception}");
+        }
+    }
+
+    private bool CanRequestFlush()
+    {
+        if (!IsDataReady || RuntimeStore == null || saveCoordinator == null)
+        {
+            return false;
+        }
+
         string uid;
-        if (!IsDataReady
-            || RuntimeStore == null
-            || !TryGetValidSessionUid(out uid)
-            || !string.Equals(currentUid, uid, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        StudentDataSaveCoordinator coordinator = saveCoordinator;
-        if (coordinator == null)
-        {
-            return false;
-        }
-
-        return await coordinator.SaveDirtyDataAsync(uid, RuntimeStore);
+        return TryGetValidSessionUid(out uid)
+            && string.Equals(currentUid, uid, StringComparison.Ordinal);
     }
 
     private void HandleFirebaseReady()

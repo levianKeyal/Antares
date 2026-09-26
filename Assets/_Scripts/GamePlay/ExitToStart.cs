@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,7 +18,7 @@ public class ExitToStart : MonoBehaviour
         }
     }
 
-    public void ExitToStartScene()
+    public async void ExitToStartScene()
     {
         if (isCameraTransitionLocked)
         {
@@ -53,6 +54,8 @@ public class ExitToStart : MonoBehaviour
             return;
         }
 
+        await TryFlushBeforeActivityExitAsync();
+
         if (settings != null)
         {
             settings.CallScene(startSceneName);
@@ -60,6 +63,27 @@ public class ExitToStart : MonoBehaviour
         }
 
         SceneManager.LoadScene(startSceneName);
+    }
+
+    async System.Threading.Tasks.Task TryFlushBeforeActivityExitAsync()
+    {
+        if (!StudentData.IsReady)
+        {
+            return;
+        }
+
+        try
+        {
+            bool succeeded = await StudentData.FlushAsync();
+            if (!succeeded)
+            {
+                Debug.LogWarning("[StudentDataAutoSave] Activity exit flush FAILED. Dirty data preserved for retry.");
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"[StudentDataAutoSave] Activity exit flush exception. Dirty data preserved for retry. {exception}");
+        }
     }
 
     public void SetTransitionLocked(bool locked)

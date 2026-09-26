@@ -51,7 +51,35 @@ public class StartFlowPirates : MonoBehaviour
         _angleScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveAngle"); });
         _velocityScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveVelocity"); });
         _rangeScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveRange"); });
+    }
 
+    private void Start()
+    {
+        if (GameSettings.Instance == null)
+        {
+            Debug.LogError("[StartFlowPirates] GameSettings.Instance is not available during Start.");
+            return;
+        }
+
+        // Solo se ejecuta la primera vez que la app inicia
+        if (!hasInitialized)
+        {
+            // Force default only if needed (first launch or no persistence)
+            GameSettings.Instance.validationMode = ValidationMode.ExactOnly;
+            hasInitialized = true;
+        }
+
+        InitializeDifficultySliders();
+
+        PopulateValidationDropdown();
+        PopulateDecimalsDropdown();
+        PopulateSignsDropdown(); // ðŸ‘ˆ NEW
+
+        UpdateDecimalsDropdownState();
+    }
+
+    void InitializeDifficultySliders()
+    {
         //Operands integer and decimals values
 
         //ADDITION AND SUBTRACTION
@@ -60,9 +88,6 @@ public class StartFlowPirates : MonoBehaviour
 
         decAddSubSlider.value = GameSettings.Instance.addSubMaxDecimalDigits;
         decAddSubValue.text = decAddSubSlider.value.ToString();
-
-        intAddSubSlider.onValueChanged.AddListener(OnIntAddSubSliderChanged);
-        decAddSubSlider.onValueChanged.AddListener(OnDecAddSubSliderChanged);
 
         // MULTIPLICATION
         intMultiplicationSlider.value =
@@ -77,13 +102,6 @@ public class StartFlowPirates : MonoBehaviour
         decMultiplicationValue.text =
         decMultiplicationSlider.value.ToString();
 
-        intMultiplicationSlider.onValueChanged
-            .AddListener(OnIntMultiplicationSliderChanged);
-
-        decMultiplicationSlider.onValueChanged
-            .AddListener(OnDecMultiplicationSliderChanged);
-
-
         // DIVISION
         intDivisionSlider.value =
         GameSettings.Instance.divisionMaxIntegerDigits;
@@ -97,6 +115,15 @@ public class StartFlowPirates : MonoBehaviour
         decDivisionValue.text =
         decDivisionSlider.value.ToString();
 
+        intAddSubSlider.onValueChanged.AddListener(OnIntAddSubSliderChanged);
+        decAddSubSlider.onValueChanged.AddListener(OnDecAddSubSliderChanged);
+
+        intMultiplicationSlider.onValueChanged
+            .AddListener(OnIntMultiplicationSliderChanged);
+
+        decMultiplicationSlider.onValueChanged
+            .AddListener(OnDecMultiplicationSliderChanged);
+
         intDivisionSlider.onValueChanged
             .AddListener(OnIntDivisionSliderChanged);
 
@@ -105,24 +132,6 @@ public class StartFlowPirates : MonoBehaviour
 
         UpdateAddSubDecimalSliderLimits();
     }
-
-    private void Start()
-    {
-        // Solo se ejecuta la primera vez que la app inicia
-        if (!hasInitialized)
-        {
-            // Force default only if needed (first launch or no persistence)
-            GameSettings.Instance.validationMode = ValidationMode.ExactOnly;
-            hasInitialized = true;
-            }
-
-        PopulateValidationDropdown();
-        PopulateDecimalsDropdown();
-        PopulateSignsDropdown(); // 👈 NEW
-
-        UpdateDecimalsDropdownState();
-    }
-
     void RefreshAddSubDifficultyUI()
     {
         GameSettings.Instance.ValidateAddSubDifficultyConstraints();
