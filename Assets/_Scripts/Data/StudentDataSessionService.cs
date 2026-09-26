@@ -58,6 +58,7 @@ public sealed class StudentDataSessionService : MonoBehaviour
             return;
         }
 
+        StudentUsageTracker.CommitPendingTimeIfAvailable();
         _ = FlushOnApplicationPauseAsync();
     }
 
@@ -388,6 +389,7 @@ public sealed class StudentDataSessionService : MonoBehaviour
 
     private void InvalidateSession()
     {
+        StudentUsageTracker.ResetSessionIfAvailable();
         sessionVersion++;
         isLoading = false;
         loadingUid = null;

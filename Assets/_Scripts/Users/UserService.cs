@@ -114,7 +114,7 @@ public class UserService : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[UserService] Usuario autenticado detectado. UID: {currentUser.UserId}");
+        Debug.Log("[UserService] Usuario autenticado detectado.");
         RequestProfileSync(currentUser);
     }
 
@@ -175,14 +175,13 @@ public class UserService : MonoBehaviour
     private async Task LoadOrCreateProfileAsync(FirebaseUser currentUser, int requestVersion)
     {
         string uid = currentUser.UserId;
-        Debug.Log($"[UserService] Documento solicitado: users/{uid}");
 
         DocumentReference documentReference = firestoreService.Database.Collection("users").Document(uid);
         DateTime utcNow = DateTime.UtcNow;
 
         try
         {
-            Debug.Log($"[UserService] Cargando perfil: {uid}");
+            Debug.Log("[UserService] Cargando perfil.");
 
             DocumentSnapshot snapshot = await documentReference.GetSnapshotAsync();
             if (!IsCurrentRequest(uid, requestVersion))
@@ -193,7 +192,6 @@ public class UserService : MonoBehaviour
             if (!snapshot.Exists)
             {
                 Debug.Log("[UserService] El perfil no existe. Creando nuevo usuario...");
-                Debug.Log($"[UserService] Creando documento para UID: {uid}");
 
                 if (!IsCurrentRequest(uid, requestVersion) || !IsLatestFirebaseUser(uid))
                 {

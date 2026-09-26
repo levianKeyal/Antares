@@ -120,12 +120,6 @@ public class FirebaseAuthService : MonoBehaviour
         string previousUid = lastKnownUserId;
 
         Debug.Log("[FirebaseAuth] StateChanged");
-        Debug.Log(
-            $"[FirebaseAuth] Previous UID: {(!string.IsNullOrWhiteSpace(previousUid) ? previousUid : "null")}"
-        );
-        Debug.Log(
-            $"[FirebaseAuth] Current UID: {(!string.IsNullOrWhiteSpace(currentUid) ? currentUid : "null")}"
-        );
         lastKnownUserId = currentUid;
 
         if (currentUser == null)
@@ -136,8 +130,6 @@ public class FirebaseAuthService : MonoBehaviour
         }
 
         Debug.Log("[FirebaseAuth] Usuario autenticado.");
-        Debug.Log($"[FirebaseAuth] Email: {currentUser.Email}");
-        Debug.Log($"[FirebaseAuth] UID: {currentUser.UserId}");
         StateChanged?.Invoke(currentUser);
     }
 

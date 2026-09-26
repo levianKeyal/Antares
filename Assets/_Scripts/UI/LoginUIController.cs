@@ -12,12 +12,12 @@ using UnityEngine.Serialization;
 public class LoginUIController : MonoBehaviour
 {
     private const int MaxVisibleLogLines = 2;
-    private const string SuccessMessage = "Sesión iniciada con éxito";
-    private const string SignedOutMessage = "Sesión cerrada";
-    private const string GenericErrorMessage = "No se pudo iniciar sesión";
+    private const string SuccessMessage = "SesiÃ³n iniciada con Ã©xito";
+    private const string SignedOutMessage = "SesiÃ³n cerrada";
+    private const string GenericErrorMessage = "No se pudo iniciar sesiÃ³n";
     private const string ValidatingAccountMessage = "Validando cuenta...";
-    private const string SuspendedAccountMessage = "Cuenta suspendida. Contactar a un Administrador para más información.";
-    private const string DisabledAccountMessage = "Cuenta deshabilitada. Contactar a un Administrador para más información.";
+    private const string SuspendedAccountMessage = "Cuenta suspendida. Contactar a un Administrador para mÃ¡s informaciÃ³n.";
+    private const string DisabledAccountMessage = "Cuenta deshabilitada. Contactar a un Administrador para mÃ¡s informaciÃ³n.";
 
     [SerializeField]
     private TMP_Text userText;
@@ -147,6 +147,7 @@ public class LoginUIController : MonoBehaviour
             {
                 try
                 {
+                    StudentUsageTracker.CommitPendingTimeIfAvailable();
                     bool succeeded = await StudentData.FlushAsync();
                     if (!succeeded)
                     {

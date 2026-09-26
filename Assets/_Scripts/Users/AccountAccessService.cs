@@ -166,15 +166,11 @@ public class AccountAccessService : MonoBehaviour
         OnAccountAccessChanged?.Invoke();
         if (CanUseApplication)
         {
-            Debug.Log(
-                $"[AccountAccess] Acceso permitido. UID={profile.Uid}, Status={profile.Status}"
-            );
+            Debug.Log($"[AccountAccess] Acceso permitido. Status={profile.Status}");
             return;
         }
 
-        Debug.LogWarning(
-            $"[AccountAccess] Acceso bloqueado. UID={profile.Uid}, Status={profile.Status}"
-        );
+        Debug.LogWarning($"[AccountAccess] Acceso bloqueado. Status={profile.Status}");
     }
 
     private void ApplyNoProfileState(string message, bool preserveRestrictionMessage = false)

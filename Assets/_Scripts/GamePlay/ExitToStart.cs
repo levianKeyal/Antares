@@ -74,6 +74,7 @@ public class ExitToStart : MonoBehaviour
 
         try
         {
+            StudentUsageTracker.CommitPendingTimeIfAvailable();
             bool succeeded = await StudentData.FlushAsync();
             if (!succeeded)
             {
