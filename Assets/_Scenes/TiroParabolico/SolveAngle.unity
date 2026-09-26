@@ -17280,6 +17280,7 @@ GameObject:
   - component: {fileID: 1030918675}
   - component: {fileID: 1030918676}
   - component: {fileID: 1030918678}
+  - component: {fileID: 1030918679}
   m_Layer: 0
   m_Name: Control Manager
   m_TagString: Untagged
@@ -17382,18 +17383,28 @@ MonoBehaviour:
   cannonFireFx: {fileID: 6077217943617039344, guid: d04638da8e3686b4a96cab56cd94f72d, type: 3}
   cannonballFiredFx: {fileID: 3106761812438289941, guid: 1635730fe4b18a64a8d74bd8d11424c1, type: 3}
   fireButton: {fileID: 0}
+  performanceTracker: {fileID: 1030918679}
   minInitialVelocity: 5
   maxInitialVelocity: 50
   initialVelocity: 20
   gravity: 9.81
   currentAngle: 0
   currentRange: 0
+  timer: 0
+  totalFlyingTime: 0
+  timeToMaxHeight: 0
+  maxHeight: 0
   challengeRange: 25
   challengeInitialVelocity: 20
   challengeAngle: 35
+  challengeTotalFlyingTime: 0
+  challengeTimeToMaxHeight: 0
+  challengeMaxHeight: 0
   challengeRangeText: {fileID: 1975367251}
   challengeInitialVelocityText: {fileID: 708132912}
   challengeAngleText: {fileID: 487338098}
+  challengeTotalFlyingTimeText: {fileID: 0}
+  challengeTimeToMaxHeightText: {fileID: 0}
   challengeAngleSeed: 35
   challengeInitialVelocitySeed: 20
   solveRangeMoveDuration: 0.75
@@ -17439,6 +17450,24 @@ MonoBehaviour:
   Vo: {fileID: 1263382028}
   angle: {fileID: 1381181180}
   gravity: {fileID: 201883299}
+--- !u!114 &1030918679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030918672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5a48d54c54e408fa752d02b824d716f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StudentPerformanceTracker
+  rangeAttempts: {fileID: 11400000, guid: 9260483ae44a42b1ae43818d890323d4, type: 2}
+  rangeCorrectAnswers: {fileID: 11400000, guid: 370fc2928cd04841b50f10d2e3796478, type: 2}
+  angleAttempts: {fileID: 11400000, guid: 9407ae792b044aaf9a3fbb170cde1b20, type: 2}
+  angleCorrectAnswers: {fileID: 11400000, guid: 24b07c10d66548ba8e47f93d2cd24c11, type: 2}
+  velocityAttempts: {fileID: 11400000, guid: 1bad770d33ec483d9ee2db1244be1bc6, type: 2}
+  velocityCorrectAnswers: {fileID: 11400000, guid: 360d254a659d416688ba3c3aff88e182, type: 2}
 --- !u!1001 &1050498319
 PrefabInstance:
   m_ObjectHideFlags: 0

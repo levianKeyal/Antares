@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-
 public enum CannonPhysicsMode
 {
     Tutorial,
@@ -16,30 +15,23 @@ public enum CannonPhysicsMode
     SolveTimeToMaxHeigth,
     SolveMaxHeight
 }
-
 public class FireCanonManager : MonoBehaviour
 {
-
     public FormulaSustitution formulaSustition;
-
     [Header("Physics Mode")]
     public CannonPhysicsMode physicsMode = CannonPhysicsMode.Tutorial;
-
     [Header("UI")]
     public TMP_Text angleText;
     public TMP_Text velocityValue;
     public Slider velocitySlider;
-
     [Header("UI Holders")]
     public GameObject cannonHolder;
     public CanvasGroup cannonHolderCanvasGroup;
     public GameObject velocityHolder;
     public CanvasGroup velocityHolderCanvasGroup;
     public GameObject fireButtonHolder;
-
     [Header("Cannon Ball View")]
     public float cannonBallViewFadeDuration = 1f;
-
     [Header("Answer Input")]
     public GameObject answerHolder;
     public CanvasGroup answerHolderCanvasGroup;
@@ -55,22 +47,19 @@ public class FireCanonManager : MonoBehaviour
     public GameObject pergaminoFormulaSustituida;
     public bool showPergaminoFormula;
     public bool showPergaminoFormulaSustituida;
-
     [Header("UI Rotation")]
     public RectTransform angleTextTransform;
-
     [Header("References")]
     public Transform cannonMuzzle;
     public GameObject cannonBallPrefab;
-
     [Header("Cannon")]
     public CannonAimUI cannonAimUI;
     public GameObject cannonFireFx;
     public GameObject cannonballFiredFx;
     public Button fireButton;
-
+    [Header("Student Performance")]
+    [SerializeField] private StudentPerformanceTracker performanceTracker;
     [Header("Physics")]
-
     [Header("Velocity Range")]
     public float minInitialVelocity = 5f;
     public float maxInitialVelocity = 50f;
@@ -84,35 +73,26 @@ public class FireCanonManager : MonoBehaviour
     [FormerlySerializedAs("challengeTotalTime")]
     [FormerlySerializedAs("totalTime")]
     public float totalFlyingTime;
-
     [Tooltip("Time needed for the ball to reach the highest point of its arc.")]
     [InspectorName("TimeToMaxHeight")]
     public float timeToMaxHeight;
-
     [Tooltip("Maximum height reached by the cannon ball.")]
     [InspectorName("MaxHeight")]
     public float maxHeight;
-
     [Header("Challenge Data")]
     [Tooltip("Range given by the problem when the mode needs it.")]
     public float challengeRange = 25f;
-
     [Tooltip("Initial velocity given by the problem when the mode needs it.")]
     public float challengeInitialVelocity = 20f;
-
     [Tooltip("Angle given by the problem when the mode needs it.")]
     [Range(0f, 89.9f)]
     public float challengeAngle = 35f;
-
     [Tooltip("Total flight time for the challenge values.")]
     public float challengeTotalFlyingTime;
-
     [Tooltip("Time to reach the highest point for the challenge values.")]
     public float challengeTimeToMaxHeight;
-
     [Tooltip("Maximum height for the challenge values.")]
     public float challengeMaxHeight;
-
     [Header("Challenge Data UI")]
     public TMP_Text challengeRangeText;
     public TMP_Text challengeInitialVelocityText;
@@ -120,25 +100,20 @@ public class FireCanonManager : MonoBehaviour
     public TMP_Text challengeTotalFlyingTimeText;
     public TMP_Text challengeTimeToMaxHeightText;
 
-
     [Header("Challenge Seeds")]
     [Tooltip("Angle used to generate challenge values when the mode needs a seed angle.")]
     [Range(0f, 89.9f)]
     [HideInInspector]
     public float challengeAngleSeed = 35f;
-
     [Tooltip("Initial velocity used to generate challenge values when the mode needs a seed velocity.")]
     [HideInInspector]
     public float challengeInitialVelocitySeed = 20f;
-
     [Tooltip("Minimum range allowed when randomizing Solve Range challenges.")]
-
     [Header("Solve Range Movement")]
     [HideInInspector]
     public float solveRangeMoveDuration = 0.75f;
     [HideInInspector]
     public float solveRangeFireDelay = 1f;
-
     bool isSolveRangeSequenceRunning;
     bool isFireButtonDelayRunning;
     bool isFlightTimerRunning;
@@ -159,74 +134,47 @@ public class FireCanonManager : MonoBehaviour
     Coroutine velocityHolderFadeRoutine;
     Coroutine answerHolderFadeRoutine;
     Coroutine formulaHolderFadeRoutine;
-
     [Header("Challenge Target")]
     [HideInInspector]
     public Vector3 challengeTargetCenter;
-
     [HideInInspector]
     public Vector3 challengePlayerPosition;
-
     [HideInInspector]
     public float challengeTargetDistance;
-
     [Header("User Answer")]
     [Tooltip("Value entered by the player. UI can write here later.")]
     public float userAnswerValue;
-
     [Header("Resolved Launch")]
     [HideInInspector]
     public float resolvedLaunchVelocity;
-
     [HideInInspector]
     public float resolvedLaunchAngle;
-
     [HideInInspector]
     public float resolvedLaunchRange;
-
     public float maxRange => (maxInitialVelocity * maxInitialVelocity) / gravity;
-
     [Header("Trajectory")]
     public bool showTrajectory = true;
-
     public GameObject trajectoryDotPrefab;
-
     public int maxDots = 100;
-
     public float dotSpacing = 0.15f;
-
     public float trajectoryTimeStep = 0.1f;
-
     [Header("Dot Animation")]
     public bool enableDotPulse = true;
-
     public float dotPulseSpeed = 6f;
-
     public float dotMinScale = 0.8f;
-
     public float dotMaxScale = 1.2f;
-
     [Space]
-
     public bool enableDotFade = true;
-
     public float dotFadeSpeed = 4f;
-
     public float dotFadeOffset = 0.15f;
-
     public float dotMinAlpha = 0.1f;
-
     public float dotMaxAlpha = 1f;
-
     [Header("Ground")]
     public LayerMask groundLayer;
-
     List<GameObject> trajectoryDots =
         new List<GameObject>();
-
     // UNITY
     // ====================================
-
     void Start()
     {
         formulaSustition = GetComponent<FormulaSustitution>();
@@ -243,13 +191,11 @@ public class FireCanonManager : MonoBehaviour
         {
             velocitySlider.interactable = false;
         }
-
         InitializeAnswerInput();
         HideAnswerKeyboard();
         RefreshModeState(true);
         RefreshPergaminosState();
     }
-
     void OnValidate()
     {
         if (!Application.isPlaying)
@@ -257,17 +203,14 @@ public class FireCanonManager : MonoBehaviour
             UpdateTotalTime();
         }
     }
-
     void OnEnable()
     {
         if (!Application.isPlaying)
         {
             return;
         }
-
         RefreshPergaminosState();
     }
-
     void OnDestroy()
     {
         if (cannonAimUI != null)
@@ -275,63 +218,50 @@ public class FireCanonManager : MonoBehaviour
             cannonAimUI.onAngleChanged -= HandleCannonAngleChanged;
         }
     }
-
     void Update()
     {
         // ====================================
         // CINEMATIC PAUSE
         // ====================================
-
         GameSettings settings = GameSettings.Instance;
         StartGamePlay startGamePlay = StartGamePlay.Instance;
         bool encounterActive =
             startGamePlay != null &&
             startGamePlay.encounterActive;
-
         if (physicsMode != cachedPhysicsMode)
         {
             RefreshModeState(true);
         }
-
         if (cachedEncounterActive != encounterActive)
         {
             cachedEncounterActive = encounterActive;
-
             if (encounterActive)
             {
                 RefreshPergaminosState();
             }
         }
-
         if (settings != null && settings.cinematicPause)
         {
             return;
         }
-
         if (isFlightTimerRunning)
         {
             timer += Time.unscaledDeltaTime;
         }
-
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
             // ====================================
             // SLIDER INTERACTION
             // ====================================
-
         if (velocitySlider != null)
         {
             velocitySlider.interactable =
                 settings == null || !settings.cinematicPause;
         }
-
             CalculateRange();
         }
-
         UpdateTrajectory(encounterActive);
-
         // TEST FIRE
-
         if (
             encounterActive
             &&
@@ -350,220 +280,172 @@ public class FireCanonManager : MonoBehaviour
         // ====================================
         // CINEMATIC PAUSE
         // ====================================
-
         GameSettings settings = GameSettings.Instance;
         StartGamePlay startGamePlay = StartGamePlay.Instance;
-
         if (settings != null && settings.cinematicPause)
             return;
-
         bool encounterActive =
             startGamePlay != null &&
             startGamePlay.encounterActive;
-
         if (!encounterActive)
             return;
-
         if (HasActiveCannonBall())
         {
             return;
         }
-
         HideAnswerKeyboard();
-
         if (physicsMode == CannonPhysicsMode.SolveRange)
         {
             if (!isSolveRangeSequenceRunning)
             {
                 StartCoroutine(PrepareSolveRangeShotSequence());
             }
-
             return;
         }
-
         if (Fire())
         {
             Instantiate(cannonballFiredFx);
             Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
         }
     }
-
     public void FireButtonAfterDelay(float delaySeconds)
     {
         if (isFireButtonDelayRunning)
         {
             return;
         }
-
         StartCoroutine(FireButtonAfterDelayRoutine(delaySeconds));
     }
-
     IEnumerator FireButtonAfterDelayRoutine(float delaySeconds)
     {
         isFireButtonDelayRunning = true;
-
         HideAnswerKeyboard();
-
         if (delaySeconds > 0f)
         {
             yield return new WaitForSecondsRealtime(delaySeconds);
         }
-
         if (!CanFireNow())
         {
             isFireButtonDelayRunning = false;
             yield break;
         }
-
         FireButton();
-
         isFireButtonDelayRunning = false;
     }
-
     public bool CanOpenAnswerKeyboard()
     {
         return physicsMode != CannonPhysicsMode.Tutorial &&
                !HasActiveCannonBall();
     }
-
     bool CanFireNow()
     {
         GameSettings settings = GameSettings.Instance;
-
         if (settings != null && settings.cinematicPause)
         {
             return false;
         }
-
         if (StartGamePlay.Instance == null ||
             !StartGamePlay.Instance.encounterActive)
         {
             return false;
         }
-
         return !HasActiveCannonBall();
     }
-
     // ====================================
     // CALCULATE RANGE
     // ====================================    // ====================================
-
     void CalculateRange()
     {
         // ====================================
         // VISUAL ANGLE
         // ====================================
-
         float visualAngle =
             cannonAimUI != null
                 ? cannonAimUI.GetCurrentAngle()
                 : currentAngle;
-
         // ====================================
         // PHYSICAL ANGLE
         // ====================================
-
         currentAngle =
             Mathf.Abs(visualAngle);
-
         // ====================================
         // UPDATE UI
         // ====================================
-
         if (angleText != null)
         {
             angleText.text =
                 currentAngle
                 .ToString("F1") + "°";
         }
-
         // ====================================
         // KEEP TEXT READABLE
         // ====================================
-
         if (angleTextTransform != null)
         {
             angleTextTransform.rotation =
                 Quaternion.identity;
         }
-
         // ====================================
         // CALCULATE RANGE
         // ====================================
-
         currentRange =
             CalculateRangeFrom(
                 initialVelocity,
                 currentAngle
             );
-
         UpdateResolvedLaunchValues();
-
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
         }
     }
-
     void HandleCannonAngleChanged(float angle)
     {
         currentAngle = Mathf.Abs(angle);
         UpdateTotalTime();
     }
-
     public float CalculateRangeFrom(float velocity, float angleDegrees)
     {
         float radians =
             Mathf.Abs(angleDegrees) *
             Mathf.Deg2Rad;
-
         return (
             velocity *
             velocity *
             Mathf.Sin(2f * radians)
         ) / gravity;
     }
-
     public bool TryCalculateInitialVelocity(
         float range,
         float angleDegrees,
         out float velocity)
     {
         velocity = 0f;
-
         if (gravity <= 0f || range < 0f)
         {
             return false;
         }
-
         float radians =
             Mathf.Abs(angleDegrees) *
             Mathf.Deg2Rad;
-
         float sinDoubleAngle =
             Mathf.Sin(2f * radians);
-
         if (Mathf.Abs(sinDoubleAngle) < 0.0001f)
         {
             return false;
         }
-
         float value =
             (range * gravity) /
             sinDoubleAngle;
-
         if (value < 0f)
         {
             return false;
         }
-
         velocity =
             Mathf.Sqrt(value);
-
         return !float.IsNaN(velocity) &&
                !float.IsInfinity(velocity);
     }
-
     public bool TryCalculateRange(
         float velocity,
         float angleDegrees,
@@ -573,51 +455,40 @@ public class FireCanonManager : MonoBehaviour
             velocity,
             angleDegrees
         );
-
         return !float.IsNaN(range) &&
                !float.IsInfinity(range);
     }
-
     public bool TryCalculatePrincipalAngle(
         float range,
         float velocity,
         out float angleDegrees)
     {
         angleDegrees = 0f;
-
         if (gravity <= 0f || velocity <= 0f || range < 0f)
         {
             return false;
         }
-
         float ratio =
             (range * gravity) /
             (velocity * velocity);
-
         if (ratio < -1f || ratio > 1f)
         {
             return false;
         }
-
         float doubleAngleRadians =
             Mathf.Asin(ratio);
-
         angleDegrees =
             (doubleAngleRadians * Mathf.Rad2Deg) / 2f;
-
         return !float.IsNaN(angleDegrees) &&
                !float.IsInfinity(angleDegrees);
     }
-
     float GetSolveAngleChallengeVelocity()
     {
         return Mathf.Max(0.1f, maxInitialVelocity);
     }
-
     public bool TryGetExpectedAnswer(out float expectedAnswer)
     {
         expectedAnswer = 0f;
-
         switch (physicsMode)
         {
             case CannonPhysicsMode.SolveInitialVelocity:
@@ -626,33 +497,27 @@ public class FireCanonManager : MonoBehaviour
                     challengeAngle,
                     out expectedAnswer
                 );
-
             case CannonPhysicsMode.SolveRange:
                 return TryCalculateRange(
                     GetSolveAngleChallengeVelocity(),
                     challengeAngle,
                     out expectedAnswer
                 );
-
             case CannonPhysicsMode.SolveAngle:
                 return TryCalculatePrincipalAngle(
                     challengeRange,
                     GetSolveAngleChallengeVelocity(),
                     out expectedAnswer
                 );
-
             case CannonPhysicsMode.SolveTotalFlyingTime:
                 expectedAnswer = challengeTotalFlyingTime;
                 return true;
-
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
                 expectedAnswer = challengeTimeToMaxHeight;
                 return true;
-
             case CannonPhysicsMode.SolveMaxHeight:
                 expectedAnswer = challengeMaxHeight;
                 return true;
-
             case CannonPhysicsMode.Tutorial:
             default:
                 expectedAnswer = CalculateRangeFrom(
@@ -662,22 +527,18 @@ public class FireCanonManager : MonoBehaviour
                 return true;
         }
     }
-
     public bool ValidateUserAnswer()
     {
         return ValidateUserAnswer(userAnswerValue);
     }
-
     public bool ValidateUserAnswer(float value)
     {
         if (!TryGetExpectedAnswer(out float expectedAnswer))
         {
             return false;
         }
-
         GameSettings settings =
             GameSettings.Instance;
-
         if (settings == null)
         {
             return Mathf.Approximately(
@@ -685,7 +546,6 @@ public class FireCanonManager : MonoBehaviour
                 expectedAnswer
             );
         }
-
         return MathValidator.Validate(
             (decimal)expectedAnswer,
             (decimal)value,
@@ -693,7 +553,6 @@ public class FireCanonManager : MonoBehaviour
             settings.validationMode
         );
     }
-
     public void SetUserAnswerValue(float value)
     {
         userAnswerValue = value;
@@ -704,7 +563,6 @@ public class FireCanonManager : MonoBehaviour
             formulaSustition.UpdateFormulaValues();
         }
     }
-
     public void SetUserAnswerValue(string value)
     {
         userAnswerValue = ParseAnswerValue(value);
@@ -715,16 +573,13 @@ public class FireCanonManager : MonoBehaviour
             formulaSustition.UpdateFormulaValues();
         }
     }
-
     float ParseAnswerValue(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             return 0f;
         }
-
         value = value.Trim();
-
         if (float.TryParse(
             value,
             System.Globalization.NumberStyles.Float,
@@ -733,9 +588,7 @@ public class FireCanonManager : MonoBehaviour
         {
             return parsedValue;
         }
-
         value = value.Replace(',', '.');
-
         if (float.TryParse(
             value,
             System.Globalization.NumberStyles.Float,
@@ -744,12 +597,10 @@ public class FireCanonManager : MonoBehaviour
         {
             return parsedValue;
         }
-
         if (float.TryParse(value, out parsedValue))
         {
             return parsedValue;
         }
-
         return 0f;
     }
     public void SyncUserAnswerFromInputField()
@@ -758,26 +609,21 @@ public class FireCanonManager : MonoBehaviour
         {
             return;
         }
-
         SetUserAnswerValue(answerInputField.text);
     }
-
     public bool TryGetResolvedLaunchData(
         out float launchVelocity,
         out float launchAngle,
         out float launchRange)
     {
         UpdateResolvedLaunchValues();
-
         launchVelocity = resolvedLaunchVelocity;
         launchAngle = resolvedLaunchAngle;
         launchRange = resolvedLaunchRange;
-
         return !float.IsNaN(launchVelocity) &&
                !float.IsNaN(launchAngle) &&
                !float.IsNaN(launchRange);
     }
-
 
     void InitializeAnswerInput()
     {
@@ -785,13 +631,11 @@ public class FireCanonManager : MonoBehaviour
         {
             return;
         }
-
         answerInputField.onValueChanged.AddListener(SetUserAnswerValue);
         answerInputField.onEndEdit.AddListener(SetUserAnswerValue);
         answerInputField.SetTextWithoutNotify(string.Empty);
         userAnswerValue = 0f;
     }
-
     void UpdateAnswerPrompt()
     {
         if (answerPromptText != null)
@@ -799,16 +643,13 @@ public class FireCanonManager : MonoBehaviour
             answerPromptText.text = GetModePrompt();
         }
     }
-
     void RefreshModeState(bool force)
     {
         if (!force && physicsMode == cachedPhysicsMode)
         {
             return;
         }
-
         cachedPhysicsMode = physicsMode;
-
         UpdateAnswerInputVisibility(true);
         UpdateTutorialUIVisibility(true);
         UpdateFormulaHolderVisibility(true);
@@ -817,13 +658,11 @@ public class FireCanonManager : MonoBehaviour
         SyncModeValues();
         UpdateResolvedLaunchValues();
         UpdateFireButtonInteractable();
-
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
         }
     }
-
     public void EnterCannonBallView()
     {
         FadeCanvasGroup(cannonHolderCanvasGroup, 0f, ref cannonHolderFadeRoutine);
@@ -832,23 +671,19 @@ public class FireCanonManager : MonoBehaviour
         SetGameObjectActive(fireButtonHolder, false);
         HideAnswerKeyboard();
     }
-
     public void ExitCannonBallView()
     {
         RefreshModeState(true);
     }
-
     public void RefreshPergaminosState()
     {
         ApplyPergaminoFormulaState();
         ApplyPergaminoFormulaSustituidaState();
     }
-
     public void ApplyPergaminoFormulaState()
     {
         SetGameObjectActive(pergaminoFormula, showPergaminoFormula);
     }
-
     public void ApplyPergaminoFormulaSustituidaState()
     {
         SetGameObjectActive(
@@ -856,23 +691,19 @@ public class FireCanonManager : MonoBehaviour
             showPergaminoFormulaSustituida
         );
     }
-
     public void SetPergaminoFormulaVisible(bool visible)
     {
         showPergaminoFormula = visible;
         ApplyPergaminoFormulaState();
     }
-
     public void SetPergaminoFormulaSustituidaVisible(bool visible)
     {
         showPergaminoFormulaSustituida = visible;
         ApplyPergaminoFormulaSustituidaState();
     }
-
     void UpdateChallengeDataUI()
     {
         UpdateChallengeFlightData();
-
         bool isSolveInitialVelocity =
             physicsMode == CannonPhysicsMode.SolveInitialVelocity;
         bool isSolveRange = physicsMode == CannonPhysicsMode.SolveRange;
@@ -881,7 +712,6 @@ public class FireCanonManager : MonoBehaviour
             physicsMode == CannonPhysicsMode.SolveTotalFlyingTime;
         bool isSolveTimeToMaxHeigth =
             physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth;
-
         if (challengeRangeText != null)
         {
             challengeRangeText.text = isSolveInitialVelocity ||
@@ -893,7 +723,6 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeRange.ToString("F2") + " m";
         }
-
         if (challengeInitialVelocityText != null)
         {
             challengeInitialVelocityText.text = isSolveRange ||
@@ -905,7 +734,6 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeInitialVelocity.ToString("F2") + " m/s";
         }
-
         if (challengeAngleText != null)
         {
             challengeAngleText.text = isSolveInitialVelocity || isSolveRange
@@ -914,7 +742,6 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeAngle.ToString("F1") + "°";
         }
-
         if (challengeTotalFlyingTimeText != null)
         {
             challengeTotalFlyingTimeText.text =
@@ -922,7 +749,6 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeTotalFlyingTime.ToString("F2") + " s";
         }
-
         if (challengeTimeToMaxHeightText != null)
         {
             challengeTimeToMaxHeightText.text =
@@ -930,9 +756,7 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeTimeToMaxHeight.ToString("F2") + " s";
         }
-
     }
-
     void UpdateChallengeFlightData()
     {
         if (gravity <= 0f)
@@ -942,49 +766,38 @@ public class FireCanonManager : MonoBehaviour
             challengeMaxHeight = 0f;
             return;
         }
-
         float challengeVelocityY =
             challengeInitialVelocity * Mathf.Sin(
                 Mathf.Abs(challengeAngle) * Mathf.Deg2Rad
             );
-
         challengeTimeToMaxHeight =
             Mathf.Max(0f, challengeVelocityY) / gravity;
-
         challengeMaxHeight =
             (challengeVelocityY * challengeVelocityY) /
             (2f * gravity);
-
         challengeTotalFlyingTime =
             (2f * challengeVelocityY) / gravity;
-
         if (challengeTotalFlyingTime < 0f)
         {
             challengeTotalFlyingTime = 0f;
         }
-
         if (challengeTimeToMaxHeight < 0f)
         {
             challengeTimeToMaxHeight = 0f;
         }
-
         if (challengeMaxHeight < 0f)
         {
             challengeMaxHeight = 0f;
         }
-
     }
-
     void UpdateTotalTime()
     {
         initialVelocity = Mathf.Max(0f, initialVelocity);
         currentAngle = Mathf.Clamp(currentAngle, 0f, 89.9f);
-
         float launchVelocityY =
             initialVelocity * Mathf.Sin(
                 Mathf.Abs(currentAngle) * Mathf.Deg2Rad
             );
-
         if (gravity <= 0f)
         {
             totalFlyingTime = 0f;
@@ -992,56 +805,44 @@ public class FireCanonManager : MonoBehaviour
             maxHeight = 0f;
             return;
         }
-
         timeToMaxHeight =
             Mathf.Max(0f, launchVelocityY) / gravity;
-
         maxHeight =
             (launchVelocityY * launchVelocityY) /
             (2f * gravity);
-
         totalFlyingTime =
             (2f * launchVelocityY) / gravity;
-
         if (totalFlyingTime < 0f)
         {
             totalFlyingTime = 0f;
         }
-
         if (timeToMaxHeight < 0f)
         {
             timeToMaxHeight = 0f;
         }
-
         if (maxHeight < 0f)
         {
             maxHeight = 0f;
         }
     }
-
     void UpdateAnswerInputVisibility(bool force = false)
     {
         bool showAnswerInput =
             physicsMode != CannonPhysicsMode.Tutorial;
-
         if (!force && cachedAnswerInputVisible == showAnswerInput)
         {
             return;
         }
-
         cachedAnswerInputVisible = showAnswerInput;
-
         if (!showAnswerInput)
         {
             HideAnswerKeyboard();
         }
-
         FadeCanvasGroup(
             answerHolderCanvasGroup,
             showAnswerInput ? 1f : 0f,
             ref answerHolderFadeRoutine
         );
-
         if (answerInputField != null)
         {
             answerInputField.interactable = showAnswerInput;
@@ -1052,41 +853,32 @@ public class FireCanonManager : MonoBehaviour
             answerInputField.shouldHideMobileInput = true;
         }
     }
-
     void UpdateTutorialUIVisibility(bool force = false)
     {
         bool showTutorialUI = physicsMode == CannonPhysicsMode.Tutorial;
-
         if (!force && cachedTutorialUIVisible == showTutorialUI)
         {
             return;
         }
-
         cachedTutorialUIVisible = showTutorialUI;
-
         FadeCanvasGroup(cannonHolderCanvasGroup, showTutorialUI ? 1f : 0f, ref cannonHolderFadeRoutine);
         FadeCanvasGroup(velocityHolderCanvasGroup, showTutorialUI ? 1f : 0f, ref velocityHolderFadeRoutine);
         SetGameObjectActive(fireButtonHolder, showTutorialUI);
     }
-
     void UpdateFormulaHolderVisibility(bool force = false)
     {
         bool showFormulaHolder = true;
-
         if (!force && cachedFormulaHolderVisible == showFormulaHolder)
         {
             return;
         }
-
         cachedFormulaHolderVisible = showFormulaHolder;
-
         FadeCanvasGroup(
             formulaHolderCanvasGroup,
             showFormulaHolder ? 1f : 0f,
             ref formulaHolderFadeRoutine
         );
     }
-
     void FadeCanvasGroup(
         CanvasGroup canvasGroup,
         float targetAlpha,
@@ -1096,27 +888,22 @@ public class FireCanonManager : MonoBehaviour
         {
             return;
         }
-
         if (fadeRoutine != null)
         {
             StopCoroutine(fadeRoutine);
             fadeRoutine = null;
         }
-
         fadeRoutine =
             StartCoroutine(FadeCanvasGroupRoutine(canvasGroup, targetAlpha));
     }
-
     IEnumerator FadeCanvasGroupRoutine(CanvasGroup canvasGroup, float targetAlpha)
     {
         float startAlpha = canvasGroup.alpha;
         float duration = Mathf.Max(0.01f, cannonBallViewFadeDuration);
         float elapsed = 0f;
-
         canvasGroup.gameObject.SetActive(true);
         canvasGroup.interactable = false;
         canvasGroup.blocksRaycasts = false;
-
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
@@ -1124,96 +911,78 @@ public class FireCanonManager : MonoBehaviour
             canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
             yield return null;
         }
-
         canvasGroup.alpha = targetAlpha;
         bool visible = targetAlpha > 0.95f;
         canvasGroup.interactable = visible;
         canvasGroup.blocksRaycasts = visible;
-
         if (!visible)
         {
             canvasGroup.gameObject.SetActive(false);
         }
     }
-
     void SetGameObjectActive(GameObject target, bool active)
     {
         if (target == null)
         {
             return;
         }
-
         if (target.activeSelf != active)
         {
             target.SetActive(active);
         }
     }
-
     public void SetAnswerInputText(string value)
     {
         if (answerInputField == null)
         {
             return;
         }
-
         answerInputField.SetTextWithoutNotify(value);
         SetUserAnswerValue(value);
     }
-
     public void AppendAnswerInputText(string value)
     {
         if (answerInputField == null || string.IsNullOrEmpty(value))
         {
             return;
         }
-
         SetAnswerInputText(answerInputField.text + value);
     }
-
     public void BackspaceAnswerInputText()
     {
         if (answerInputField == null)
         {
             return;
         }
-
         string currentText = answerInputField.text ?? string.Empty;
-
         if (currentText.Length == 0)
         {
             return;
         }
-
         SetAnswerInputText(
             currentText.Substring(0, currentText.Length - 1)
         );
     }
-
     public void ClearAnswerInputText()
     {
         SetAnswerInputText(string.Empty);
     }
-
     public void ShowAnswerKeyboard()
     {
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
             return;
         }
-
         if (answerKeyboard == null)
         {
             if (answerKeyboardHolder != null)
             {
                 SetGameObjectActive(answerKeyboardHolder, true);
             }
-
             return;
         }
-
         answerKeyboard.ShowKeyboard();
     }
-
     public void HideAnswerKeyboard()
     {
         if (answerKeyboard != null)
@@ -1221,13 +990,11 @@ public class FireCanonManager : MonoBehaviour
             answerKeyboard.HideKeyboard();
             return;
         }
-
         if (answerKeyboardHolder != null)
         {
             SetGameObjectActive(answerKeyboardHolder, false);
         }
     }
-
     void UpdateResolvedLaunchValues()
     {
         switch (physicsMode)
@@ -1240,7 +1007,6 @@ public class FireCanonManager : MonoBehaviour
                     resolvedLaunchAngle
                 );
                 break;
-
             case CannonPhysicsMode.SolveRange:
                 resolvedLaunchVelocity = GetSolveAngleChallengeVelocity();
                 resolvedLaunchAngle = challengeAngle;
@@ -1249,7 +1015,6 @@ public class FireCanonManager : MonoBehaviour
                     resolvedLaunchAngle
                 );
                 break;
-
             case CannonPhysicsMode.SolveAngle:
                 resolvedLaunchVelocity = GetSolveAngleChallengeVelocity();
                 resolvedLaunchAngle = userAnswerValue;
@@ -1258,7 +1023,6 @@ public class FireCanonManager : MonoBehaviour
                     resolvedLaunchAngle
                 );
                 break;
-
             case CannonPhysicsMode.SolveTotalFlyingTime:
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
             case CannonPhysicsMode.SolveMaxHeight:
@@ -1269,7 +1033,6 @@ public class FireCanonManager : MonoBehaviour
                     resolvedLaunchAngle
                 );
                 break;
-
             case CannonPhysicsMode.Tutorial:
             default:
                 resolvedLaunchRange = CalculateRangeFrom(
@@ -1280,79 +1043,61 @@ public class FireCanonManager : MonoBehaviour
                 resolvedLaunchVelocity = initialVelocity;
                 break;
         }
-
         UpdateTotalTime();
     }
-
     void ApplyResolvedLaunchToCannon()
     {
         UpdateResolvedLaunchValues();
-
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
             currentAngle =
                 cannonAimUI != null
                     ? Mathf.Abs(cannonAimUI.GetCurrentAngle())
                     : currentAngle;
-
             currentRange =
                 CalculateRangeFrom(
                     initialVelocity,
                     currentAngle
                 );
-
             UpdateTotalTime();
-
             return;
         }
-
         if (cannonAimUI != null)
         {
             cannonAimUI.SetCurrentAngle(-resolvedLaunchAngle);
         }
-
         currentAngle = resolvedLaunchAngle;
         currentRange = resolvedLaunchRange;
         initialVelocity = resolvedLaunchVelocity;
         UpdateTotalTime();
     }
-
     public string GetModePrompt()
     {
         switch (physicsMode)
         {
             case CannonPhysicsMode.SolveInitialVelocity:
                 return "Ingresa la velocidad inicial";
-
             case CannonPhysicsMode.SolveRange:
                 return "Ingresa el rango";
-
             case CannonPhysicsMode.SolveAngle:
                 return "Ingresa el angulo principal";
-
             case CannonPhysicsMode.SolveTotalFlyingTime:
                 return "Ingresa el tiempo total de vuelo";
-
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
                 return "Ingresa el tiempo para llegar a la altura maxima";
-
             case CannonPhysicsMode.SolveMaxHeight:
                 return "Ingresa la altura maxima";
-
             case CannonPhysicsMode.Tutorial:
             default:
                 return "Tutorial";
         }
     }
-
     void GenerateRandomSolveRangeChallenge()
     {
         challengeAngle =
             UnityEngine.Random.Range(10f, 80f);
-
         challengeInitialVelocity =
             GetSolveAngleChallengeVelocity();
-
         challengeRange =
             CalculateRangeFrom(
                 challengeInitialVelocity,
@@ -1366,30 +1111,24 @@ public class FireCanonManager : MonoBehaviour
     {
         challengePlayerPosition =
             playerPosition;
-
         challengeTargetCenter =
             targetCenter;
-
         Vector3 cannonOrigin =
             cannonMuzzle != null
                 ? cannonMuzzle.position
                 : playerPosition;
-
         challengeTargetDistance =
             GetHorizontalDistance(
                 cannonOrigin,
                 targetCenter
             );
-
         challengeRange =
             challengeTargetDistance;
-
         switch (physicsMode)
         {
             case CannonPhysicsMode.SolveInitialVelocity:
                 challengeAngle =
                     challengeAngleSeed;
-
                 if (!TryCalculateInitialVelocity(
                     challengeRange,
                     challengeAngle,
@@ -1399,17 +1138,14 @@ public class FireCanonManager : MonoBehaviour
                     challengeInitialVelocity = 0f;
                 }
                 break;
-
             case CannonPhysicsMode.SolveRange:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 GenerateRandomSolveRangeChallenge();
                 break;
-
             case CannonPhysicsMode.SolveAngle:
             case CannonPhysicsMode.SolveTotalFlyingTime:
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
-
                 if (!TryCalculatePrincipalAngle(
                     challengeRange,
                     challengeInitialVelocity,
@@ -1419,36 +1155,29 @@ public class FireCanonManager : MonoBehaviour
                     challengeAngle = 0f;
                 }
                 break;
-
             case CannonPhysicsMode.Tutorial:
             default:
                 challengeAngle = currentAngle;
                 challengeInitialVelocity = initialVelocity;
                 break;
         }
-
         SyncModeValues();
         UpdateChallengeDataUI();
         UpdateAnswerPrompt();
-
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
         }
-
         UpdateResolvedLaunchValues();
     }
-
     public float GetHorizontalDistance(
         Vector3 a,
         Vector3 b)
     {
         a.y = 0f;
         b.y = 0f;
-
         return Vector3.Distance(a, b);
     }
-
     void SyncModeValues()
     {
         if (cannonAimUI != null)
@@ -1461,12 +1190,10 @@ public class FireCanonManager : MonoBehaviour
                 physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth ||
                 physicsMode == CannonPhysicsMode.SolveMaxHeight;
         }
-
         if (physicsMode == CannonPhysicsMode.Tutorial)
         {
             return;
         }
-
         switch (physicsMode)
         {
             case CannonPhysicsMode.SolveInitialVelocity:
@@ -1474,7 +1201,6 @@ public class FireCanonManager : MonoBehaviour
                 currentRange = challengeRange;
                 initialVelocity = userAnswerValue;
                 break;
-
             case CannonPhysicsMode.SolveRange:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 currentAngle = challengeAngle;
@@ -1485,14 +1211,12 @@ public class FireCanonManager : MonoBehaviour
                 );
                 currentRange = challengeRange;
                 break;
-
             case CannonPhysicsMode.SolveAngle:
                 challengeInitialVelocity = GetSolveAngleChallengeVelocity();
                 currentAngle = userAnswerValue;
                 initialVelocity = challengeInitialVelocity;
                 currentRange = challengeRange;
                 break;
-
             case CannonPhysicsMode.SolveTotalFlyingTime:
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
             case CannonPhysicsMode.SolveMaxHeight:
@@ -1506,40 +1230,32 @@ public class FireCanonManager : MonoBehaviour
         {
             cannonAimUI.SetCurrentAngle(-currentAngle);
         }
-
         if (velocityValue != null)
         {
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
-
         if (angleText != null)
         {
             angleText.text = currentAngle.ToString("F1") + "°";
         }
-
         if (angleTextTransform != null)
         {
             angleTextTransform.rotation = Quaternion.identity;
         }
     }
-
     // ====================================
     // CREATE DOT POOL
     // ====================================
-
     void CreateTrajectoryPool()
     {
         // ====================================
         // EVITAR DUPLICADOS
         // ====================================
-
         if (trajectoryDots.Count > 0)
             return;
-
         // ====================================
         // CREAR DOTS
         // ====================================
-
         for (int i = 0; i < maxDots; i++)
         {
             GameObject dot =
@@ -1547,29 +1263,22 @@ public class FireCanonManager : MonoBehaviour
                     trajectoryDotPrefab,
                     transform
                 );
-
             dot.SetActive(false);
-
             // ====================================
             // GUARDAR EN LISTA
             // ====================================
-
             trajectoryDots.Add(dot);
-
             // ====================================
             // ASIGNAR MANAGER
             // ====================================
-
             TrajectoryDot trajectoryDot =
                 dot.GetComponent<TrajectoryDot>();
-
             if (trajectoryDot != null)
             {
                 trajectoryDot.manager = this;
             }
         }
     }
-
     void ExpandDotPool(int amount)
     {
         for (int i = 0; i < amount; i++)
@@ -1579,58 +1288,43 @@ public class FireCanonManager : MonoBehaviour
                     trajectoryDotPrefab,
                     transform
                 );
-
             dot.SetActive(false);
-
             trajectoryDots.Add(dot);
-
             TrajectoryDot trajectoryDot =
                 dot.GetComponent<TrajectoryDot>();
-
             if (trajectoryDot != null)
             {
                 trajectoryDot.manager = this;
             }
         }
     }
-
     void InitializeVelocitySlider()
     {
         if (velocitySlider == null)
             return;
-
         // ====================================
         // CONFIGURAR RANGO
         // ====================================
-
         velocitySlider.minValue =
             minInitialVelocity;
-
         velocitySlider.maxValue =
             maxInitialVelocity;
-
         // ====================================
         // VALOR ACTUAL
         // ====================================
-
         velocitySlider.value =
             initialVelocity;
-
         // ====================================
         // LISTENER
         // ====================================
-
         velocitySlider.onValueChanged
             .AddListener(UpdateVelocityFromSlider);
-
         if (velocityValue != null)
         {
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
-
         UpdateTotalTime();
     }
-
     void UpdateVelocityFromSlider(float value)
     {
         initialVelocity =
@@ -1639,53 +1333,42 @@ public class FireCanonManager : MonoBehaviour
                 minInitialVelocity,
                 maxInitialVelocity
             );
-
         if (velocityValue != null)
         {
             velocityValue.text = initialVelocity.ToString("f2") + (" m/s");
         }
         UpdateResolvedLaunchValues();
-
         if (formulaSustition != null)
         {
             formulaSustition.UpdateFormulaValues();
         }
     }
-
     public void RefreshVelocitySlider()
     {
         if (velocitySlider == null)
             return;
-
         velocitySlider.minValue =
             minInitialVelocity;
-
         velocitySlider.maxValue =
             maxInitialVelocity;
-
         velocitySlider.value =
             initialVelocity;
     }
-
     // ====================================
     // UPDATE TRAJECTORY
     // ====================================
-
     void UpdateTrajectory(bool encounterActive)
     {
         // ====================================
         // ENCOUNTER STATE
         // ====================================
-
         bool visible =
             showTrajectory &&
             encounterActive;
-
         if (cachedTrajectoryVisible != visible)
         {
             cachedTrajectoryVisible = visible;
             cachedTrajectoryStateInitialized = false;
-
             if (!visible)
             {
                 for (int i = 0; i < trajectoryDots.Count; i++)
@@ -1697,20 +1380,16 @@ public class FireCanonManager : MonoBehaviour
                 }
             }
         }
-
         // ====================================
         // HIDE ALL
         // ====================================
-
         if (!visible)
         {
             return;
         }
-
         Vector3 currentPosition = cannonMuzzle.position;
         Vector3 currentForward =
             GetLaunchHorizontalDirectionTowardsSelectedObjective();
-
         bool trajectoryStateChanged =
             !cachedTrajectoryStateInitialized
             ||
@@ -1731,23 +1410,19 @@ public class FireCanonManager : MonoBehaviour
             ||
             (cachedTrajectoryMuzzleForward - currentForward)
                 .sqrMagnitude > 0.000001f;
-
         if (!trajectoryStateChanged)
         {
             return;
         }
-
         cachedTrajectoryStateInitialized = true;
         cachedTrajectoryPhysicsMode = physicsMode;
         cachedTrajectoryMuzzlePosition = currentPosition;
         cachedTrajectoryMuzzleForward = currentForward;
         cachedTrajectoryInitialVelocity = initialVelocity;
         cachedTrajectoryGravity = gravity;
-
         // ====================================
         // INITIAL DATA
         // ====================================
-
         float launchVelocity =
             Mathf.Max(0f, resolvedLaunchVelocity);
         float launchAngleRadians =
@@ -1756,93 +1431,70 @@ public class FireCanonManager : MonoBehaviour
             launchVelocity * Mathf.Cos(launchAngleRadians);
         float launchVerticalSpeed =
             launchVelocity * Mathf.Sin(launchAngleRadians);
-
         Vector3 currentVelocity =
             currentForward * launchHorizontalSpeed +
             Vector3.up * launchVerticalSpeed;
-
         int dotIndex = 0;
-
         float accumulatedDistance = 0f;
-
         Vector3 lastDotPosition =
             currentPosition;
-
         // ====================================
         // SIMULATION
         // ====================================
-
         while (true)
         {
             Vector3 previousPosition =
                 currentPosition;
-
             // ====================================
             // APPLY GRAVITY
             // ====================================
-
             currentVelocity +=
                 Vector3.down *
                 gravity *
                 trajectoryTimeStep;
-
             // ====================================
             // MOVE
             // ====================================
-
             currentPosition +=
                 currentVelocity *
                 trajectoryTimeStep;
-
             // ====================================
             // DISTANCE
             // ====================================
-
             accumulatedDistance +=
                 Vector3.Distance(
                     previousPosition,
                     currentPosition
                 );
-
             // ====================================
             // PLACE DOT
             // ====================================
-
             if (accumulatedDistance >= dotSpacing)
             {
                 accumulatedDistance = 0f;
-
                 // ====================================
                 // EXPAND POOL
                 // ====================================
-
                 if (dotIndex >= trajectoryDots.Count)
                 {
                     ExpandDotPool(20);
                 }
-
                 GameObject dot =
                     trajectoryDots[dotIndex];
                 if (dot == null)
                 {
                     continue;
                 }
-
                 dot.SetActive(true);
-
                 dot.transform.position =
                     currentPosition;
-
                 lastDotPosition =
                     currentPosition;
-
                 dotIndex++;
             }
-
             // ====================================
             // HIT GROUND
             // ====================================
-
             if (
                 Physics.Linecast(
                     previousPosition,
@@ -1853,21 +1505,17 @@ public class FireCanonManager : MonoBehaviour
             {
                 break;
             }
-
             // ====================================
             // SAFETY
             // ====================================
-
             if (dotIndex > 1000)
             {
                 break;
             }
         }
-
         // ====================================
         // HIDE UNUSED
         // ====================================
-
         for (
             int i = dotIndex;
             i < trajectoryDots.Count;
@@ -1880,47 +1528,48 @@ public class FireCanonManager : MonoBehaviour
             }
         }
     }
-
     // ====================================
     // FIRE
     // ====================================
-
     public bool Fire()
     {
         if (cannonBallPrefab == null)
             return false;
-
         if (HasActiveCannonBall())
             return false;
-
         HideAnswerKeyboard();
         ApplyResolvedLaunchToCannon();
-
         // ====================================
         // CREATE BALL
         // ====================================
-
         GameObject ball =
             Instantiate(
                 cannonBallPrefab,
                 cannonMuzzle.position,
                 Quaternion.identity
             );
-
         // ====================================
         // GET SCRIPT
         // ====================================
-
         CannonBall cannonBall =
             ball.GetComponent<CannonBall>();
-
         if (cannonBall == null)
             return false;
-
         bool challengeAnswerCorrect =
             physicsMode != CannonPhysicsMode.Tutorial &&
             ValidateUserAnswer();
-
+        StudentPerformanceCalculationType performanceCalculationType;
+        if (TryGetPerformanceCalculationType(out performanceCalculationType))
+        {
+            if (performanceTracker != null)
+            {
+                performanceTracker.RecordAnswer(performanceCalculationType, challengeAnswerCorrect);
+            }
+            else
+            {
+                Debug.LogWarning($"[FireCanonManager] StudentPerformanceTracker is not assigned. Performance was not recorded for {performanceCalculationType}.");
+            }
+        }
         cannonBall.SetFireCanonManager(this);
         cannonBall.SetLaunchDebugMath(
             resolvedLaunchVelocity,
@@ -1929,29 +1578,22 @@ public class FireCanonManager : MonoBehaviour
         RegisterActiveCannonBall(cannonBall);
         timer = 0f;
         isFlightTimerRunning = true;
-
         // ====================================
         // FORWARD DIRECTION
         // ====================================
-
         Vector3 forward =
             GetLaunchHorizontalDirectionTowardsSelectedObjective();
-
         // ====================================
         // INITIAL VELOCITY
         // ====================================
-
         Vector3 velocity =
             forward *
             resolvedLaunchVelocity;
-
         Vector3 challengeImpactPoint =
             cannonMuzzle.position + (forward * resolvedLaunchRange);
-
         // ====================================
         // INITIALIZE BALL
         // ====================================
-
         cannonBall.Initialize(
             velocity,
             gravity
@@ -1961,19 +1603,37 @@ public class FireCanonManager : MonoBehaviour
             challengeImpactPoint,
             totalFlyingTime
         );
-
         return true;
     }
-
+    private bool TryGetPerformanceCalculationType(out StudentPerformanceCalculationType type)
+    {
+        switch (physicsMode)
+        {
+            case CannonPhysicsMode.SolveRange:
+                type = StudentPerformanceCalculationType.Range;
+                return true;
+            case CannonPhysicsMode.SolveAngle:
+                type = StudentPerformanceCalculationType.Angle;
+                return true;
+            case CannonPhysicsMode.SolveInitialVelocity:
+                type = StudentPerformanceCalculationType.Velocity;
+                return true;
+            case CannonPhysicsMode.Tutorial:
+            case CannonPhysicsMode.SolveTotalFlyingTime:
+            case CannonPhysicsMode.SolveTimeToMaxHeigth:
+            case CannonPhysicsMode.SolveMaxHeight:
+            default:
+                type = StudentPerformanceCalculationType.Range;
+                return false;
+        }
+    }
     Vector3 GetLaunchHorizontalDirectionTowardsSelectedObjective()
     {
         Vector3 fallbackDirection =
             cannonMuzzle != null
                 ? cannonMuzzle.forward
                 : Vector3.forward;
-
         fallbackDirection.y = 0f;
-
         StartGamePlay startGamePlay = StartGamePlay.Instance;
         if (
             startGamePlay == null ||
@@ -1985,40 +1645,32 @@ public class FireCanonManager : MonoBehaviour
                 ? fallbackDirection.normalized
                 : Vector3.forward;
         }
-
         Vector3 targetPosition =
             startGamePlay.currentObjective.transform.position;
         Vector3 muzzlePosition =
             cannonMuzzle.position;
-
         targetPosition.y = 0f;
         muzzlePosition.y = 0f;
-
         Vector3 directionFromMuzzleToObjective =
             targetPosition - muzzlePosition;
         directionFromMuzzleToObjective.y = 0f;
-
         if (directionFromMuzzleToObjective.sqrMagnitude <= 0.0001f)
         {
             return fallbackDirection.sqrMagnitude > 0.0001f
                 ? fallbackDirection.normalized
                 : Vector3.forward;
         }
-
         return directionFromMuzzleToObjective.normalized;
     }
-
     public bool HasActiveCannonBall()
     {
         return activeCannonBall != null;
     }
-
     public void RegisterActiveCannonBall(CannonBall cannonBall)
     {
         activeCannonBall = cannonBall;
         UpdateFireButtonInteractable();
     }
-
     public void ClearActiveCannonBall(CannonBall cannonBall)
     {
         if (activeCannonBall == cannonBall)
@@ -2028,17 +1680,14 @@ public class FireCanonManager : MonoBehaviour
             UpdateFireButtonInteractable();
         }
     }
-
     public void StopFlightTimer()
     {
         isFlightTimerRunning = false;
     }
-
     public bool TryApplyChallengeDamage(GameObject target)
     {
         return TryApplyChallengeDamage(target, false);
     }
-
     public bool TryApplyChallengeDamage(
         GameObject target,
         bool alreadyValidated)
@@ -2047,43 +1696,35 @@ public class FireCanonManager : MonoBehaviour
         {
             return false;
         }
-
         if (!alreadyValidated && !ValidateUserAnswer())
         {
             return false;
         }
-
         GameObject damageTarget =
             target != null
                 ? target
                 : (StartGamePlay.Instance != null
                     ? StartGamePlay.Instance.currentObjective
                     : null);
-
         if (damageTarget == null)
         {
             return false;
         }
-
         EnemyStats enemyStats =
             damageTarget.GetComponent<EnemyStats>() ??
             damageTarget.GetComponentInChildren<EnemyStats>() ??
             damageTarget.GetComponentInParent<EnemyStats>();
-
         if (enemyStats != null)
         {
             enemyStats.OnCannonBallHit();
             return true;
         }
-
         damageTarget.SendMessage(
             "OnCannonBallHit",
             SendMessageOptions.DontRequireReceiver
         );
-
         return true;
     }
-
     void UpdateFireButtonInteractable()
     {
         if (fireButton != null)
@@ -2091,33 +1732,26 @@ public class FireCanonManager : MonoBehaviour
             fireButton.interactable = !HasActiveCannonBall();
         }
     }
-
     Transform GetPlayerTransform()
     {
         StartGamePlay startGamePlay = StartGamePlay.Instance;
-
         if (startGamePlay != null && startGamePlay.player != null)
         {
             return startGamePlay.player.transform;
         }
-
         PlayerMovement playerMovement =
             FindFirstObjectByType<PlayerMovement>();
-
         return playerMovement != null
             ? playerMovement.transform
             : null;
     }
-
     PlayerMovement GetPlayerMovement()
     {
         Transform playerTransform = GetPlayerTransform();
-
         return playerTransform != null
             ? playerTransform.GetComponent<PlayerMovement>()
             : null;
     }
-
     Rigidbody GetPlayerRigidbody()
     {
         Transform playerTransform = GetPlayerTransform();
@@ -2125,23 +1759,18 @@ public class FireCanonManager : MonoBehaviour
             ? playerTransform.GetComponent<Rigidbody>()
             : null;
     }
-
     float GetHorizontalDistanceToSelectedTarget()
     {
         if (cannonMuzzle == null)
         {
             return 0f;
         }
-
         Vector3 targetCenter = challengeTargetCenter;
         Vector3 muzzlePosition = cannonMuzzle.position;
-
         targetCenter.y = 0f;
         muzzlePosition.y = 0f;
-
         return Vector3.Distance(muzzlePosition, targetCenter);
     }
-
     Vector3 GetSolveRangeTargetPosition(float targetRange)
     {
         Transform playerTransform = GetPlayerTransform();
@@ -2149,40 +1778,30 @@ public class FireCanonManager : MonoBehaviour
         {
             return Vector3.zero;
         }
-
         Vector3 targetPosition = challengeTargetCenter;
         Vector3 cannonOrigin = cannonMuzzle.position;
-
         targetPosition.y = 0f;
         cannonOrigin.y = 0f;
-
         Vector3 directionFromCannonToTarget =
             targetPosition - cannonOrigin;
         directionFromCannonToTarget.y = 0f;
-
         if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
         {
             directionFromCannonToTarget = playerTransform.forward;
             directionFromCannonToTarget.y = 0f;
         }
-
         if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
         {
             directionFromCannonToTarget = Vector3.forward;
         }
-
         directionFromCannonToTarget.Normalize();
-
         float currentHorizontalDistance =
             GetHorizontalDistanceToSelectedTarget();
-
         float moveDistance =
             currentHorizontalDistance - Mathf.Max(0f, targetRange);
-
         return playerTransform.position +
                directionFromCannonToTarget * moveDistance;
     }
-
     IEnumerator MovePlayerToPosition(
         Transform playerTransform,
         Rigidbody playerRigidbody,
@@ -2193,13 +1812,10 @@ public class FireCanonManager : MonoBehaviour
         {
             yield break;
         }
-
         const float minimumCinematicDuration = 1.15f;
-
         Vector3 startPosition = playerTransform.position;
         float effectiveDuration =
             Mathf.Max(duration, minimumCinematicDuration);
-
         if (effectiveDuration <= 0f)
         {
             if (playerRigidbody != null)
@@ -2212,26 +1828,20 @@ public class FireCanonManager : MonoBehaviour
             {
                 playerTransform.position = targetPosition;
             }
-
             yield break;
         }
-
         float elapsed = 0f;
-
         while (elapsed < effectiveDuration)
         {
             yield return new WaitForFixedUpdate();
             elapsed += Time.fixedDeltaTime;
-
             float t = Mathf.Clamp01(elapsed / effectiveDuration);
             float easedT = Mathf.SmoothStep(0f, 1f, t);
-
             Vector3 nextPosition = Vector3.Lerp(
                 startPosition,
                 targetPosition,
                 easedT
             );
-
             if (playerRigidbody != null)
             {
                 playerRigidbody.MovePosition(nextPosition);
@@ -2241,7 +1851,6 @@ public class FireCanonManager : MonoBehaviour
                 playerTransform.position = nextPosition;
             }
         }
-
         if (playerRigidbody != null)
         {
             playerRigidbody.position = targetPosition;
@@ -2262,49 +1871,38 @@ public class FireCanonManager : MonoBehaviour
         {
             yield break;
         }
-
         const float tolerance = 0.01f;
         const int maxIterations = 8;
-
         for (int i = 0; i < maxIterations; i++)
         {
             float currentHorizontalDistance =
                 GetHorizontalDistanceToSelectedTarget();
-
             float moveDistance =
                 currentHorizontalDistance - Mathf.Max(0f, targetRange);
-
             if (Mathf.Abs(moveDistance) <= tolerance)
             {
                 yield break;
             }
-
             Vector3 targetCenter = challengeTargetCenter;
             Vector3 cannonOrigin = cannonMuzzle.position;
             targetCenter.y = 0f;
             cannonOrigin.y = 0f;
-
             Vector3 directionFromCannonToTarget =
                 targetCenter - cannonOrigin;
             directionFromCannonToTarget.y = 0f;
-
             if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
             {
                 directionFromCannonToTarget = playerTransform.forward;
                 directionFromCannonToTarget.y = 0f;
             }
-
             if (directionFromCannonToTarget.sqrMagnitude < 0.0001f)
             {
                 yield break;
             }
-
             directionFromCannonToTarget.Normalize();
-
             Vector3 correctedPosition =
                 playerTransform.position +
                 directionFromCannonToTarget * moveDistance;
-
             if (playerRigidbody != null)
             {
                 playerRigidbody.MovePosition(correctedPosition);
@@ -2315,43 +1913,34 @@ public class FireCanonManager : MonoBehaviour
             {
                 playerTransform.position = correctedPosition;
             }
-
             yield return new WaitForFixedUpdate();
         }
     }
-
     IEnumerator PrepareSolveRangeShotSequence()
     {
         isSolveRangeSequenceRunning = true;
-
         SyncUserAnswerFromInputField();
         HideAnswerKeyboard();
-
         string answerText = answerInputField != null ? answerInputField.text : string.Empty;
         float targetRange = answerInputField != null
             ? Mathf.Max(0f, ParseAnswerValue(answerText))
             : Mathf.Max(0f, userAnswerValue);
         float initialHorizontalDistance = GetHorizontalDistanceToSelectedTarget();
         float moveDelta = initialHorizontalDistance - targetRange;
-
         Debug.Log(
             $"[SolveRange] input text: '{answerText}' | inspector answer: {userAnswerValue:F2} | initial horizontal distance: {initialHorizontalDistance:F2} | target range: {targetRange:F2} | move delta: {moveDelta:F2}"
         );
-
         Transform playerTransform = GetPlayerTransform();
         Rigidbody playerRigidbody = GetPlayerRigidbody();
         PlayerMovement playerMovement = GetPlayerMovement();
-
         if (playerMovement != null)
         {
             playerMovement.StopMovementImmediately();
         }
-
         if (playerTransform != null)
         {
             Vector3 targetPosition =
                 GetSolveRangeTargetPosition(targetRange);
-
             yield return MovePlayerToPosition(
                 playerTransform,
                 playerRigidbody,
@@ -2359,23 +1948,19 @@ public class FireCanonManager : MonoBehaviour
                 solveRangeMoveDuration
             );
         }
-
         float finalHorizontalDistance = GetHorizontalDistanceToSelectedTarget();
         Debug.Log(
             $"[SolveRange] final horizontal distance: {finalHorizontalDistance:F2} | expected range: {targetRange:F2}"
         );
-
         if (solveRangeFireDelay > 0f)
         {
             yield return new WaitForSeconds(solveRangeFireDelay);
         }
-
         if (Fire())
         {
             Instantiate(cannonballFiredFx);
             Instantiate(cannonFireFx, cannonMuzzle.position, Quaternion.identity);
         }
-
         isSolveRangeSequenceRunning = false;
     }
 }
