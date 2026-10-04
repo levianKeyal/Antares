@@ -66,6 +66,11 @@ public class InGameAnswerKeyboard : MonoBehaviour
             return;
         }
 
+        if (fireCanonManager != null)
+        {
+            fireCanonManager.ClearAnswerInputText();
+        }
+
         FadeTo(true);
     }
 

@@ -20,6 +20,9 @@ public class EncounterUIManager : MonoBehaviour
     public RectTransform totalFlyingTimeUI;
     public RectTransform firebuttonCopyUI;
 
+    [Header("Solve Mode Elements")]
+    public RectTransform ValidationModeUI;
+
     [Header("Fungus Elements")]
     public RectTransform fungusPanel;
     public RectTransform firstMateImage;
@@ -58,7 +61,10 @@ public class EncounterUIManager : MonoBehaviour
         {
             formulaUI.anchoredPosition = new Vector2(0, -200f);
             formulaSustituidaUI.anchoredPosition = new Vector2(-70f, -400f);
-            formulaSustituidaTotalFlyingTimeUI.anchoredPosition = new Vector2(-70f, -400f);
+            if (formulaSustituidaTotalFlyingTimeUI != null)
+            {
+                formulaSustituidaTotalFlyingTimeUI.anchoredPosition = new Vector2(-70f, -400f);
+            }
             cannonDialUI.anchoredPosition = new Vector2(0, 375f);
             fungusPanel.anchoredPosition = new Vector2(-500f, 60f);
             firstMateImage.anchoredPosition = new Vector2(-317f, 724f);
@@ -70,11 +76,19 @@ public class EncounterUIManager : MonoBehaviour
             angleUI.anchoredPosition = new Vector2(-426.23f, 165f);
             velocityUI.anchoredPosition = new Vector2(-408.01f, 60.08698f);
             rangeUI.anchoredPosition = new Vector2(-408.01f, -56.17502f);
-            totalFlyingTimeUI.anchoredPosition = new Vector2(-408.01f, -55f);
+            if (totalFlyingTimeUI != null)
+            {
+                totalFlyingTimeUI.anchoredPosition = new Vector2(-408.01f, -55f);
+            }
             firebuttonCopyUI.anchoredPosition = new Vector2(0f, 43f);
 
-            //Tutorial Elements
+            //Solve Mode Elements
+            if (ValidationModeUI != null)
+            {
+                ValidationModeUI.anchoredPosition = new Vector2(0f, 85f);
+            }
 
+            //Tutorial Elements
             dialArrow.anchoredPosition = new Vector2(0f, -294f);
             velocityArrow.anchoredPosition = new Vector2(172f, -853f);
             shootArrow.anchoredPosition = new Vector2(172f, -853f);
@@ -83,7 +97,10 @@ public class EncounterUIManager : MonoBehaviour
         {
             formulaUI.anchoredPosition = new Vector2(0, -75f);
             formulaSustituidaUI.anchoredPosition = new Vector2(-70f, -250f);
-            formulaSustituidaTotalFlyingTimeUI.anchoredPosition = new Vector2(-70f, -250f);
+            if (formulaSustituidaTotalFlyingTimeUI != null)
+            {
+                formulaSustituidaTotalFlyingTimeUI.anchoredPosition = new Vector2(-70f, -250f);
+            }
             cannonDialUI.anchoredPosition = new Vector2(0, 150f);
             fungusPanel.anchoredPosition = new Vector2(-500, 0f);
             firstMateImage.anchoredPosition = new Vector2(-500f, 724f);
@@ -95,11 +112,19 @@ public class EncounterUIManager : MonoBehaviour
             angleUI.anchoredPosition = new Vector2(-841f, 306f);
             velocityUI.anchoredPosition = new Vector2(-821f, 200f);
             rangeUI.anchoredPosition = new Vector2(-821f, 85f);
-            totalFlyingTimeUI.anchoredPosition = new Vector2(-821f, 90f);
+            if (totalFlyingTimeUI != null)
+            {
+                totalFlyingTimeUI.anchoredPosition = new Vector2(-821f, 90f);
+            }
             firebuttonCopyUI.anchoredPosition = new Vector2(0f, 342f);
 
-            //Tutorial Elements
+            //Solve Mode Elements
+            if (ValidationModeUI != null)
+            {
+                ValidationModeUI.anchoredPosition = new Vector2(0f, 55f);
+            }
 
+            //Tutorial Elements
             dialArrow.anchoredPosition = new Vector2(0f, -220f);
             velocityArrow.anchoredPosition = new Vector2(-235f, -430f);
             shootArrow.anchoredPosition = new Vector2(600f, -430f);

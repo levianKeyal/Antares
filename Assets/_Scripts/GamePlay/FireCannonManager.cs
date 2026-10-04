@@ -101,6 +101,10 @@ public class FireCanonManager : MonoBehaviour
     public TMP_Text challengeTimeToMaxHeightText;
     public TMP_Text challengeMaxHeightText;
 
+    [Header("Validation Settings UI")]
+    public TMP_Text validationModeText;
+    public float validationModeColorTransitionDuration = 1.5f;
+
     [Header("Challenge Seeds")]
     [Tooltip("Angle used to generate challenge values when the mode needs a seed angle.")]
     [Range(0f, 89.9f)]
@@ -135,6 +139,7 @@ public class FireCanonManager : MonoBehaviour
     Coroutine velocityHolderFadeRoutine;
     Coroutine answerHolderFadeRoutine;
     Coroutine formulaHolderFadeRoutine;
+    Coroutine validationModeColorRoutine;
     [Header("Challenge Target")]
     [HideInInspector]
     public Vector3 challengeTargetCenter;
@@ -196,6 +201,7 @@ public class FireCanonManager : MonoBehaviour
         HideAnswerKeyboard();
         RefreshModeState(true);
         RefreshPergaminosState();
+        StartValidationModeColorEffect();
     }
     void OnValidate()
     {
@@ -211,9 +217,15 @@ public class FireCanonManager : MonoBehaviour
             return;
         }
         RefreshPergaminosState();
+        StartValidationModeColorEffect();
+    }
+    void OnDisable()
+    {
+        StopValidationModeColorEffect();
     }
     void OnDestroy()
     {
+        StopValidationModeColorEffect();
         if (cannonAimUI != null)
         {
             cannonAimUI.onAngleChanged -= HandleCannonAngleChanged;
@@ -768,6 +780,107 @@ public class FireCanonManager : MonoBehaviour
                     ? "??"
                     : challengeMaxHeight.ToString("F2") + " m";
         }
+        UpdateValidationSettingsUI();
+    }
+    void UpdateValidationSettingsUI()
+    {
+        GameSettings settings = GameSettings.Instance;
+        if (settings == null || validationModeText == null)
+        {
+            return;
+        }
+        validationModeText.text = GetValidationSettingsLabel(
+            settings.validationMode,
+            settings.decimals
+        );
+        StartValidationModeColorEffect();
+    }
+    void StartValidationModeColorEffect()
+    {
+        if (!Application.isPlaying || validationModeText == null)
+        {
+            return;
+        }
+        if (validationModeColorRoutine != null)
+        {
+            return;
+        }
+        validationModeColorRoutine =
+            StartCoroutine(ValidationModeColorPulseRoutine());
+    }
+    void StopValidationModeColorEffect()
+    {
+        if (validationModeColorRoutine == null)
+        {
+            return;
+        }
+        StopCoroutine(validationModeColorRoutine);
+        validationModeColorRoutine = null;
+    }
+    IEnumerator ValidationModeColorPulseRoutine()
+    {
+        validationModeText.color = Color.black;
+        Color startColor = Color.black;
+        Color targetColor = Color.white;
+        while (validationModeText != null)
+        {
+            float duration = Mathf.Max(
+                0.01f,
+                validationModeColorTransitionDuration
+            );
+            float elapsed = 0f;
+            while (elapsed < duration && validationModeText != null)
+            {
+                elapsed += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsed / duration);
+                validationModeText.color = Color.Lerp(
+                    startColor,
+                    targetColor,
+                    progress
+                );
+                yield return null;
+            }
+            if (validationModeText == null)
+            {
+                break;
+            }
+            validationModeText.color = targetColor;
+            Color nextStartColor = targetColor;
+            targetColor = startColor;
+            startColor = nextStartColor;
+            yield return null;
+        }
+        validationModeColorRoutine = null;
+    }
+    string GetValidationSettingsLabel(
+        ValidationMode validationMode,
+        int decimals)
+    {
+        string modeLabel = GetValidationModeLabel(validationMode);
+        if (validationMode == ValidationMode.ExactOnly)
+        {
+            return modeLabel;
+        }
+        string decimalLabel = decimals == 1
+            ? "decimal"
+            : "decimales";
+        return $"{modeLabel} a {decimals} {decimalLabel}";
+    }
+    string GetValidationModeLabel(ValidationMode validationMode)
+    {
+        switch (validationMode)
+        {
+            case ValidationMode.ExactOnly:
+                return "Exacto";
+            case ValidationMode.Truncated:
+                return "Truncado";
+            case ValidationMode.Ceil:
+                return "Redondeado";
+            case ValidationMode.All:
+                return "Cualquiera";
+            default:
+                return validationMode.ToString();
+        }
     }
     void UpdateChallengeFlightData()
     {
@@ -987,6 +1100,13 @@ public class FireCanonManager : MonoBehaviour
         }
         if (answerKeyboard == null)
         {
+            if (!CanOpenAnswerKeyboard())
+            {
+                return;
+            }
+
+            ClearAnswerInputText();
+
             if (answerKeyboardHolder != null)
             {
                 SetGameObjectActive(answerKeyboardHolder, true);

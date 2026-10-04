@@ -38,6 +38,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Scenes/TiroParabolico/SolveRange.unity
     guid: 33edcaae4d1b7e145944133440560c92
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveMaxHeight.unity
+    guid: 99c741aeab39f1249aeb2ccdc2a8a74f
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveTimeToMaxHeigth.unity
+    guid: fa9358e485120a64bb737d8a2e273a27
+  - enabled: 1
+    path: Assets/_Scenes/TiroParabolico/SolveTotalFlyingTime.unity
+    guid: f4af61310dc37e240859e036497e54bb
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

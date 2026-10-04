@@ -9,6 +9,9 @@ public class StartFlowPirates : MonoBehaviour
     [SerializeField] Button _angleScene;
     [SerializeField] Button _velocityScene;
     [SerializeField] Button _rangeScene;
+    [SerializeField] Button _totalFlyingTimeScene;
+    [SerializeField] Button _timeToMaxHeightScene;
+    [SerializeField] Button _maxHeightScene;
 
     [SerializeField] TMP_Dropdown decimalsDropdown;
     [SerializeField] TMP_Dropdown validationDropdown;
@@ -51,6 +54,9 @@ public class StartFlowPirates : MonoBehaviour
         _angleScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveAngle"); });
         _velocityScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveVelocity"); });
         _rangeScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveRange"); });
+        _totalFlyingTimeScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveTotalFlyingTime"); });
+        _timeToMaxHeightScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveTimeToMaxHeigth"); });
+        _maxHeightScene.onClick.AddListener(delegate { GameSettings.Instance.CallScene("SolveMaxHeight"); });
     }
 
     private void Start()

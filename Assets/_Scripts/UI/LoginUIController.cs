@@ -331,9 +331,16 @@ public class LoginUIController : MonoBehaviour
         }
 
         FirebaseAuthService firebaseAuthService = FirebaseAuthService.Instance;
-        FirebaseUser currentUser = firebaseAuthService != null ? firebaseAuthService.CurrentUser : null;
+        if (firebaseAuthService == null || !firebaseAuthService.IsReady)
+        {
+            ShowNeutralScreenState();
+            return;
+        }
+
+        FirebaseUser currentUser = firebaseAuthService.CurrentUser;
         if (!IsAuthenticated(currentUser))
         {
+            ShowLoginScreenImmediate();
             ShowSingleStatusMessage(SignedOutMessage);
             return;
         }
@@ -353,11 +360,11 @@ public class LoginUIController : MonoBehaviour
         if (accountAccessService == null || !accountAccessService.HasResolvedStatus)
         {
             CancelScreenTransition();
-            ReturnToLoginForRestrictedAccount();
             ShowSingleStatusMessage(ValidatingAccountMessage);
             return;
         }
 
+        bool useManualLoginTransition = signInInProgress;
         signInInProgress = false;
 
         if (!accountAccessService.CanUseApplication)
@@ -383,7 +390,7 @@ public class LoginUIController : MonoBehaviour
 
         ShowSingleStatusMessage(SuccessMessage);
         Debug.Log("[LoginUI] Authorized. Waiting for StudentData.");
-        TryStartAuthorizedSceneTransition();
+        TryStartAuthorizedSceneTransition(useManualLoginTransition);
     }
 
     private bool HasAuthenticatedUser()
@@ -460,7 +467,7 @@ public class LoginUIController : MonoBehaviour
         }
 
         screenGroupsInitialized = true;
-        ShowLoginScreenImmediate();
+        ShowNeutralScreenState();
     }
 
     private void HandleSignedOutVisualState()
@@ -475,7 +482,7 @@ public class LoginUIController : MonoBehaviour
         ShowLoginScreenImmediate();
     }
 
-    private void TryStartAuthorizedSceneTransition()
+    private void TryStartAuthorizedSceneTransition(bool useManualLoginTransition)
     {
         if (manualLoginScreenRequested || isSceneSelectionVisible || screenTransitionCoroutine != null)
         {
@@ -492,10 +499,12 @@ public class LoginUIController : MonoBehaviour
             return;
         }
 
-        screenTransitionCoroutine = StartCoroutine(WaitForAuthorizedDataAndShowScenes());
+        screenTransitionCoroutine = StartCoroutine(
+            WaitForAuthorizedDataAndShowScenes(useManualLoginTransition)
+        );
     }
 
-    private IEnumerator WaitForAuthorizedDataAndShowScenes()
+    private IEnumerator WaitForAuthorizedDataAndShowScenes(bool useManualLoginTransition)
     {
         SetCanvasGroupState(sceneCanvasGroup, 0f, false);
 
@@ -511,6 +520,19 @@ public class LoginUIController : MonoBehaviour
         }
 
         Debug.Log("[LoginUI] StudentData ready.");
+
+        if (!IsAuthorizedForSceneSelection())
+        {
+            screenTransitionCoroutine = null;
+            yield break;
+        }
+
+        if (!useManualLoginTransition)
+        {
+            ApplyFinalScreenState(showSceneSelection: true);
+            screenTransitionCoroutine = null;
+            yield break;
+        }
 
         float delay = Mathf.Max(0f, successfulLoginDelay);
         Debug.Log($"[LoginUI] Success delay started. Seconds={delay}");
@@ -624,6 +646,19 @@ public class LoginUIController : MonoBehaviour
         }
 
         ApplyFinalScreenState(showSceneSelection: false);
+    }
+
+    private void ShowNeutralScreenState()
+    {
+        if (!HasScreenGroups())
+        {
+            isSceneSelectionVisible = false;
+            return;
+        }
+
+        isSceneSelectionVisible = false;
+        SetCanvasGroupState(loginCanvasGroup, 0f, false);
+        SetCanvasGroupState(sceneCanvasGroup, 0f, false);
     }
 
     private void ApplyFinalScreenState(bool showSceneSelection)
