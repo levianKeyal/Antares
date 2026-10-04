@@ -6,5 +6,6 @@
     Angle,
     Velocity,
     TotalFlyingTime,
-    TimeToMaxHeight
+    TimeToMaxHeight,
+    MaxHeight
 }

@@ -22,6 +22,10 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
     [SerializeField] private StudentDataDefinition timeToMaxHeightAttempts;
     [SerializeField] private StudentDataDefinition timeToMaxHeightCorrectAnswers;
 
+    [Header("Max Height")]
+    [SerializeField] private StudentDataDefinition maxHeightAttempts;
+    [SerializeField] private StudentDataDefinition maxHeightCorrectAnswers;
+
     public bool RecordAnswer(StudentPerformanceCalculationType type, bool correct)
     {
         if (!StudentData.IsReady)
@@ -99,6 +103,11 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
             case StudentPerformanceCalculationType.TimeToMaxHeight:
                 attemptDefinition = timeToMaxHeightAttempts;
                 correctDefinition = timeToMaxHeightCorrectAnswers;
+                return;
+
+            case StudentPerformanceCalculationType.MaxHeight:
+                attemptDefinition = maxHeightAttempts;
+                correctDefinition = maxHeightCorrectAnswers;
                 return;
 
             default:

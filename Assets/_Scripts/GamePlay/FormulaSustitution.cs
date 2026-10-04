@@ -22,6 +22,12 @@ public class FormulaSustitution : MonoBehaviour
     public TMP_Text timeToMaxHeightInitialVelocity;
     public TMP_Text timeToMaxHeightSinAngle;
     public TMP_Text timeToMaxHeightGravity;
+
+    [Header("Max Height Formula")]
+    public TMP_Text maxHeightResult;
+    public TMP_Text maxHeightInitialVelocity;
+    public TMP_Text maxHeightSinAngle;
+    public TMP_Text maxHeightGravity;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -74,6 +80,11 @@ public class FormulaSustitution : MonoBehaviour
         if (fManager.physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth)
         {
             UpdateTimeToMaxHeightFormulaValues();
+        }
+
+        if (fManager.physicsMode == CannonPhysicsMode.SolveMaxHeight)
+        {
+            UpdateMaxHeightFormulaValues();
         }
     }
 
@@ -129,6 +140,32 @@ public class FormulaSustitution : MonoBehaviour
         }
     }
 
+    void UpdateMaxHeightFormulaValues()
+    {
+        if (maxHeightResult != null)
+        {
+            maxHeightResult.text = "h<sub>max</sub>";
+        }
+
+        if (maxHeightInitialVelocity != null)
+        {
+            maxHeightInitialVelocity.text =
+                FormatFloat(fManager.challengeInitialVelocity);
+        }
+
+        if (maxHeightSinAngle != null)
+        {
+            maxHeightSinAngle.text =
+                FormatFloat(CalculateMaxHeightSinAngle());
+        }
+
+        if (maxHeightGravity != null)
+        {
+            maxHeightGravity.text =
+                FormatFloat(fManager.gravity);
+        }
+    }
+
     float VoSquare()
     {
         if (fManager == null)
@@ -178,6 +215,20 @@ public class FormulaSustitution : MonoBehaviour
 
         float angleRadians =
             fManager.challengeAngle *
+            Mathf.Deg2Rad;
+
+        return Mathf.Sin(angleRadians);
+    }
+
+    float CalculateMaxHeightSinAngle()
+    {
+        if (fManager == null)
+        {
+            return 0f;
+        }
+
+        float angleRadians =
+            Mathf.Abs(fManager.challengeAngle) *
             Mathf.Deg2Rad;
 
         return Mathf.Sin(angleRadians);

@@ -4,5 +4,6 @@ public enum StudentPerformanceCalculationType
     Angle,
     Velocity,
     TotalFlyingTime,
-    TimeToMaxHeight
+    TimeToMaxHeight,
+    MaxHeight
 }

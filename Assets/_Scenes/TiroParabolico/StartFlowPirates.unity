@@ -74201,6 +74201,7 @@ MonoBehaviour:
   velocityPlayTimeSeconds: {fileID: 11400000, guid: c075fbfe247b40b4a5f1e488a42416e7, type: 2}
   totalFlyingTimePlayTimeSeconds: {fileID: 11400000, guid: 11f89c8715a746779e32c00a6a51f440, type: 2}
   timeToMaxHeightPlayTimeSeconds: {fileID: 11400000, guid: 536ed9ceaff5dea4bac31fa2bf806810, type: 2}
+  maxHeightPlayTimeSeconds: {fileID: 11400000, guid: c72fb70c576b9974ba0ac340fbdfd541, type: 2}
 --- !u!1 &874406633
 GameObject:
   m_ObjectHideFlags: 0
