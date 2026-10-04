@@ -16,6 +16,12 @@ public class FormulaSustitution : MonoBehaviour
     public TMP_Text totalFlyingTimeInitialVelocity;
     public TMP_Text totalFlyingTimeSinAngle;
     public TMP_Text totalFlyingTimeGravity;
+
+    [Header("Time To Max Height Formula")]
+    public TMP_Text timeToMaxHeightResult;
+    public TMP_Text timeToMaxHeightInitialVelocity;
+    public TMP_Text timeToMaxHeightSinAngle;
+    public TMP_Text timeToMaxHeightGravity;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -64,6 +70,11 @@ public class FormulaSustitution : MonoBehaviour
         {
             UpdateTotalFlyingTimeFormulaValues();
         }
+
+        if (fManager.physicsMode == CannonPhysicsMode.SolveTimeToMaxHeigth)
+        {
+            UpdateTimeToMaxHeightFormulaValues();
+        }
     }
 
     void UpdateTotalFlyingTimeFormulaValues()
@@ -88,6 +99,32 @@ public class FormulaSustitution : MonoBehaviour
         if (totalFlyingTimeGravity != null)
         {
             totalFlyingTimeGravity.text =
+                FormatFloat(fManager.gravity);
+        }
+    }
+
+    void UpdateTimeToMaxHeightFormulaValues()
+    {
+        if (timeToMaxHeightResult != null)
+        {
+            timeToMaxHeightResult.text = "t<sub>hmax</sub>";
+        }
+
+        if (timeToMaxHeightInitialVelocity != null)
+        {
+            timeToMaxHeightInitialVelocity.text =
+                FormatFloat(fManager.challengeInitialVelocity);
+        }
+
+        if (timeToMaxHeightSinAngle != null)
+        {
+            timeToMaxHeightSinAngle.text =
+                FormatFloat(CalculateTimeToMaxHeightSinAngle());
+        }
+
+        if (timeToMaxHeightGravity != null)
+        {
+            timeToMaxHeightGravity.text =
                 FormatFloat(fManager.gravity);
         }
     }
@@ -119,6 +156,20 @@ public class FormulaSustitution : MonoBehaviour
     }
 
     float CalculateTotalFlyingTimeSinAngle()
+    {
+        if (fManager == null)
+        {
+            return 0f;
+        }
+
+        float angleRadians =
+            fManager.challengeAngle *
+            Mathf.Deg2Rad;
+
+        return Mathf.Sin(angleRadians);
+    }
+
+    float CalculateTimeToMaxHeightSinAngle()
     {
         if (fManager == null)
         {

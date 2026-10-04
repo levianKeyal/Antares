@@ -11,6 +11,7 @@ public class StudentUsageTracker : MonoBehaviour
     private const string SolveAngleSceneName = "SolveAngle";
     private const string SolveVelocitySceneName = "SolveVelocity";
     private const string SolveTotalFlyingTimeSceneName = "SolveTotalFlyingTime";
+    private const string SolveTimeToMaxHeigthSceneName = "SolveTimeToMaxHeigth";
 
     [SerializeField] private StudentDataDefinition totalPlayTimeSeconds;
     [SerializeField] private StudentDataDefinition tutorialPlayTimeSeconds;
@@ -18,6 +19,7 @@ public class StudentUsageTracker : MonoBehaviour
     [SerializeField] private StudentDataDefinition anglePlayTimeSeconds;
     [SerializeField] private StudentDataDefinition velocityPlayTimeSeconds;
     [SerializeField] private StudentDataDefinition totalFlyingTimePlayTimeSeconds;
+    [SerializeField] private StudentDataDefinition timeToMaxHeightPlayTimeSeconds;
 
     public static StudentUsageTracker Instance { get; private set; }
 
@@ -138,6 +140,8 @@ public class StudentUsageTracker : MonoBehaviour
                 return StudentUsageActivityType.Velocity;
             case SolveTotalFlyingTimeSceneName:
                 return StudentUsageActivityType.TotalFlyingTime;
+            case SolveTimeToMaxHeigthSceneName:
+                return StudentUsageActivityType.TimeToMaxHeight;
             default:
                 return StudentUsageActivityType.None;
         }
@@ -228,6 +232,8 @@ public class StudentUsageTracker : MonoBehaviour
                 return velocityPlayTimeSeconds;
             case StudentUsageActivityType.TotalFlyingTime:
                 return totalFlyingTimePlayTimeSeconds;
+            case StudentUsageActivityType.TimeToMaxHeight:
+                return timeToMaxHeightPlayTimeSeconds;
             case StudentUsageActivityType.None:
             default:
                 return null;

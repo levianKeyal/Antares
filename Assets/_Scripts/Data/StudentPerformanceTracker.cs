@@ -18,6 +18,10 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
     [SerializeField] private StudentDataDefinition totalFlyingTimeAttempts;
     [SerializeField] private StudentDataDefinition totalFlyingTimeCorrectAnswers;
 
+    [Header("Time To Max Height")]
+    [SerializeField] private StudentDataDefinition timeToMaxHeightAttempts;
+    [SerializeField] private StudentDataDefinition timeToMaxHeightCorrectAnswers;
+
     public bool RecordAnswer(StudentPerformanceCalculationType type, bool correct)
     {
         if (!StudentData.IsReady)
@@ -90,6 +94,11 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
             case StudentPerformanceCalculationType.TotalFlyingTime:
                 attemptDefinition = totalFlyingTimeAttempts;
                 correctDefinition = totalFlyingTimeCorrectAnswers;
+                return;
+
+            case StudentPerformanceCalculationType.TimeToMaxHeight:
+                attemptDefinition = timeToMaxHeightAttempts;
+                correctDefinition = timeToMaxHeightCorrectAnswers;
                 return;
 
             default:
