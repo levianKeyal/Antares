@@ -10,6 +10,12 @@ public class FormulaSustitution : MonoBehaviour
     public TMP_Text Vo;
     public TMP_Text angle;
     public TMP_Text gravity;
+
+    [Header("Total Flying Time Formula")]
+    public TMP_Text totalFlyingTimeResult;
+    public TMP_Text totalFlyingTimeInitialVelocity;
+    public TMP_Text totalFlyingTimeSinAngle;
+    public TMP_Text totalFlyingTimeGravity;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -53,6 +59,37 @@ public class FormulaSustitution : MonoBehaviour
         {
             range.text = FormatFloat(Range());
         }
+
+        if (fManager.physicsMode == CannonPhysicsMode.SolveTotalFlyingTime)
+        {
+            UpdateTotalFlyingTimeFormulaValues();
+        }
+    }
+
+    void UpdateTotalFlyingTimeFormulaValues()
+    {
+        if (totalFlyingTimeResult != null)
+        {
+            totalFlyingTimeResult.text = "T";
+        }
+
+        if (totalFlyingTimeInitialVelocity != null)
+        {
+            totalFlyingTimeInitialVelocity.text =
+                FormatFloat(fManager.challengeInitialVelocity);
+        }
+
+        if (totalFlyingTimeSinAngle != null)
+        {
+            totalFlyingTimeSinAngle.text =
+                FormatFloat(CalculateTotalFlyingTimeSinAngle());
+        }
+
+        if (totalFlyingTimeGravity != null)
+        {
+            totalFlyingTimeGravity.text =
+                FormatFloat(fManager.gravity);
+        }
     }
 
     float VoSquare()
@@ -79,6 +116,20 @@ public class FormulaSustitution : MonoBehaviour
         float sinDoubleAngle = Mathf.Sin(2f * angleRadians);
 
         return sinDoubleAngle;
+    }
+
+    float CalculateTotalFlyingTimeSinAngle()
+    {
+        if (fManager == null)
+        {
+            return 0f;
+        }
+
+        float angleRadians =
+            fManager.challengeAngle *
+            Mathf.Deg2Rad;
+
+        return Mathf.Sin(angleRadians);
     }
 
     float Range()
@@ -144,7 +195,7 @@ public class FormulaSustitution : MonoBehaviour
         }
 
         // ====================================
-        // CEIL / APPROX
+        // CEIL
         // ====================================
 
         if (
@@ -152,14 +203,20 @@ public class FormulaSustitution : MonoBehaviour
             ValidationMode.Ceil
         )
         {
-            float rounded =
-                (float)System.Math.Round(
-                    value,
-                    decimals
-                );
+            float factor =
+                Mathf.Pow(10, decimals);
+
+            float ceil =
+                value >= 0f
+                    ? (float)System.Math.Ceiling(
+                        value * factor
+                    ) / factor
+                    : (float)System.Math.Floor(
+                        value * factor
+                    ) / factor;
 
             return RemoveTrailingZeros(
-                rounded,
+                ceil,
                 decimals
             );
         }

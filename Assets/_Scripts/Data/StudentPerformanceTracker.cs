@@ -14,6 +14,10 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
     [SerializeField] private StudentDataDefinition velocityAttempts;
     [SerializeField] private StudentDataDefinition velocityCorrectAnswers;
 
+    [Header("Total Flying Time")]
+    [SerializeField] private StudentDataDefinition totalFlyingTimeAttempts;
+    [SerializeField] private StudentDataDefinition totalFlyingTimeCorrectAnswers;
+
     public bool RecordAnswer(StudentPerformanceCalculationType type, bool correct)
     {
         if (!StudentData.IsReady)
@@ -81,6 +85,11 @@ public sealed class StudentPerformanceTracker : MonoBehaviour
             case StudentPerformanceCalculationType.Velocity:
                 attemptDefinition = velocityAttempts;
                 correctDefinition = velocityCorrectAnswers;
+                return;
+
+            case StudentPerformanceCalculationType.TotalFlyingTime:
+                attemptDefinition = totalFlyingTimeAttempts;
+                correctDefinition = totalFlyingTimeCorrectAnswers;
                 return;
 
             default:

@@ -10,12 +10,14 @@ public class StudentUsageTracker : MonoBehaviour
     private const string SolveRangeSceneName = "SolveRange";
     private const string SolveAngleSceneName = "SolveAngle";
     private const string SolveVelocitySceneName = "SolveVelocity";
+    private const string SolveTotalFlyingTimeSceneName = "SolveTotalFlyingTime";
 
     [SerializeField] private StudentDataDefinition totalPlayTimeSeconds;
     [SerializeField] private StudentDataDefinition tutorialPlayTimeSeconds;
     [SerializeField] private StudentDataDefinition rangePlayTimeSeconds;
     [SerializeField] private StudentDataDefinition anglePlayTimeSeconds;
     [SerializeField] private StudentDataDefinition velocityPlayTimeSeconds;
+    [SerializeField] private StudentDataDefinition totalFlyingTimePlayTimeSeconds;
 
     public static StudentUsageTracker Instance { get; private set; }
 
@@ -134,6 +136,8 @@ public class StudentUsageTracker : MonoBehaviour
                 return StudentUsageActivityType.Angle;
             case SolveVelocitySceneName:
                 return StudentUsageActivityType.Velocity;
+            case SolveTotalFlyingTimeSceneName:
+                return StudentUsageActivityType.TotalFlyingTime;
             default:
                 return StudentUsageActivityType.None;
         }
@@ -222,6 +226,8 @@ public class StudentUsageTracker : MonoBehaviour
                 return anglePlayTimeSeconds;
             case StudentUsageActivityType.Velocity:
                 return velocityPlayTimeSeconds;
+            case StudentUsageActivityType.TotalFlyingTime:
+                return totalFlyingTimePlayTimeSeconds;
             case StudentUsageActivityType.None:
             default:
                 return null;

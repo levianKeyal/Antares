@@ -4,5 +4,6 @@
     Tutorial,
     Range,
     Angle,
-    Velocity
+    Velocity,
+    TotalFlyingTime
 }

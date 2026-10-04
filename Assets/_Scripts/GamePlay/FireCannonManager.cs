@@ -1618,8 +1618,10 @@ public class FireCanonManager : MonoBehaviour
             case CannonPhysicsMode.SolveInitialVelocity:
                 type = StudentPerformanceCalculationType.Velocity;
                 return true;
-            case CannonPhysicsMode.Tutorial:
             case CannonPhysicsMode.SolveTotalFlyingTime:
+                type = StudentPerformanceCalculationType.TotalFlyingTime;
+                return true;
+            case CannonPhysicsMode.Tutorial:
             case CannonPhysicsMode.SolveTimeToMaxHeigth:
             case CannonPhysicsMode.SolveMaxHeight:
             default:
